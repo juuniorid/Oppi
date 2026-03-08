@@ -16,7 +16,7 @@ export default function GroupPage() {
   useEffect(() => {
     // Assume groupId is 1 for demo
     apiCall('/children/group/1').then((data) => setChildren(data));
-  }, []);
+  }, [apiCall]);
 
   return (
     <div>

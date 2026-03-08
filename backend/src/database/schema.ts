@@ -74,34 +74,34 @@ export type ParentToChild = InferSelectModel<typeof parentsToChildren>;
 export type NewParentToChild = InferInsertModel<typeof parentsToChildren>;
 
 // Relations
-export const usersRelations = relations(users, ({ many }: any) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   sentMessages: many(messages, { relationName: 'sender' }),
   receivedMessages: many(messages, { relationName: 'recipient' }),
   parentRelations: many(parentsToChildren, { relationName: 'parent' }),
 }));
 
-export const groupsRelations = relations(groups, ({ many }: any) => ({
+export const groupsRelations = relations(groups, ({ many }) => ({
   children: many(children),
   posts: many(posts),
 }));
 
-export const childrenRelations = relations(children, ({ one, many }: any) => ({
+export const childrenRelations = relations(children, ({ one, many }) => ({
   group: one(groups, { fields: [children.groupId], references: [groups.id] }),
   parentRelations: many(parentsToChildren, { relationName: 'child' }),
 }));
 
-export const postsRelations = relations(posts, ({ one }: any) => ({
+export const postsRelations = relations(posts, ({ one }) => ({
   author: one(users, { fields: [posts.authorId], references: [users.id] }),
   group: one(groups, { fields: [posts.groupId], references: [groups.id] }),
 }));
 
-export const messagesRelations = relations(messages, ({ one }: any) => ({
+export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, { fields: [messages.senderId], references: [users.id], relationName: 'sender' }),
   recipient: one(users, { fields: [messages.recipientId], references: [users.id], relationName: 'recipient' }),
 }));
 
-export const parentsToChildrenRelations = relations(parentsToChildren, ({ one }: any) => ({
+export const parentsToChildrenRelations = relations(parentsToChildren, ({ one }) => ({
   parent: one(users, { fields: [parentsToChildren.parentId], references: [users.id], relationName: 'parent' }),
   child: one(children, { fields: [parentsToChildren.childId], references: [children.id], relationName: 'child' }),
 }));

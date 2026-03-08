@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../src/auth/auth.controller';
 import { AuthService } from '../../src/auth/auth.service';
 import { User } from 'database/schema';
+import { Request } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: AuthService;
 
   const mockUser: User = {
     id: 1,
@@ -31,7 +31,6 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
   });
 
   it('should be defined', () => {
@@ -40,7 +39,7 @@ describe('AuthController', () => {
 
   describe('getProfile', () => {
     it('should return user from request', async () => {
-      const mockRequest = { user: mockUser } as any;
+      const mockRequest = { user: mockUser } as unknown as Request;
 
       const result = await controller.getProfile(mockRequest);
 

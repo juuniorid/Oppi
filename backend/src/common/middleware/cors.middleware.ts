@@ -6,7 +6,7 @@ import { Logger } from 'nestjs-pino';
 export class CorsMiddleware {
   constructor(private logger: Logger) {}
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: Request, res: Response, next: NextFunction): void {
     res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');

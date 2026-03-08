@@ -29,4 +29,6 @@ class PostService {
   }
 }
 
-export default new PostService();
+const postService = new PostService();
+
+export default postService;

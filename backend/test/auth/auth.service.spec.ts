@@ -9,7 +9,7 @@ jest.mock('database/db');
 describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
-  let mockDb: any;
+  let mockDb: { select: jest.Mock; insert: jest.Mock };
 
   const mockUser: User = {
     id: 1,
@@ -36,7 +36,7 @@ describe('AuthService', () => {
       }),
     };
 
-    (database as any).db = mockDb;
+    (database as unknown as { db: { select: jest.Mock; insert: jest.Mock } }).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

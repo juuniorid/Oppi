@@ -11,21 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2
         with:
-          node-version: 20
-      - run: cd backend && pnpm install
-      - run: cd backend && npm run lint
-      - run: cd backend && npm run build
-      - run: cd backend && npm run test:all
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: cd backend && pnpm install --frozen-lockfile
+      - run: cd backend && pnpm run lint
+      - run: cd backend && pnpm run build
+      - run: cd backend && pnpm run test:all
 
   frontend-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2
         with:
-          node-version: 18
-      - run: cd frontend && npm install
-      - run: cd frontend && npm run lint
-      - run: cd frontend && npm run build
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: cd frontend && pnpm install --frozen-lockfile
+      - run: cd frontend && pnpm run lint
+      - run: cd frontend && pnpm run build

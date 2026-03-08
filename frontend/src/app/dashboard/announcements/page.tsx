@@ -17,7 +17,7 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     // Assume groupId is 1 for demo
     apiCall('/posts/group/1').then((data) => setPosts(data));
-  }, []);
+  }, [apiCall]);
 
   return (
     <div>

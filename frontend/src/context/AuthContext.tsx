@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, ReactNode, useCallback, useEffect, useState } from 'react';
 import { User } from '@/types';
 import authService from '@/services/auth.service';
 
@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refetchUser = async () => {
+  const refetchUser = useCallback(async () => {
     try {
       const profile = await authService.getProfile();
       setUser(profile);
@@ -25,11 +25,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Failed to fetch user:', error);
       setUser(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    refetchUser().finally(() => setLoading(false));
-  }, []);
+    let isActive = true;
+
+    const initUser = async () => {
+      await refetchUser();
+      if (isActive) {
+        setLoading(false);
+      }
+    };
+
+    // Defer startup fetch so state updates are not synchronous to the effect body.
+    const timer = setTimeout(() => {
+      void initUser();
+    }, 0);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
+  }, [refetchUser]);
 
   const logout = () => {
     authService.logout();

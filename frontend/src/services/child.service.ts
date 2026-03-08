@@ -11,4 +11,6 @@ class ChildService {
   }
 }
 
-export default new ChildService();
+const childService = new ChildService();
+
+export default childService;

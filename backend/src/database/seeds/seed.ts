@@ -3,7 +3,7 @@ import { users, groups, children, parentsToChildren } from '../schema';
 
 async function seed(): Promise<void> {
   try {
-    console.log('🌱 Starting database seed...');
+    console.warn('🌱 Starting database seed...');
 
     // Insert groups
     const insertedGroups = await db.insert(groups).values([
@@ -11,7 +11,7 @@ async function seed(): Promise<void> {
       { name: 'Butterflies', kindergartenName: 'Sunshine Kindergarten' },
     ]).returning();
 
-    console.log(`✅ Inserted ${insertedGroups.length} groups`);
+    console.warn(`✅ Inserted ${insertedGroups.length} groups`);
 
     // Insert users (teachers and parents)
     const insertedUsers = await db.insert(users).values([
@@ -38,7 +38,7 @@ async function seed(): Promise<void> {
       },
     ]).returning();
 
-    console.log(`✅ Inserted ${insertedUsers.length} users`);
+    console.warn(`✅ Inserted ${insertedUsers.length} users`);
 
     // Insert children
     const insertedChildren = await db.insert(children).values([
@@ -59,7 +59,7 @@ async function seed(): Promise<void> {
       },
     ]).returning();
 
-    console.log(`✅ Inserted ${insertedChildren.length} children`);
+    console.warn(`✅ Inserted ${insertedChildren.length} children`);
 
     // Link parents to children
     await db.insert(parentsToChildren).values([
@@ -67,8 +67,8 @@ async function seed(): Promise<void> {
       { parentId: insertedUsers[2]!.id, childId: insertedChildren[0]!.id },
     ]);
 
-    console.log('✅ Linked parents to children');
-    console.log('🌱 Seed completed successfully!');
+    console.warn('✅ Linked parents to children');
+    console.warn('🌱 Seed completed successfully!');
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;

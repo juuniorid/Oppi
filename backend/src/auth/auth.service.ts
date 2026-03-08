@@ -2,15 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
 import { db } from 'database/db';
-import { users, User, NewUser } from 'database/schema';
+import { users, User } from 'database/schema';
 import { JwtPayload } from '../common/dto/jwt.payload';
+
+interface OAuthUser {
+  email: string;
+  name: string;
+  googleId: string;
+}
 
 @Injectable()
 export class AuthService {
   constructor(private jwtService: JwtService) {}
 
-  async validateOAuthLogin(user: any): Promise<User> {
-    let existingUser = await db.select().from(users).where(eq(users.googleId, user.googleId)).limit(1);
+  async validateOAuthLogin(user: OAuthUser): Promise<User> {
+    const existingUser = await db.select().from(users).where(eq(users.googleId, user.googleId)).limit(1);
     if (existingUser.length === 0) {
       // For demo, assign role based on email or something, but here default to PARENT
       const newUser = await db.insert(users).values({

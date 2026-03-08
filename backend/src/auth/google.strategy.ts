@@ -4,6 +4,15 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { AuthService } from './auth.service';
 import { appConfig } from 'src/config';
 
+interface GoogleProfile {
+  id: string;
+  emails: Array<{ value: string }>;
+  name: {
+    givenName: string;
+    familyName: string;
+  };
+}
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private authService: AuthService) {
@@ -15,7 +24,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: GoogleProfile,
+    done: VerifyCallback,
+  ): Promise<void> {
     const { name, emails, id } = profile;
     const user = {
       email: emails[0].value,

@@ -7,7 +7,7 @@ jest.mock('database/db');
 
 describe('ChildrenService', () => {
   let service: ChildrenService;
-  let mockDb: any;
+  let mockDb: { select: jest.Mock };
 
   const mockChildren: Child[] = [
     { id: 1, groupId: 1, firstName: 'John', lastName: 'Doe' },
@@ -23,7 +23,7 @@ describe('ChildrenService', () => {
       }),
     };
 
-    (database as any).db = mockDb;
+    (database as unknown as { db: { select: jest.Mock } }).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [ChildrenService],

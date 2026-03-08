@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostsController } from '../../src/posts/posts.controller';
 import { PostsService } from '../../src/posts/posts.service';
 import { Post, User } from 'database/schema';
+import { Request } from 'express';
 
 describe('PostsController', () => {
   let controller: PostsController;
@@ -73,7 +74,7 @@ describe('PostsController', () => {
         content: 'This is a test post',
         groupId: 1,
       };
-      const mockRequest = { user: mockUser } as any;
+      const mockRequest = { user: mockUser } as Request & { user?: User };
 
       const result = await controller.create(createPostDto, mockRequest);
 

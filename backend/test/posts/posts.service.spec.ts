@@ -7,7 +7,7 @@ jest.mock('database/db');
 
 describe('PostsService', () => {
   let service: PostsService;
-  let mockDb: any;
+  let mockDb: { insert: jest.Mock; select: jest.Mock };
 
   const mockPost: Post = {
     id: 1,
@@ -51,7 +51,7 @@ describe('PostsService', () => {
       }),
     };
 
-    (database as any).db = mockDb;
+    (database as unknown as { db: { insert: jest.Mock; select: jest.Mock } }).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [PostsService],

@@ -4,7 +4,7 @@ import { GlobalExceptionFilter } from './common/filters';
 import { Logger } from 'nestjs-pino';
 import { appConfig } from './config/app.config';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   try {
     const app = await NestFactory.create(AppModule, { logger: false });
     app.useLogger(app.get(Logger));

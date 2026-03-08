@@ -2,9 +2,9 @@ import { db, client } from './db';
 
 export async function initializeDatabase(): Promise<void> {
   try {
-    console.log('Testing database connection...');
-    const result = await db.execute(`SELECT 1 as id`);
-    console.log('✅ Database connection successful');
+    console.warn('Testing database connection...');
+    await db.execute(`SELECT 1 as id`);
+    console.warn('✅ Database connection successful');
     return;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
