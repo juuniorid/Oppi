@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+echo "Installing dependencies..."
+npm install --workspaces
+
+echo "Building backend..."
+cd backend
+npm run build
+
+echo "Building frontend..."
+cd ../frontend
+npm run build
+
+echo "✅ Build complete!"
