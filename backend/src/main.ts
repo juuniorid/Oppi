@@ -17,7 +17,7 @@ async function bootstrap(): Promise<void> {
     app.useGlobalFilters(new GlobalExceptionFilter());
 
     app.enableCors({
-      origin: appConfig.app.frontendUrl,
+      origin: [appConfig.app.frontendUrl, 'http://localhost:3001'], // Add API origin for Swagger
       credentials: true,
     });
 
