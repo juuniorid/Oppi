@@ -1,0 +1,24 @@
+#!/bin/sh
+# pre-commit hook: every backend/src/*.controller.ts and *.service.ts
+# must have a matching backend/test/**/*.spec.ts at the same relative path.
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+MISSING=0
+
+for src_file in $(find "$REPO_ROOT/backend/src" -name "*.controller.ts" -o -name "*.service.ts" 2>/dev/null); do
+  rel=$(echo "$src_file" | sed "s|$REPO_ROOT/backend/src/||")
+  base="${rel%.ts}"
+  test_file="$REPO_ROOT/backend/test/${base}.spec.ts"
+
+  if [ ! -f "$test_file" ]; then
+    echo "  MISSING TEST: backend/test/${base}.spec.ts"
+    echo "    (required by: backend/src/${rel})"
+    MISSING=1
+  fi
+done
+
+if [ "$MISSING" -eq 1 ]; then
+  echo ""
+  echo "Commit blocked: create the missing test files listed above."
+  exit 1
+fi
