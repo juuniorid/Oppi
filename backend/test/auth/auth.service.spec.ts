@@ -9,7 +9,7 @@ jest.mock('database/db');
 describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
-  let mockDb: { select: jest.Mock; insert: jest.Mock };
+  let mockDb: { select: jest.Mock; insert: jest.Mock; update: jest.Mock };
 
   const mockUser: User = {
     id: 1,
@@ -20,7 +20,7 @@ describe('AuthService', () => {
     phone: null,
   };
 
-  beforeEach(async () => {
+ beforeEach(async () => {
     mockDb = {
       select: jest.fn().mockReturnValue({
         from: jest.fn().mockReturnValue({
@@ -34,9 +34,16 @@ describe('AuthService', () => {
           returning: jest.fn().mockResolvedValue([mockUser]),
         }),
       }),
+      update: jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            returning: jest.fn().mockResolvedValue([mockUser]),
+          }),
+        }),
+      }),
     };
-
-    (database as unknown as { db: { select: jest.Mock; insert: jest.Mock } }).db = mockDb;
+    // This cast is safer than 'any'
+    (database as unknown as Record<string, unknown>).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -63,35 +70,51 @@ describe('AuthService', () => {
   });
 
   describe('validateOAuthLogin', () => {
-    it('should return existing user if already registered', async () => {
+    it('should return existing user if already registered with googleId', async () => {
       const oauthUser = {
         email: 'test@example.com',
         name: 'Test User',
         googleId: 'google_123',
       };
-
       const result = await service.validateOAuthLogin(oauthUser);
-
       expect(mockDb.select).toHaveBeenCalled();
       expect(result).toEqual(mockUser);
     });
-
-    it('should create and return new user if not registered', async () => {
+    it('should throw UnauthorizedException if email is not invited', async () => {
+      // Simulate empty database hit (no user with this email)
       mockDb.select().from().where().limit.mockResolvedValueOnce([]);
-
-      const newOauthUser = {
-        email: 'newuser@example.com',
-        name: 'New User',
-        googleId: 'google_456',
+      const strangersOauthUser = {
+        email: 'stranger@example.com',
+        name: 'Stranger',
+        googleId: 'google_789',
       };
-
-      const result = await service.validateOAuthLogin(newOauthUser);
-
-      expect(mockDb.insert).toHaveBeenCalled();
-      expect(result).toEqual(mockUser);
+      await expect(service.validateOAuthLogin(strangersOauthUser)).rejects.toThrow(
+        'You are not invited to this platform. Please contact an administrator.'
+      );
     });
+    it('should link googleId and return user if email is invited but googleId is missing', async () => {
+      // User exists in DB but googleId is null
+      const invitedUser = { ...mockUser, googleId: null };
+      mockDb.select().from().where().limit.mockResolvedValueOnce([invitedUser]);
+      
+      mockDb.update.mockReturnValueOnce({
+    set: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnValue({
+        returning: jest.fn().mockResolvedValue([{ ...mockUser, googleId: 'google_123' }]),
+      }),
+    }),
   });
-
+  const oauthUser = {
+    email: 'test@example.com',
+    name: 'Test User',
+    googleId: 'google_123',
+  };
+  const result = await service.validateOAuthLogin(oauthUser);
+  expect(mockDb.update).toHaveBeenCalled();
+  expect(result.googleId).toBe('google_123');
+});
+  });
+  
   describe('login', () => {
     it('should return a jwt token', async () => {
       const token = await service.login(mockUser);

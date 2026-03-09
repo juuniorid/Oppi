@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
-import { db } from 'database/db';
-import { users, User } from 'database/schema';
+import { db } from '../database/db'; // Ensure correct relative path
+import { users, User } from '../database/schema'; // Ensure correct relative path
 import { JwtPayload } from '../common/dto/jwt.payload';
 
 interface OAuthUser {
@@ -16,22 +16,41 @@ export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   async validateOAuthLogin(user: OAuthUser): Promise<User> {
-    const existingUser = await db.select().from(users).where(eq(users.googleId, user.googleId)).limit(1);
-    if (existingUser.length === 0) {
-      // For demo, assign role based on email or something, but here default to PARENT
-      const newUser = await db.insert(users).values({
-        email: user.email,
-        name: user.name,
-        googleId: user.googleId,
-        role: 'PARENT', // TODO: determine role
-      }).returning();
-      return newUser[0];
+    // 1. Search by email first (the whitelist)
+    const existingUsers = await db.select().from(users).where(eq(users.email, user.email)).limit(1);
+    
+    if (existingUsers.length === 0) {
+      // User is not pre-registered/invited
+      throw new UnauthorizedException('You are not invited to this platform. Please contact an administrator.');
     }
-    return existingUser[0];
+
+    const dbUser = existingUsers[0];
+
+    // 2. Link googleId if it's missing (claiming the invite)
+    if (!dbUser.googleId) {
+      const updatedUser = await db
+        .update(users)
+        .set({ googleId: user.googleId })
+        .where(eq(users.id, dbUser.id))
+        .returning();
+      return updatedUser[0];
+    }
+
+    // 3. Ensure the googleId matches if it was already linked
+    if (dbUser.googleId !== user.googleId) {
+      throw new UnauthorizedException('This email is already linked to a different Google account.');
+    }
+
+    return dbUser;
   }
 
   async login(user: User): Promise<string> {
-    const payload: JwtPayload = { email: user.email, sub: user.id, role: user.role };
+    // Include the role and sub in the payload for RBAC
+    const payload: JwtPayload = { 
+      email: user.email, 
+      sub: user.id, 
+      role: user.role 
+    };
     return this.jwtService.sign(payload);
   }
 }
