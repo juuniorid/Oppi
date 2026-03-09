@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config/app.config';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,8 +23,16 @@ export class AuthController {
     res.redirect(`${appConfig.app.frontendUrl}/dashboard`);
   }
 
+  @Get('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Res() res: Response): Promise<void> {
+    res.clearCookie('jwt');
+    res.redirect(`${appConfig.app.frontendUrl}/login`);
+  }
+
   @Get('me')
-  async getProfile(@Req() req: Request): Promise<User | undefined> {
-    return req.user as User | undefined;
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req: Request): Promise<User> {
+    return req.user as User;
   }
 }
