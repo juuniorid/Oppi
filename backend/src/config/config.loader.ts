@@ -19,6 +19,13 @@ export interface AppConfig {
   database: {
     url: string;
   };
+  mail: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+  };
 }
 
 function loadConfig(): AppConfig {
