@@ -17,6 +17,16 @@ process and guidelines for contributing.
 
 See [README.md](./README.md) for local development instructions.
 
+### Git hooks (one-time setup)
+
+Run this once after cloning the repo to activate the pre-commit hook:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook enforces that every `backend/src/**/*.controller.ts` and `*.service.ts` has a matching `backend/test/**/*.spec.ts`. Commits are blocked until the missing test file is created.
+
 ## Code Style
 
 - Follow the style enforced by Prettier and ESLint
