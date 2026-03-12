@@ -10,15 +10,33 @@ describe('ChildrenService', () => {
   let mockDb: { select: jest.Mock };
 
   const mockChildren: Child[] = [
-    { id: 1, groupId: 1, firstName: 'John', lastName: 'Doe' },
-    { id: 2, groupId: 1, firstName: 'Jane', lastName: 'Smith' },
+    {
+      id: 1,
+      firstName: 'John',
+      lastName: 'Doe',
+      dateOfBirth: null,
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      firstName: 'Jane',
+      lastName: 'Smith',
+      dateOfBirth: null,
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
 
   beforeEach(async () => {
     mockDb = {
       select: jest.fn().mockReturnValue({
         from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(mockChildren),
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue(mockChildren),
+          }),
         }),
       }),
     };
@@ -49,7 +67,7 @@ describe('ChildrenService', () => {
     });
 
     it('should return empty array when no children found', async () => {
-      mockDb.select().from().where.mockResolvedValueOnce([]);
+      mockDb.select().from().innerJoin().where.mockResolvedValueOnce([]);
 
       const result = await service.findByGroup(99);
 

@@ -14,10 +14,13 @@ describe('AuthService', () => {
   const mockUser: User = {
     id: 1,
     email: 'test@example.com',
-    name: 'Test User',
+    firstName: 'Test',
+    lastName: 'User',
     googleId: 'google_123',
     role: 'PARENT',
     phone: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -36,7 +39,9 @@ describe('AuthService', () => {
       }),
     };
 
-    (database as unknown as { db: { select: jest.Mock; insert: jest.Mock } }).db = mockDb;
+    (
+      database as unknown as { db: { select: jest.Mock; insert: jest.Mock } }
+    ).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,7 +71,6 @@ describe('AuthService', () => {
     it('should return existing user if already registered', async () => {
       const oauthUser = {
         email: 'test@example.com',
-        name: 'Test User',
         googleId: 'google_123',
       };
 
@@ -81,7 +85,6 @@ describe('AuthService', () => {
 
       const newOauthUser = {
         email: 'newuser@example.com',
-        name: 'New User',
         googleId: 'google_456',
       };
 

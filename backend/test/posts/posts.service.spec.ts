@@ -11,29 +11,32 @@ describe('PostsService', () => {
 
   const mockPost: Post = {
     id: 1,
-    title: 'Test Post',
-    content: 'This is a test post',
     groupId: 1,
-    authorId: 1,
+    createdByUserId: 1,
+    title: 'Test title',
+    message: 'This is a test post',
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const mockPosts: Post[] = [
     {
       id: 1,
-      title: 'Test Post 1',
-      content: 'Content 1',
       groupId: 1,
-      authorId: 1,
+      createdByUserId: 1,
+      title: 'Title 1',
+      message: 'Content 1',
       createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       id: 2,
-      title: 'Test Post 2',
-      content: 'Content 2',
       groupId: 1,
-      authorId: 2,
+      createdByUserId: 2,
+      title: 'Title 2',
+      message: 'Content 2',
       createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
@@ -51,7 +54,9 @@ describe('PostsService', () => {
       }),
     };
 
-    (database as unknown as { db: { insert: jest.Mock; select: jest.Mock } }).db = mockDb;
+    (
+      database as unknown as { db: { insert: jest.Mock; select: jest.Mock } }
+    ).db = mockDb;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [PostsService],
@@ -71,9 +76,9 @@ describe('PostsService', () => {
   describe('create', () => {
     it('should create a post with the provided data', async () => {
       const createPostDto = {
-        title: 'Test Post',
-        content: 'This is a test post',
         groupId: 1,
+        title: 'Test title',
+        message: 'This is a test post',
       };
       const authorId = 1;
 

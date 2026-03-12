@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config/app.config';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -15,7 +16,10 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: Request, @Res() res: Response): Promise<void> {
+  async googleAuthRedirect(
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<void> {
     const user = req.user as User;
     const token = await this.authService.login(user);
     res.cookie('jwt', token, { httpOnly: true, secure: false }); // secure: true in prod
@@ -23,6 +27,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: Request): Promise<User | undefined> {
     return req.user as User | undefined;
   }

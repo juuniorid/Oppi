@@ -5,13 +5,22 @@ import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class PostsService {
-  async create(createPostDto: Omit<NewPost, 'id' | 'createdAt' | 'authorId'>, authorId: number): Promise<Post[]> {
-    return db.insert(posts).values({
-      title: createPostDto.title,
-      content: createPostDto.content,
-      groupId: createPostDto.groupId,
-      authorId,
-    }).returning();
+  async create(
+    createPostDto: Omit<
+      NewPost,
+      'id' | 'createdAt' | 'updatedAt' | 'createdByUserId'
+    >,
+    authorId: number
+  ): Promise<Post[]> {
+    return db
+      .insert(posts)
+      .values({
+        groupId: createPostDto.groupId,
+        title: createPostDto.title,
+        message: createPostDto.message,
+        createdByUserId: authorId,
+      })
+      .returning();
   }
 
   async findByGroup(groupId: number): Promise<Post[]> {

@@ -8,8 +8,24 @@ describe('ChildrenController', () => {
   let childrenService: ChildrenService;
 
   const mockChildren: Child[] = [
-    { id: 1, groupId: 1, firstName: 'John', lastName: 'Doe' },
-    { id: 2, groupId: 1, firstName: 'Jane', lastName: 'Smith' },
+    {
+      id: 1,
+      firstName: 'John',
+      lastName: 'Doe',
+      dateOfBirth: null,
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      firstName: 'Jane',
+      lastName: 'Smith',
+      dateOfBirth: null,
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
 
   beforeEach(async () => {

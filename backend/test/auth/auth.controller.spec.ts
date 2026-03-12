@@ -10,10 +10,13 @@ describe('AuthController', () => {
   const mockUser: User = {
     id: 1,
     email: 'test@example.com',
-    name: 'Test User',
+    firstName: 'Test',
+    lastName: 'User',
     googleId: 'google_123',
     role: 'PARENT',
     phone: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
