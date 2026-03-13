@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters';
 import { Logger } from 'nestjs-pino';
-import { appConfig } from './config/app.config';
+import { appConfig } from './config';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -15,9 +15,10 @@ async function bootstrap(): Promise<void> {
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     app.useGlobalFilters(new GlobalExceptionFilter());
+    app.setGlobalPrefix('v1');
 
     app.enableCors({
-      origin: [appConfig.app.frontendUrl, 'http://localhost:3001'], // Add API origin for Swagger
+      origin: [appConfig.app.frontendUrl, `http://localhost:${appConfig.app.port}`],
       credentials: true,
     });
 
