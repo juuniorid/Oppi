@@ -103,6 +103,7 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
+    "setupFiles": ["<rootDir>/test/unit-env.ts"],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/dist/"
