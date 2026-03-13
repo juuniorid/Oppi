@@ -13,12 +13,25 @@ export default async function globalSetup(): Promise<void> {
   }
 
    
-  const client = postgres(url, { max: 1, onnotice: () => {} });
+  const client = postgres(url, { max: 1, connect_timeout: 5, onnotice: () => {} });
   const db = drizzle(client);
 
-  await migrate(db, {
-    migrationsFolder: path.join(__dirname, '../src/database/migrations'),
-  });
+  // Wait for DB to be ready (tmpfs container may still be initializing)
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 10; attempt++) {
+    try {
+      await migrate(db, {
+        migrationsFolder: path.join(__dirname, '../src/database/migrations'),
+      });
+      lastError = undefined;
+      break;
+    } catch (err) {
+      lastError = err;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
 
   await client.end();
+
+  if (lastError) throw lastError;
 }
