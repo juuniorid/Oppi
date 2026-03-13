@@ -23,9 +23,10 @@ Edit `.env` with:
 ```env
 GOOGLE_CLIENT_ID=your_client_id_here
 GOOGLE_CLIENT_SECRET=your_client_secret_here
-GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:3001/v1/auth/google/callback
 JWT_SECRET=your_secure_random_jwt_secret_here
 DATABASE_URL=postgresql://oppi:oppi@localhost:5432/oppi
+TEST_DATABASE_URL=postgresql://oppi:oppi@localhost:5433/oppi_test
 ```
 
 ### 2. Choose Your Setup
@@ -74,15 +75,7 @@ If you prefer running locally without Docker:
    createdb oppi
    ```
 
-3. Ensure backend config.json has valid credentials:
-   ```bash
-   # The backend/config.json file should have at least dummy values:
-   # - google.clientId: "dummy-client-id" (or real Google OAuth ID)
-   # - google.clientSecret: "dummy-client-secret" (or real secret)
-   # - jwt.secret: "dev-secret" (or secure random string)
-   ```
-
-4. Install dependencies:
+3. Install dependencies:
    ```bash
    cd backend
    pnpm install
@@ -108,7 +101,7 @@ If you prefer running locally without Docker:
    pnpm run dev
    ```
 
-**Important**: Always run backend commands from the `backend` directory, as config.json must be in the current working directory.
+**Important**: Always run backend commands from the `backend` directory.
 
 ### Using Docker (Recommended)
 
@@ -238,6 +231,19 @@ docker compose down -v
 3. Backend runs migrations
 4. Backend seeds the database
 5. Both API and frontend start
+
+# Testing
+
+```bash
+# Unit tests
+cd backend && pnpm test
+
+# E2E tests (requires the test DB to be running)
+docker compose up -d db-test
+cd backend && pnpm test:e2e
+```
+
+E2E tests use a dedicated isolated Postgres instance (`db-test` on port 5433) and require `TEST_DATABASE_URL` to be set in `.env`.
 
 ## Project Structure
 
