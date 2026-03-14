@@ -24,6 +24,7 @@ export const users = pgTable('users', {
   phone: text('phone'),
   email: text('email').notNull().unique(),
   googleId: text('google_id').notNull().unique(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -41,6 +42,7 @@ export const children = pgTable('children', {
   lastName: text('last_name'),
   dateOfBirth: date('date_of_birth', { mode: 'date' }),
   notes: text('notes'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -58,6 +60,7 @@ export const groups = pgTable('groups', {
   description: text('description'),
   ageMin: integer('age_min'),
   ageMax: integer('age_max'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -98,6 +101,7 @@ export const attendance = pgTable(
     date: date('date', { mode: 'date' }).notNull(),
     status: presentEnum('status').notNull(),
     note: text('note'),
+    deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
       .defaultNow()
       .notNull(),
@@ -168,6 +172,7 @@ export const posts = pgTable('group_posts', {
     .notNull(),
   title: text('title').notNull(),
   message: text('message').notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -186,6 +191,7 @@ export const postMedia = pgTable('post_media', {
     .notNull(),
   s3Key: text('s3_key'),
   contentType: text('content_type'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -206,6 +212,7 @@ export const messages = pgTable('messages', {
   subject: text('subject'),
   body: text('body'),
   readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -225,6 +232,7 @@ export const groupMessages = pgTable('group_messages', {
     .notNull(),
   subject: text('subject'),
   body: text('body'),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),

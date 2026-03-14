@@ -32,7 +32,33 @@ export class AuthService {
         .returning();
       return newUser[0];
     }
-    return existingUser[0];
+
+    const found = existingUser[0];
+    // If a user was soft-deleted, "log in" should restore them rather than creating duplicates.
+    if (found.deletedAt) {
+      const restored = await db
+        .update(users)
+        .set({
+          deletedAt: null,
+          email: user.email,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, found.id))
+        .returning();
+      return restored[0];
+    }
+
+    // Keep email in sync with Google profile (can change).
+    if (found.email !== user.email) {
+      const updated = await db
+        .update(users)
+        .set({ email: user.email, updatedAt: new Date() })
+        .where(eq(users.id, found.id))
+        .returning();
+      return updated[0];
+    }
+
+    return found;
   }
 
   async login(user: User): Promise<string> {

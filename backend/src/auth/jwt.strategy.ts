@@ -5,7 +5,7 @@ import { appConfig } from 'src/config/app.config';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
 import { db } from 'database/db';
 import { users, User } from 'database/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const found = await db
       .select()
       .from(users)
-      .where(eq(users.id, payload.sub))
+      .where(and(eq(users.id, payload.sub), isNull(users.deletedAt)))
       .limit(1);
     if (found.length === 0) {
       throw new UnauthorizedException('User not found');
