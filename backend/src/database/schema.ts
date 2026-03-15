@@ -261,21 +261,118 @@ export type NewGroupMessageRecipient = InferInsertModel<
   typeof groupMessageRecipients
 >;
 
-// Minimal relations (enough for joins where needed)
 export const usersRelations = relations(users, ({ many }) => ({
-  groupPosts: many(posts),
   childLinks: many(childUsers),
   groupLinks: many(groupUsers),
+  groupPosts: many(posts),
+  sentMessages: many(messages, { relationName: 'message_sender' }),
+  receivedMessages: many(messages, { relationName: 'message_recipient' }),
+  sentGroupMessages: many(groupMessages),
+  groupMessageRecipients: many(groupMessageRecipients),
 }));
 
 export const childrenRelations = relations(children, ({ many }) => ({
-  enrollments: many(enrollments),
-  userLinks: many(childUsers),
   attendance: many(attendance),
+  userLinks: many(childUsers),
+  enrollments: many(enrollments),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
+  userLinks: many(groupUsers),
   enrollments: many(enrollments),
   posts: many(posts),
-  users: many(groupUsers),
 }));
+
+export const groupUsersRelations = relations(groupUsers, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupUsers.groupId],
+    references: [groups.id],
+  }),
+  user: one(users, {
+    fields: [groupUsers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const attendanceRelations = relations(attendance, ({ one }) => ({
+  child: one(children, {
+    fields: [attendance.childId],
+    references: [children.id],
+  }),
+}));
+
+export const childUsersRelations = relations(childUsers, ({ one }) => ({
+  child: one(children, {
+    fields: [childUsers.childId],
+    references: [children.id],
+  }),
+  user: one(users, {
+    fields: [childUsers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
+  child: one(children, {
+    fields: [enrollments.childId],
+    references: [children.id],
+  }),
+  group: one(groups, {
+    fields: [enrollments.groupId],
+    references: [groups.id],
+  }),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+  group: one(groups, {
+    fields: [posts.groupId],
+    references: [groups.id],
+  }),
+  author: one(users, {
+    fields: [posts.createdByUserId],
+    references: [users.id],
+  }),
+  media: many(postMedia),
+}));
+
+export const postMediaRelations = relations(postMedia, ({ one }) => ({
+  post: one(posts, {
+    fields: [postMedia.groupPostId],
+    references: [posts.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  sender: one(users, {
+    fields: [messages.senderUserId],
+    references: [users.id],
+    relationName: 'message_sender',
+  }),
+  recipient: one(users, {
+    fields: [messages.recipientUserId],
+    references: [users.id],
+    relationName: 'message_recipient',
+  }),
+}));
+
+export const groupMessagesRelations = relations(groupMessages, ({ one, many }) => ({
+  sender: one(users, {
+    fields: [groupMessages.senderUserId],
+    references: [users.id],
+  }),
+  recipients: many(groupMessageRecipients),
+}));
+
+export const groupMessageRecipientsRelations = relations(
+  groupMessageRecipients,
+  ({ one }) => ({
+    groupMessage: one(groupMessages, {
+      fields: [groupMessageRecipients.groupMessageId],
+      references: [groupMessages.id],
+    }),
+    user: one(users, {
+      fields: [groupMessageRecipients.userId],
+      references: [users.id],
+    }),
+  })
+);
