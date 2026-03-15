@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'database/db';
-import { posts, Post, NewPost } from 'database/schema';
+import { posts, Post } from 'database/schema';
 import { eq } from 'drizzle-orm';
+import { CreatePostDto } from 'src/common/dto/create-post.dto';
 
 @Injectable()
 export class PostsService {
   async create(
-    createPostDto: Omit<
-      NewPost,
-      'id' | 'createdAt' | 'updatedAt' | 'createdByUserId'
-    >,
+    createPostDto: CreatePostDto,
     authorId: number
   ): Promise<Post[]> {
     return db
