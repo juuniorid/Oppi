@@ -12,15 +12,15 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
-export const roleEnum = pgEnum('role', ['ADMIN', 'TEACHER', 'PARENT']);
+export const userRoleEnum = pgEnum('user_role', ['ADMIN', 'TEACHER', 'PARENT']);
 export const teacherRoleEnum = pgEnum('teacher_role', ['PEA', 'TAVA', 'ABI']);
-export const presentEnum = pgEnum('present_enum', ['KOHAL', 'PUUDUB']);
+export const childPresentEnum = pgEnum('child_present', ['KOHAL', 'PUUDUB']);
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   firstName: text('first_name'),
   lastName: text('last_name'),
-  role: roleEnum('role').notNull(),
+  role: userRoleEnum('role').notNull(),
   phone: text('phone'),
   email: text('email').notNull().unique(),
   googleId: text('google_id').notNull().unique(),
@@ -97,7 +97,7 @@ export const attendance = pgTable(
       .references(() => children.id)
       .notNull(),
     date: date('date', { mode: 'date' }).notNull(),
-    status: presentEnum('status').notNull(),
+    status: childPresentEnum('status').notNull(),
     note: text('note'),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
@@ -251,9 +251,7 @@ export const groupMessageRecipients = pgTable(
       .notNull(),
     readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   },
-  (table) => [
-    primaryKey({ columns: [table.groupMessageId, table.userId] }),
-  ]
+  (table) => [primaryKey({ columns: [table.groupMessageId, table.userId] })]
 );
 
 export type GroupMessageRecipient = InferSelectModel<
