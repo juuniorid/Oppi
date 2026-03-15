@@ -14,6 +14,7 @@ describe('PostsController', () => {
     createdByUserId: 1,
     title: 'Test title',
     message: 'This is a test post',
+    deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -25,6 +26,7 @@ describe('PostsController', () => {
       createdByUserId: 1,
       title: 'Title 1',
       message: 'Content 1',
+      deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -34,6 +36,7 @@ describe('PostsController', () => {
       createdByUserId: 2,
       title: 'Title 2',
       message: 'Content 2',
+      deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -47,6 +50,7 @@ describe('PostsController', () => {
     googleId: 'google_123',
     role: 'TEACHER',
     phone: null,
+    deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

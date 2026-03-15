@@ -1,10 +1,19 @@
 # Database Schema
 
-## Users
+This document mirrors the current Drizzle schema in [`backend/src/database/schema.ts`](/Users/karl/04_TalTech/Oppi/backend/src/database/schema.ts).
+The TypeScript schema is the source of truth.
+
+## Enums
 
 ```sql
 CREATE TYPE user_role AS ENUM ('ADMIN', 'TEACHER', 'PARENT');
+CREATE TYPE teacher_role AS ENUM ('PEA', 'TAVA', 'ABI');
+CREATE TYPE child_present AS ENUM ('KOHAL', 'PUUDUB');
+```
 
+## Users
+
+```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   first_name TEXT,
@@ -13,22 +22,9 @@ CREATE TABLE users (
   phone TEXT,
   email TEXT NOT NULL UNIQUE,
   google_id TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
-);
-```
-
-## Groups
-
-```sql
-CREATE TABLE groups (
-  id SERIAL PRIMARY KEY,
-  name TEXT,
-  description TEXT,
-  age_min INT,
-  age_max INT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
@@ -37,27 +33,37 @@ CREATE TABLE groups (
 ```sql
 CREATE TABLE children (
   id SERIAL PRIMARY KEY,
-  first_name TEXT,
-  last_name TEXT,
-  date_of_birth DATE,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  date_of_birth DATE NOT NULL,
   notes TEXT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
-## Teacher Roles
+## Groups
 
 ```sql
-CREATE TYPE teacher_role AS ENUM ('PEA', 'TAVA', 'ABI');
+CREATE TABLE groups (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  age_min INT,
+  age_max INT,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
 ## Group Users
 
 ```sql
 CREATE TABLE group_users (
-  group_id INT REFERENCES groups(id),
-  user_id INT REFERENCES users(id),
+  group_id INT NOT NULL REFERENCES groups(id),
+  user_id INT NOT NULL REFERENCES users(id),
   role teacher_role,
   PRIMARY KEY (group_id, user_id)
 );
@@ -66,26 +72,27 @@ CREATE TABLE group_users (
 ## Attendance
 
 ```sql
-CREATE TYPE present_enum AS ENUM ('KOHAL', 'PUUDUB');
-
 CREATE TABLE attendance (
   id SERIAL PRIMARY KEY,
-  child_id INT REFERENCES children(id),
-  date DATE,
-  status present_enum,
+  child_id INT NOT NULL REFERENCES children(id),
+  date DATE NOT NULL,
+  status child_present NOT NULL,
   note TEXT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ,
-  UNIQUE (child_id, date)
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE UNIQUE INDEX attendance_child_id_date_unique
+  ON attendance (child_id, date);
 ```
 
 ## Child Users
 
 ```sql
 CREATE TABLE child_users (
-  child_id INT REFERENCES children(id),
-  user_id INT REFERENCES users(id),
+  child_id INT NOT NULL REFERENCES children(id),
+  user_id INT NOT NULL REFERENCES users(id),
   relationship TEXT,
   is_primary BOOLEAN,
   PRIMARY KEY (child_id, user_id)
@@ -97,12 +104,12 @@ CREATE TABLE child_users (
 ```sql
 CREATE TABLE enrollments (
   id SERIAL PRIMARY KEY,
-  child_id INT REFERENCES children(id),
-  group_id INT REFERENCES groups(id),
+  child_id INT NOT NULL REFERENCES children(id),
+  group_id INT NOT NULL REFERENCES groups(id),
   start_date DATE,
   end_date DATE,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
@@ -111,12 +118,13 @@ CREATE TABLE enrollments (
 ```sql
 CREATE TABLE group_posts (
   id SERIAL PRIMARY KEY,
-  group_id INT REFERENCES groups(id),
-  created_by_user_id INT REFERENCES users(id),
-  title TEXT,
-  message TEXT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  group_id INT NOT NULL REFERENCES groups(id),
+  created_by_user_id INT NOT NULL REFERENCES users(id),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
@@ -125,10 +133,11 @@ CREATE TABLE group_posts (
 ```sql
 CREATE TABLE post_media (
   id SERIAL PRIMARY KEY,
-  group_post_id INT REFERENCES group_posts(id),
+  group_post_id INT NOT NULL REFERENCES group_posts(id),
   s3_key TEXT,
   content_type TEXT,
-  created_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
@@ -137,13 +146,14 @@ CREATE TABLE post_media (
 ```sql
 CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
-  sender_user_id INT REFERENCES users(id),
-  recipient_user_id INT REFERENCES users(id),
+  sender_user_id INT NOT NULL REFERENCES users(id),
+  recipient_user_id INT NOT NULL REFERENCES users(id),
   subject TEXT,
   body TEXT,
   read_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
@@ -152,16 +162,21 @@ CREATE TABLE messages (
 ```sql
 CREATE TABLE group_messages (
   id SERIAL PRIMARY KEY,
-  sender_user_id INT REFERENCES users(id),
+  sender_user_id INT NOT NULL REFERENCES users(id),
   subject TEXT,
   body TEXT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+```
 
+## Group Message Recipients
+
+```sql
 CREATE TABLE group_message_recipients (
-  group_message_id INT REFERENCES group_messages(id),
-  user_id INT REFERENCES users(id),
+  group_message_id INT NOT NULL REFERENCES group_messages(id),
+  user_id INT NOT NULL REFERENCES users(id),
   read_at TIMESTAMPTZ,
   PRIMARY KEY (group_message_id, user_id)
 );

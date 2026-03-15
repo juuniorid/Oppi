@@ -38,9 +38,9 @@ export type NewUser = InferInsertModel<typeof users>;
 
 export const children = pgTable('children', {
   id: serial('id').primaryKey(),
-  firstName: text('first_name'),
-  lastName: text('last_name'),
-  dateOfBirth: date('date_of_birth', { mode: 'date' }),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  dateOfBirth: date('date_of_birth', { mode: 'date' }).notNull(),
   notes: text('notes'),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
@@ -56,7 +56,7 @@ export type NewChild = InferInsertModel<typeof children>;
 
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
-  name: text('name'),
+  name: text('name').notNull(),
   description: text('description'),
   ageMin: integer('age_min'),
   ageMax: integer('age_max'),

@@ -19,6 +19,7 @@ describe('AuthService', () => {
     googleId: 'google_123',
     role: 'PARENT',
     phone: null,
+    deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -72,6 +73,8 @@ describe('AuthService', () => {
       const oauthUser = {
         email: 'test@example.com',
         googleId: 'google_123',
+        firstName: 'Test',
+        lastName: 'User',
       };
 
       const result = await service.validateOAuthLogin(oauthUser);
@@ -86,6 +89,8 @@ describe('AuthService', () => {
       const newOauthUser = {
         email: 'newuser@example.com',
         googleId: 'google_456',
+        firstName: 'New',
+        lastName: 'User',
       };
 
       const result = await service.validateOAuthLogin(newOauthUser);

@@ -15,6 +15,7 @@ describe('AuthController', () => {
     googleId: 'google_123',
     role: 'PARENT',
     phone: null,
+    deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
