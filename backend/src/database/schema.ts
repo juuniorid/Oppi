@@ -83,9 +83,7 @@ export const groupUsers = pgTable(
       .notNull(),
     role: teacherRoleEnum('role'),
   },
-  (table) => ({
-    pk: primaryKey(table.groupId, table.userId),
-  })
+  (table) => [primaryKey({ columns: [table.groupId, table.userId] })]
 );
 
 export type GroupUser = InferSelectModel<typeof groupUsers>;
@@ -109,12 +107,12 @@ export const attendance = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => ({
-    childDateUnique: uniqueIndex('attendance_child_id_date_unique').on(
+  (table) => [
+    uniqueIndex('attendance_child_id_date_unique').on(
       table.childId,
       table.date
     ),
-  })
+  ]
 );
 
 export type Attendance = InferSelectModel<typeof attendance>;
@@ -132,9 +130,7 @@ export const childUsers = pgTable(
     relationship: text('relationship'),
     isPrimary: boolean('is_primary'),
   },
-  (table) => ({
-    pk: primaryKey(table.childId, table.userId),
-  })
+  (table) => [primaryKey({ columns: [table.childId, table.userId] })]
 );
 
 export type ChildUser = InferSelectModel<typeof childUsers>;
@@ -255,9 +251,9 @@ export const groupMessageRecipients = pgTable(
       .notNull(),
     readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   },
-  (table) => ({
-    pk: primaryKey(table.groupMessageId, table.userId),
-  })
+  (table) => [
+    primaryKey({ columns: [table.groupMessageId, table.userId] }),
+  ]
 );
 
 export type GroupMessageRecipient = InferSelectModel<
