@@ -14,6 +14,7 @@ describe('ChildrenController', () => {
       lastName: 'Doe',
       dateOfBirth: null,
       notes: null,
+      deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -23,6 +24,7 @@ describe('ChildrenController', () => {
       lastName: 'Smith',
       dateOfBirth: null,
       notes: null,
+      deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -51,7 +53,7 @@ describe('ChildrenController', () => {
 
   describe('findByGroup', () => {
     it('should return children for a specific group', async () => {
-      const result = await controller.findByGroup('1');
+      const result = await controller.findByGroup(1);
 
       expect(childrenService.findByGroup).toHaveBeenCalledWith(1);
       expect(result).toEqual(mockChildren);

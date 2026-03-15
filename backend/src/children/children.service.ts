@@ -13,6 +13,7 @@ export class ChildrenService {
         lastName: children.lastName,
         dateOfBirth: children.dateOfBirth,
         notes: children.notes,
+        deletedAt: children.deletedAt,
         createdAt: children.createdAt,
         updatedAt: children.updatedAt,
       })
