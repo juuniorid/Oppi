@@ -8,6 +8,8 @@ import { JwtPayload } from '../common/dto/jwt.payload';
 interface OAuthUser {
   email: string;
   googleId: string;
+  firstName: string | null;
+  lastName: string | null;
 }
 
 @Injectable()
@@ -26,6 +28,8 @@ export class AuthService {
         .insert(users)
         .values({
           email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
           googleId: user.googleId,
           role: 'PARENT', // TODO: determine role
         })
