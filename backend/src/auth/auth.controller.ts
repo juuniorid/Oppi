@@ -4,14 +4,16 @@ import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger'; // New imports
 import { AuthService } from './auth.service';
 import { User } from 'database/schema';
-import { appConfig } from 'src/config/app.config';
+import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+@ApiTags('auth') // Grouping in Swagger
 @ApiTags('auth') // Grouping in Swagger
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Initiate Google OAuth2 login' })
   @ApiOperation({ summary: 'Initiate Google OAuth2 login' })
   @Get('google')
   @UseGuards(AuthGuard('google'))
