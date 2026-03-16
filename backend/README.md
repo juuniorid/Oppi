@@ -58,6 +58,7 @@ This automatically:
 
 4. Run migrations and seed the database:
    ```bash
+   pnpm run db:generate
    pnpm run db:migrate
    pnpm run db:seed
    ```
@@ -79,8 +80,14 @@ The project uses drizzle-kit 0.28+ for schema management:
 # After modifying src/database/schema.ts, generate migrations
 pnpm run db:generate
 
-# Apply migrations to the database (uses drizzle-kit push)
+# Generate migration files from schema changes
+pnpm run db:generate
+
+# Apply committed migrations to the database
 pnpm run db:migrate
+
+# Or push schema changes directly to your local DB without creating migration files
+pnpm run db:push
 
 # Seed the database with test data
 pnpm run db:seed
@@ -112,7 +119,9 @@ pnpm run format         # Format code with Prettier
 
 # Database
 pnpm run db:generate    # Generate migrations from schema changes
-pnpm run db:migrate     # Apply migrations (drizzle-kit push)
+pnpm run db:generate    # Generate SQL migration files from schema changes
+pnpm run db:migrate     # Apply committed migrations
+pnpm run db:push        # Update local DB directly without creating migration files
 pnpm run db:seed        # Seed database with test data
 ```
 
@@ -222,4 +231,3 @@ backend/
 - [Drizzle Kit](https://orm.drizzle.team/kit-docs/overview)
 - [passport-google-oauth20](https://www.npmjs.com/package/passport-google-oauth20)
 - [nestjs-pino](https://www.npmjs.com/package/nestjs-pino)
-
