@@ -3,6 +3,26 @@
 This document mirrors the current Drizzle schema in [`backend/src/database/schema.ts`](/Users/karl/04_TalTech/Oppi/backend/src/database/schema.ts).
 The TypeScript schema is the source of truth.
 
+## Deletion Strategy
+
+Main domain records use soft delete via `deleted_at`:
+
+- `users`
+- `groups`
+- `children`
+- `attendance`
+- `enrollments`
+- `group_posts`
+- `post_media`
+- `messages`
+- `group_messages`
+
+Pure relationship tables do not currently use soft delete and can be hard-deleted when links are removed:
+
+- `child_users`
+- `group_users`
+- `group_message_recipients`
+
 ## Enums
 
 ```sql
@@ -108,6 +128,7 @@ CREATE TABLE enrollments (
   group_id INT NOT NULL REFERENCES groups(id),
   start_date DATE,
   end_date DATE,
+  deleted_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

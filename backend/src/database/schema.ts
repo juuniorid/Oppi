@@ -146,6 +146,7 @@ export const enrollments = pgTable('enrollments', {
     .notNull(),
   startDate: date('start_date', { mode: 'date' }),
   endDate: date('end_date', { mode: 'date' }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
