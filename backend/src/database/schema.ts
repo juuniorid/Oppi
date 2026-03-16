@@ -76,10 +76,10 @@ export const groupUsers = pgTable(
   'group_users',
   {
     groupId: integer('group_id')
-      .references(() => groups.id)
+      .references(() => groups.id, { onDelete: 'cascade' })
       .notNull(),
     userId: integer('user_id')
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     role: teacherRoleEnum('role'),
   },
@@ -122,10 +122,10 @@ export const childUsers = pgTable(
   'child_users',
   {
     childId: integer('child_id')
-      .references(() => children.id)
+      .references(() => children.id, { onDelete: 'cascade' })
       .notNull(),
     userId: integer('user_id')
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     relationship: text('relationship'),
     isPrimary: boolean('is_primary'),
@@ -184,7 +184,7 @@ export type NewPost = InferInsertModel<typeof posts>;
 export const postMedia = pgTable('post_media', {
   id: serial('id').primaryKey(),
   groupPostId: integer('group_post_id')
-    .references(() => posts.id)
+    .references(() => posts.id, { onDelete: 'cascade' })
     .notNull(),
   s3Key: text('s3_key'),
   contentType: text('content_type'),
@@ -245,10 +245,10 @@ export const groupMessageRecipients = pgTable(
   'group_message_recipients',
   {
     groupMessageId: integer('group_message_id')
-      .references(() => groupMessages.id)
+      .references(() => groupMessages.id, { onDelete: 'cascade' })
       .notNull(),
     userId: integer('user_id')
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   },
