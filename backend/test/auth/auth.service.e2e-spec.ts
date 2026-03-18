@@ -93,5 +93,16 @@ describe('AuthService (e2e)', () => {
         role: user.role,
       });
     });
+
+    it('should include correct role for TEACHER in JWT payload', async () => {
+      const user = await createTestUser('teacher3@test.com', 'TEACHER');
+      const jwtService = service['jwtService'] as JwtService;
+
+      await service.login(user);
+
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'TEACHER' }),
+      );
+    });
   });
 });

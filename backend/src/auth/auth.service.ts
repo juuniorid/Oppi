@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
-import { db } from '../database/db';
-import { users, User } from '../database/schema';
-import { JwtPayload } from '../common/dto/jwt.payload';
+import { db } from 'database/db';
+import { users, User } from 'database/schema';
+import { JwtPayload } from 'src/common/dto/jwt.payload';
 
 interface OAuthUser {
   email: string;

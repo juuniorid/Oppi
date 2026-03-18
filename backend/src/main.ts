@@ -15,8 +15,6 @@ async function bootstrap(): Promise<void> {
     app.useLogger(app.get(Logger));
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-    app.use(cookieParser());
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     app.useGlobalFilters(new GlobalExceptionFilter());
 
     app.enableCors({
@@ -28,7 +26,7 @@ async function bootstrap(): Promise<void> {
       .setTitle('Oppi API')
       .setDescription('The Oppi kindergarten platform API documentation')
       .setVersion('1.0')
-      .addBearerAuth()
+      .addCookieAuth('jwt')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);

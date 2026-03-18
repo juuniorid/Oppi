@@ -9,6 +9,7 @@ import { GroupsModule } from './groups/groups.module';
 import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 import { LoggerModule } from 'nestjs-pino';
+import { appConfig } from './config';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { LoggerModule } from 'nestjs-pino';
     }),
     LoggerModule.forRoot({
       pinoHttp: {
-        transport: process.env.NODE_ENV !== 'production' ? {
+        transport: appConfig.app.nodeEnv !== 'production' ? {
           target: 'pino-pretty',
           options: {
             singleLine: true,
