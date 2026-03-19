@@ -100,7 +100,7 @@ frontend/
 │   │       └── messages/
 │   │           └── page.tsx    # Messaging (placeholder)
 │   ├── components/
-│   │   ├── Sidebar.tsx         # Dashboard sidebar
+│   │   ├── sidebar.tsx         # Dashboard sidebar
 │   │   └── ui/                 # Shadcn/UI components
 │   │       └── button.tsx
 │   ├── context/
