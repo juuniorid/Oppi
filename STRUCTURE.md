@@ -98,7 +98,7 @@ Oppi/
 │   │   │       └── messages/
 │   │   │           └── page.tsx
 │   │   ├── components/       # Reusable components
-│   │   │   ├── Sidebar.tsx
+│   │   │   ├── sidebar.tsx
 │   │   │   └── ui/          # Shadcn/UI components
 │   │   │       └── button.tsx
 │   │   ├── context/         # React Context
