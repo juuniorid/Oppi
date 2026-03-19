@@ -5,15 +5,22 @@ async function seed(): Promise<void> {
   try {
     console.warn('🌱 Starting database seed...');
 
-    // Insert groups
-    const insertedGroups = await db.insert(groups).values([
-      { name: 'Bumblebees', kindergartenName: 'Sunshine Kindergarten' },
-      { name: 'Butterflies', kindergartenName: 'Sunshine Kindergarten' },
-    ]).returning();
+    // 1. Insert groups (using onConflictDoNothing on the ID or just checking)
+    // Note: If your schema doesn't have a unique constraint on 'name', 
+    // it's safer to check first to avoid duplicates.
+    let allGroups = await db.select().from(groups);
+    if (allGroups.length === 0) {
+      allGroups = await db.insert(groups).values([
+        { name: 'Bumblebees', kindergartenName: 'Sunshine Kindergarten' },
+        { name: 'Butterflies', kindergartenName: 'Sunshine Kindergarten' },
+      ]).returning();
+      console.warn(`✅ Inserted ${allGroups.length} groups`);
+    } else {
+      console.warn('ℹ️ Groups already exist, skipping group insert');
+    }
 
-    console.warn(`✅ Inserted ${insertedGroups.length} groups`);
-
-    // Insert users (teachers and parents)
+    // 2. Insert users (teachers and parents)
+    // We use onConflictDoNothing on the email column
     const insertedUsers = await db.insert(users).values([
       {
         email: 'teacher1@example.com',
@@ -36,39 +43,56 @@ async function seed(): Promise<void> {
         role: 'PARENT',
         phone: '+372 5123 4569',
       },
-    ]).returning();
+    ]).onConflictDoNothing({ target: users.email }).returning();
 
-    console.warn(`✅ Inserted ${insertedUsers.length} users`);
+    // FALLBACK: If insertedUsers is empty, fetch them from the DB so we have the IDs
+    const allUsers = insertedUsers.length > 0 
+      ? insertedUsers 
+      : await db.select().from(users);
 
-    // Insert children
+    console.warn(`✅ Users ready (Total: ${allUsers.length})`);
+
+    // 3. Insert children
+    // Link to the IDs we just got
     const insertedChildren = await db.insert(children).values([
       {
         firstName: 'Emma',
         lastName: 'Doe',
-        groupId: insertedGroups[0]!.id,
+        groupId: allGroups[0]!.id,
       },
       {
         firstName: 'Oliver',
         lastName: 'Smith',
-        groupId: insertedGroups[0]!.id,
+        groupId: allGroups[0]!.id,
       },
       {
         firstName: 'Ava',
         lastName: 'Johnson',
-        groupId: insertedGroups[1]!.id,
+        groupId: allGroups[1]!.id,
       },
-    ]).returning();
+    ]).onConflictDoNothing().returning();
 
-    console.warn(`✅ Inserted ${insertedChildren.length} children`);
+    const allChildren = insertedChildren.length > 0
+      ? insertedChildren
+      : await db.select().from(children);
 
-    // Link parents to children
-    await db.insert(parentsToChildren).values([
-      { parentId: insertedUsers[1]!.id, childId: insertedChildren[0]!.id },
-      { parentId: insertedUsers[2]!.id, childId: insertedChildren[0]!.id },
-    ]);
+    console.warn(`✅ Children ready (Total: ${allChildren.length})`);
 
-    console.warn('✅ Linked parents to children');
-    console.warn('🌱 Seed completed successfully!');
+    // 4. Link parents to children
+    // We find the specific parents in our 'allUsers' list
+    const parent1 = allUsers.find(u => u.email === 'parent1@example.com');
+    const parent2 = allUsers.find(u => u.email === 'parent2@example.com');
+    const emma = allChildren.find(c => c.firstName === 'Emma');
+
+    if (parent1 && parent2 && emma) {
+      await db.insert(parentsToChildren).values([
+        { parentId: parent1.id, childId: emma.id },
+        { parentId: parent2.id, childId: emma.id },
+      ]).onConflictDoNothing();
+      console.warn('✅ Linked parents to children');
+    }
+
+    console.warn('🌱 Seed process finished!');
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;
@@ -78,6 +102,6 @@ async function seed(): Promise<void> {
 }
 
 seed().catch((error) => {
-  console.error('Seed failed:', error);
+  console.error('Seed execution failed:', error);
   process.exit(1);
 });
