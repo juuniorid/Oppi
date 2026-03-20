@@ -10,7 +10,7 @@ the frontend.
 - **Database**: PostgreSQL with [Drizzle ORM 0.45+](https://drizzle.team)
 - **Database Migrations**: drizzle-kit 0.28.0+
 - **Authentication**: Google OAuth 2.0 via `passport-google-oauth20` + JWT tokens in HttpOnly cookies
-- **Configuration**: JSON config file (`config.json`) with environment variable overrides
+- **Configuration**: Environment variables loaded from root `.env` via dotenv (no config file)
 - **Logging**: [nestjs-pino](https://www.npmjs.com/package/nestjs-pino) for structured logs (pino-pretty in dev, JSON in prod)
 - **Testing**: Jest 29.7+ & Supertest
 - **Containerization**: Docker with Node.js 20 Alpine
@@ -41,13 +41,15 @@ This automatically:
    createdb oppi
    ```
 
-2. Ensure `config.json` has valid credentials:
+2. Ensure `.env` in the project root has valid credentials:
    ```bash
-   # Check backend/config.json contains:
-   # - jwt.secret: "dev-secret" (or any secure string)
-   # - google.clientId: "dummy-client-id" (or real Google OAuth client ID)
-   # - google.clientSecret: "dummy-client-secret" (or real secret)
-   # - database.url: "postgresql://oppi:oppi@localhost:5432/oppi"
+   # Required variables:
+   DATABASE_URL=postgresql://oppi:oppi@localhost:5432/oppi
+   JWT_SECRET=dev-secret
+   GOOGLE_CLIENT_ID=dummy-client-id
+   GOOGLE_CLIENT_SECRET=dummy-client-secret
+   GOOGLE_CALLBACK_URL=http://localhost:3001/v1/auth/google/callback
+   TEST_DATABASE_URL=postgresql://oppi:oppi@localhost:5433/oppi_test
    ```
 
 3. Install dependencies:
@@ -68,7 +70,7 @@ This automatically:
    pnpm run start:dev
    ```
 
-**Important**: Always run commands from the `backend` directory, as the app expects `config.json` to be in the current working directory (`process.cwd()`).
+**Important**: Always run commands from the `backend` directory.
 
 The API will be available at http://localhost:3001
 
@@ -125,34 +127,65 @@ pnpm run db:push        # Update local DB directly without creating migration fi
 pnpm run db:seed        # Seed database with test data
 ```
 
+# Testing
+
+## Unit Tests
+
+```bash
+pnpm test          # Run unit tests
+pnpm test:watch    # Watch mode
+pnpm test:cov      # With coverage
+```
+
+## E2E Tests
+
+E2E tests run against a real isolated Postgres instance (`db-test` on port 5433). They require `TEST_DATABASE_URL` to be set.
+
+```bash
+# Start the test database
+docker compose up -d db-test
+
+# Run e2e tests
+pnpm test:e2e
+```
+
+The e2e setup automatically:
+1. Runs migrations against the test DB
+2. Clears all tables between each test (`afterEach`)
+3. Closes connections cleanly
+
 ## Configuration
 
-The app uses a dual configuration system:
+All configuration is loaded from environment variables. In local development, variables are read from the root `.env` file (one level above `backend/`) via dotenv.
 
-1. **config.json** (primary): Located in `backend/config.json`
-   - Contains default configuration for all environments
-   - Committed to git with safe defaults
+Key variables:
 
-2. **Environment Variables** (override): 
-   - Override config.json values via environment variables
-   - Set in `.env` file (root) for Docker or local dev
-   - Example: `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `DATABASE_URL`
-
-Configuration is loaded via `src/config/config.loader.ts` using `process.cwd()` to find `config.json`.
+| Variable | Description | Default |
+|---|---|---|
+| `DATABASE_URL` | Postgres connection string | required |
+| `TEST_DATABASE_URL` | Test Postgres connection string (e2e tests) | required for e2e |
+| `JWT_SECRET` | JWT signing secret | `dev-secret` |
+| `JWT_EXPIRES_IN` | JWT expiry | `60m` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | `dummy-client-id` |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | `` |
+| `GOOGLE_CALLBACK_URL` | Google OAuth callback URL | `http://localhost:3001/v1/auth/google/callback` |
+| `FRONTEND_URL` | Frontend origin for CORS | `http://localhost:3000` |
+| `PORT` | API listen port | `3001` |
 
 ## API Endpoints
 
 ### Authentication
-- `GET /auth/google` – Redirect to Google for OAuth authentication
-- `GET /auth/google/callback` – OAuth callback (sets JWT cookie)
-- `GET /auth/me` – Get current authenticated user
+- `GET /v1/auth/google` – Redirect to Google for OAuth authentication
+- `GET /v1/auth/google/callback` – OAuth callback (sets JWT cookie)
+- `GET /v1/auth/me` – Get current authenticated user
+- `GET /v1/auth/logout` – Clear JWT cookie
 
 ### Posts (Announcements)
-- `POST /posts` – Create announcement (teacher only)
-- `GET /posts/group/:id` – List posts for a group
+- `POST /v1/posts` – Create announcement (teacher only)
+- `GET /v1/posts/group/:id` – List posts for a group
 
 ### Children
-- `GET /children/group/:id` – List children in a group (teacher only)
+- `GET /v1/children/group/:id` – List children in a group (teacher only)
 
 ## Folder Structure
 
@@ -182,7 +215,10 @@ backend/
 │   ├── app.module.ts       # Root NestJS module
 │   └── main.ts             # Application entry point
 ├── test/                   # Jest tests
-├── config.json             # Configuration file (with defaults)
+│   ├── auth/               # Auth e2e specs
+│   ├── posts/              # Posts e2e specs
+│   ├── children/           # Children e2e specs
+│   └── helpers/            # Shared test helpers (test-db, create-*, clear-database)
 ├── drizzle.config.ts       # Drizzle Kit configuration
 ├── Dockerfile              # Docker image definition
 ├── entrypoint.sh           # Docker startup script
@@ -197,19 +233,18 @@ backend/
 ✅ Type-safe database with Drizzle ORM  
 ✅ Automated migrations and seeding  
 ✅ Structured logging with Pino  
-✅ Comprehensive test suite (Jest)  
+✅ E2E tests with real Postgres test DB  
 ✅ Docker containerization  
-✅ Config-driven with environment overrides  
+✅ Environment variable configuration via dotenv  
 
 ## Troubleshooting
 
 **App crashes on startup with "JwtStrategy requires a secret or key":**
-- Ensure `config.json` has `jwt.secret` set to a non-empty string
-- The secret is loaded from `config.json` via `appConfig.jwt.secret`
+- Ensure `JWT_SECRET` is set in `.env`
 
 **App crashes with "OAuth2Strategy requires a clientID option":**
-- Ensure `config.json` has `google.clientId` and `google.clientSecret` set
-- For local dev without Google OAuth, use dummy values like "dummy-client-id"
+- Ensure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set in `.env`
+- For local dev without Google OAuth, use dummy values like `dummy-client-id`
 
 **Cannot find module errors:**
 - Run `pnpm install` to ensure all dependencies are installed
@@ -217,8 +252,12 @@ backend/
 
 **Database connection errors:**
 - Ensure PostgreSQL is running: `pg_isready`
-- Check `config.json` has correct `database.url`
+- Check `DATABASE_URL` in `.env` is correct
 - Verify database exists: `psql -l | grep oppi`
+
+**E2E tests fail with "TEST_DATABASE_URL must be set":**
+- Ensure `TEST_DATABASE_URL` is set in `.env`
+- Start the test database: `docker compose up -d db-test`
 
 **Port 3001 already in use:**
 - Stop Docker: `docker compose down`

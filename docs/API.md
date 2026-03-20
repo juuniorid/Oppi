@@ -2,15 +2,15 @@
 
 ## Authentication
 
-All API endpoints (except `/auth/google` and `/auth/google/callback`) require
+All API endpoints (except `/v1/auth/google` and `/v1/auth/google/callback`) require
 a valid JWT token stored in the `jwt` cookie.
 
 ### Login Flow
 
 1. User visits `/login` on frontend
-2. Click "Sign in with Google" which redirects to `GET /auth/google`
+2. Click "Sign in with Google" which redirects to `GET /v1/auth/google`
 3. Backend redirects to Google OAuth consent screen
-4. Google redirects to `GET /auth/google/callback`
+4. Google redirects to `GET /v1/auth/google/callback`
 5. Backend validates token and sets `jwt` cookie
 6. Redirects to `/dashboard`
 
@@ -18,13 +18,14 @@ a valid JWT token stored in the `jwt` cookie.
 
 ### Auth
 
-- `GET /auth/google` - Initiate Google OAuth flow
-- `GET /auth/google/callback` - OAuth callback handler
-- `GET /auth/me` - Get current user profile (requires auth)
+- `GET /v1/auth/google` - Initiate Google OAuth flow
+- `GET /v1/auth/google/callback` - OAuth callback handler
+- `GET /v1/auth/me` - Get current user profile (requires auth)
+- `GET /v1/auth/logout` - Clear JWT cookie
 
 ### Posts
 
-- `POST /posts` - Create announcement (teacher only)
+- `POST /v1/posts` - Create announcement (teacher only)
   ```json
   {
     "title": "string",
@@ -32,11 +33,11 @@ a valid JWT token stored in the `jwt` cookie.
     "groupId": number
   }
   ```
-- `GET /posts/group/:id` - Get all posts for a group
+- `GET /v1/posts/group/:id` - Get all posts for a group
 
 ### Children
 
-- `GET /children/group/:id` - Get all children in a group (teacher only)
+- `GET /v1/children/group/:id` - Get all children in a group (teacher only)
 
 ### Error Responses
 

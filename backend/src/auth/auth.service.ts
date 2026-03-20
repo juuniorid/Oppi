@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
 import { db } from 'database/db';
 import { users, User } from 'database/schema';
-import { JwtPayload } from '../common/dto/jwt.payload';
+import { JwtPayload } from 'src/common/dto/jwt.payload';
 
 interface OAuthUser {
   email: string;
@@ -14,58 +14,83 @@ interface OAuthUser {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(private jwtService: JwtService) {}
 
   async validateOAuthLogin(user: OAuthUser): Promise<User> {
-    const existingUser = await db
+    const [existingUser] = await db
       .select()
       .from(users)
-      .where(eq(users.googleId, user.googleId))
+      .where(eq(users.email, user.email))
       .limit(1);
-    if (existingUser.length === 0) {
-      // For demo, assign role based on email or something, but here default to PARENT
-      const newUser = await db
-        .insert(users)
-        .values({
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          googleId: user.googleId,
-          role: 'PARENT', // TODO: determine role
-        })
-        .returning();
-      return newUser[0];
+
+    if (!existingUser) {
+      this.logger.warn(
+        `Login rejected: email not in whitelist (${user.email})`
+      );
+      throw new UnauthorizedException(
+        'You are not invited to this platform. Please contact an administrator.'
+      );
     }
 
-    const found = existingUser[0];
-    // If a user was soft-deleted, "log in" should restore them rather than creating duplicates.
-    if (found.deletedAt) {
-      const restored = await db
+    if (existingUser.deletedAt) {
+      this.logger.warn(`Login rejected: access revoked (${user.email})`);
+      throw new UnauthorizedException(
+        'Your access has been revoked. Please contact an administrator.'
+      );
+    }
+
+    if (!existingUser.googleId) {
+      this.logger.log(
+        `Linking Google account for invited user (${user.email})`
+      );
+      const [updatedUser] = await db
         .update(users)
         .set({
-          deletedAt: null,
-          email: user.email,
+          googleId: user.googleId,
+          firstName: user.firstName,
+          lastName: user.lastName,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, found.id))
+        .where(eq(users.id, existingUser.id))
         .returning();
-      return restored[0];
+      return updatedUser;
     }
 
-    // Keep email in sync with Google profile (can change).
-    if (found.email !== user.email) {
-      const updated = await db
+    if (existingUser.googleId !== user.googleId) {
+      this.logger.warn(
+        `Login rejected: googleId mismatch for email (${user.email})`
+      );
+      throw new UnauthorizedException(
+        'This email is already linked to a different Google account.'
+      );
+    }
+
+    // Optional sync
+    if (
+      existingUser.firstName !== user.firstName ||
+      existingUser.lastName !== user.lastName
+    ) {
+      const [updatedUser] = await db
         .update(users)
-        .set({ email: user.email, updatedAt: new Date() })
-        .where(eq(users.id, found.id))
+        .set({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
         .returning();
-      return updated[0];
+      this.logger.log(`User authenticated and profile synced (${user.email})`);
+      return updatedUser;
     }
 
-    return found;
+    this.logger.log(`User authenticated (${user.email})`);
+    return existingUser;
   }
 
   async login(user: User): Promise<string> {
+    this.logger.log(`Issuing JWT for user id=${user.id} role=${user.role}`);
     const payload: JwtPayload = {
       email: user.email,
       sub: user.id,

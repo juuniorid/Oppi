@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'database/db';
-import { posts, Post } from 'database/schema';
-import { eq } from 'drizzle-orm';
 import { CreatePostDto } from 'src/common/dto/create-post.dto';
+import { posts, Post } from 'database/schema';
+import { eq, desc } from 'drizzle-orm';
 
 @Injectable()
 export class PostsService {
@@ -22,6 +22,10 @@ export class PostsService {
   }
 
   async findByGroup(groupId: number): Promise<Post[]> {
-    return await db.select().from(posts).where(eq(posts.groupId, groupId));
+    return await db
+      .select()
+      .from(posts)
+      .where(eq(posts.groupId, groupId))
+      .orderBy(desc(posts.createdAt));
   }
 }

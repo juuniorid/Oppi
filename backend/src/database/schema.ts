@@ -23,7 +23,7 @@ export const users = pgTable('users', {
   role: userRoleEnum('role').notNull(),
   phone: text('phone'),
   email: text('email').notNull().unique(),
-  googleId: text('google_id').notNull().unique(),
+  googleId: text('google_id').unique(),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
@@ -60,6 +60,7 @@ export const groups = pgTable('groups', {
   description: text('description'),
   ageMin: integer('age_min'),
   ageMax: integer('age_max'),
+  kindergartenName: text('kindergarten_name'),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
@@ -356,13 +357,16 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const groupMessagesRelations = relations(groupMessages, ({ one, many }) => ({
-  sender: one(users, {
-    fields: [groupMessages.senderUserId],
-    references: [users.id],
-  }),
-  recipients: many(groupMessageRecipients),
-}));
+export const groupMessagesRelations = relations(
+  groupMessages,
+  ({ one, many }) => ({
+    sender: one(users, {
+      fields: [groupMessages.senderUserId],
+      references: [users.id],
+    }),
+    recipients: many(groupMessageRecipients),
+  })
+);
 
 export const groupMessageRecipientsRelations = relations(
   groupMessageRecipients,
