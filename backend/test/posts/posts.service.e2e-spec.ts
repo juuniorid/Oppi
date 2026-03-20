@@ -20,13 +20,13 @@ describe('PostsService (e2e)', () => {
       const author = await createTestUser('teacher@test.com', 'TEACHER');
 
       const result = await service.create(
-        { title: 'Hello', content: 'World', groupId: group.id },
+        { title: 'Hello', message: 'World', groupId: group.id },
         author.id,
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Hello');
-      expect(result[0].authorId).toBe(author.id);
+      expect(result[0].createdByUserId).toBe(author.id);
       expect(result[0].groupId).toBe(group.id);
     });
   });
@@ -36,8 +36,8 @@ describe('PostsService (e2e)', () => {
       const group = await createTestGroup('Butterflies');
       const author = await createTestUser('teacher2@test.com', 'TEACHER');
 
-      await service.create({ title: 'First', content: 'A', groupId: group.id }, author.id);
-      await service.create({ title: 'Second', content: 'B', groupId: group.id }, author.id);
+      await service.create({ title: 'First', message: 'A', groupId: group.id }, author.id);
+      await service.create({ title: 'Second', message: 'B', groupId: group.id }, author.id);
 
       const result = await service.findByGroup(group.id);
 
@@ -59,7 +59,7 @@ describe('PostsService (e2e)', () => {
       const group2 = await createTestGroup('Group Two');
       const author = await createTestUser('teacher3@test.com', 'TEACHER');
 
-      await service.create({ title: 'In Group 1', content: 'X', groupId: group1.id }, author.id);
+      await service.create({ title: 'In Group 1', message: 'X', groupId: group1.id }, author.id);
 
       const result = await service.findByGroup(group2.id);
 

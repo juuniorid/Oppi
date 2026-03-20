@@ -1,9 +1,8 @@
 import { testDb } from './test-db';
 import { users } from '../../src/database/schema';
 import type { User } from '../../src/database/schema';
-import type { roleEnum } from '../../src/database/schema';
 
-type Role = typeof roleEnum.enumValues[number];
+type Role = User['role'];
 
 type UserOverrides = Partial<Omit<typeof users.$inferInsert, 'email' | 'role'>>;
 
@@ -16,7 +15,8 @@ export async function createTestUser(
     .insert(users)
     .values({
       email,
-      name: overrides.name ?? 'Test User',
+      firstName: overrides.firstName ?? 'Test',
+      lastName: overrides.lastName ?? 'User',
       googleId: overrides.googleId ?? `google-${email}`,
       role,
       phone: overrides.phone ?? null,
@@ -33,7 +33,8 @@ export async function createTestUsers(
     .values(
       entries.map(({ email, role, ...overrides }) => ({
         email,
-        name: overrides.name ?? 'Test User',
+        firstName: overrides.firstName ?? 'Test',
+        lastName: overrides.lastName ?? 'User',
         googleId: overrides.googleId ?? `google-${email}`,
         role,
         phone: overrides.phone ?? null,
