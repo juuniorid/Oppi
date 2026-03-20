@@ -1,11 +1,16 @@
 import { NewMessage } from 'database/schema';
 
-export class CreateMessageDto implements Omit<NewMessage, 'id' | 'senderId' | 'timestamp'> {
-  recipientId: number;
-  content: string;
+export class CreateMessageDto implements Omit<
+  NewMessage,
+  'id' | 'senderUserId' | 'readAt' | 'deletedAt' | 'createdAt' | 'updatedAt'
+> {
+  recipientUserId: number;
+  subject?: string;
+  body?: string;
 
-  constructor(recipientId: number, content: string) {
-    this.recipientId = recipientId;
-    this.content = content;
+  constructor(recipientUserId: number, subject?: string, body?: string) {
+    this.recipientUserId = recipientUserId;
+    this.subject = subject;
+    this.body = body;
   }
 }

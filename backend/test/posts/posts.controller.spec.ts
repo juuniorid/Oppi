@@ -10,39 +10,49 @@ describe('PostsController', () => {
 
   const mockPost: Post = {
     id: 1,
-    title: 'Test Post',
-    content: 'This is a test post',
     groupId: 1,
-    authorId: 1,
+    createdByUserId: 1,
+    title: 'Test title',
+    message: 'This is a test post',
+    deletedAt: null,
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const mockPosts: Post[] = [
     {
       id: 1,
-      title: 'Test Post 1',
-      content: 'Content 1',
       groupId: 1,
-      authorId: 1,
+      createdByUserId: 1,
+      title: 'Title 1',
+      message: 'Content 1',
+      deletedAt: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       id: 2,
-      title: 'Test Post 2',
-      content: 'Content 2',
       groupId: 1,
-      authorId: 2,
+      createdByUserId: 2,
+      title: 'Title 2',
+      message: 'Content 2',
+      deletedAt: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
   const mockUser: User = {
     id: 1,
     email: 'teacher@example.com',
-    name: 'Test Teacher',
+    firstName: 'Test',
+    lastName: 'Teacher',
     googleId: 'google_123',
     role: 'TEACHER',
     phone: null,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -70,15 +80,18 @@ describe('PostsController', () => {
   describe('create', () => {
     it('should create a post', async () => {
       const createPostDto = {
-        title: 'Test Post',
-        content: 'This is a test post',
         groupId: 1,
+        title: 'Test title',
+        message: 'This is a test post',
       };
       const mockRequest = { user: mockUser } as Request & { user?: User };
 
       const result = await controller.create(createPostDto, mockRequest);
 
-      expect(postsService.create).toHaveBeenCalledWith(createPostDto, mockUser.id);
+      expect(postsService.create).toHaveBeenCalledWith(
+        createPostDto,
+        mockUser.id
+      );
       expect(result).toEqual([mockPost]);
     });
   });

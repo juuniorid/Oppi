@@ -8,8 +8,26 @@ describe('ChildrenController', () => {
   let childrenService: ChildrenService;
 
   const mockChildren: Child[] = [
-    { id: 1, groupId: 1, firstName: 'John', lastName: 'Doe' },
-    { id: 2, groupId: 1, firstName: 'Jane', lastName: 'Smith' },
+    {
+      id: 1,
+      firstName: 'John',
+      lastName: 'Doe',
+      dateOfBirth: new Date('2020-01-15'),
+      notes: null,
+      deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      firstName: 'Jane',
+      lastName: 'Smith',
+      dateOfBirth: new Date('2020-03-20'),
+      notes: null,
+      deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
 
   beforeEach(async () => {
@@ -35,7 +53,7 @@ describe('ChildrenController', () => {
 
   describe('findByGroup', () => {
     it('should return children for a specific group', async () => {
-      const result = await controller.findByGroup('1');
+      const result = await controller.findByGroup(1);
 
       expect(childrenService.findByGroup).toHaveBeenCalledWith(1);
       expect(result).toEqual(mockChildren);

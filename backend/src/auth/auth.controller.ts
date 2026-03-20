@@ -1,7 +1,12 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger'; // New imports
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiCookieAuth,
+} from '@nestjs/swagger'; // New imports
 import { AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';
@@ -17,12 +22,20 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() _req: Request): Promise<void> {}
 
-  @ApiOperation({ summary: 'Google OAuth2 callback (handles redirect and cookie)' })
-  @ApiResponse({ status: 302, description: 'Redirects to frontend dashboard on success' })
+  @ApiOperation({
+    summary: 'Google OAuth2 callback (handles redirect and cookie)',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirects to frontend dashboard on success',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized - Email not invited' })
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: Request, @Res() res: Response): Promise<void> {
+  async googleAuthRedirect(
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<void> {
     const user = req.user as User;
     const token = await this.authService.login(user);
 

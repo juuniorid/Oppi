@@ -1,6 +1,6 @@
 {
-  "id": "76485987-8f80-4e67-904d-fdb24426ca68",
-  "prevId": "b440d423-7765-4e94-a38e-b6007a071241",
+  "id": "63222fa8-bf99-4e3b-a482-1e66b573dd62",
+  "prevId": "ea1de1bc-6873-4c77-a56d-df7c381bd73e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -88,8 +88,12 @@
           "name": "attendance_child_id_children_id_fk",
           "tableFrom": "attendance",
           "tableTo": "children",
-          "columnsFrom": ["child_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "child_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -135,25 +139,36 @@
           "name": "child_users_child_id_children_id_fk",
           "tableFrom": "child_users",
           "tableTo": "children",
-          "columnsFrom": ["child_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "child_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "child_users_user_id_users_id_fk": {
           "name": "child_users_user_id_users_id_fk",
           "tableFrom": "child_users",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "child_users_child_id_user_id_pk": {
           "name": "child_users_child_id_user_id_pk",
-          "columns": ["child_id", "user_id"]
+          "columns": [
+            "child_id",
+            "user_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -258,6 +273,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -279,8 +300,12 @@
           "name": "enrollments_child_id_children_id_fk",
           "tableFrom": "enrollments",
           "tableTo": "children",
-          "columnsFrom": ["child_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "child_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -288,8 +313,12 @@
           "name": "enrollments_group_id_groups_id_fk",
           "tableFrom": "enrollments",
           "tableTo": "groups",
-          "columnsFrom": ["group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -329,25 +358,36 @@
           "name": "group_message_recipients_group_message_id_group_messages_id_fk",
           "tableFrom": "group_message_recipients",
           "tableTo": "group_messages",
-          "columnsFrom": ["group_message_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "group_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "group_message_recipients_user_id_users_id_fk": {
           "name": "group_message_recipients_user_id_users_id_fk",
           "tableFrom": "group_message_recipients",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "group_message_recipients_group_message_id_user_id_pk": {
           "name": "group_message_recipients_group_message_id_user_id_pk",
-          "columns": ["group_message_id", "user_id"]
+          "columns": [
+            "group_message_id",
+            "user_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -410,8 +450,12 @@
           "name": "group_messages_sender_user_id_users_id_fk",
           "tableFrom": "group_messages",
           "tableTo": "users",
-          "columnsFrom": ["sender_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "sender_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -452,25 +496,36 @@
           "name": "group_users_group_id_groups_id_fk",
           "tableFrom": "group_users",
           "tableTo": "groups",
-          "columnsFrom": ["group_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "group_users_user_id_users_id_fk": {
           "name": "group_users_user_id_users_id_fk",
           "tableFrom": "group_users",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "group_users_group_id_user_id_pk": {
           "name": "group_users_group_id_user_id_pk",
-          "columns": ["group_id", "user_id"]
+          "columns": [
+            "group_id",
+            "user_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -509,6 +564,12 @@
         "age_max": {
           "name": "age_max",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kindergarten_name": {
+          "name": "kindergarten_name",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -608,8 +669,12 @@
           "name": "messages_sender_user_id_users_id_fk",
           "tableFrom": "messages",
           "tableTo": "users",
-          "columnsFrom": ["sender_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "sender_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -617,8 +682,12 @@
           "name": "messages_recipient_user_id_users_id_fk",
           "tableFrom": "messages",
           "tableTo": "users",
-          "columnsFrom": ["recipient_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "recipient_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -677,9 +746,13 @@
           "name": "post_media_group_post_id_group_posts_id_fk",
           "tableFrom": "post_media",
           "tableTo": "group_posts",
-          "columnsFrom": ["group_post_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
+          "columnsFrom": [
+            "group_post_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -750,8 +823,12 @@
           "name": "group_posts_group_id_groups_id_fk",
           "tableFrom": "group_posts",
           "tableTo": "groups",
-          "columnsFrom": ["group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -759,8 +836,12 @@
           "name": "group_posts_created_by_user_id_users_id_fk",
           "tableFrom": "group_posts",
           "tableTo": "users",
-          "columnsFrom": ["created_by_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -816,7 +897,7 @@
           "name": "google_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "deleted_at": {
           "name": "deleted_at",
@@ -846,12 +927,16 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         },
         "users_google_id_unique": {
           "name": "users_google_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["google_id"]
+          "columns": [
+            "google_id"
+          ]
         }
       },
       "policies": {},
@@ -863,17 +948,28 @@
     "public.child_present": {
       "name": "child_present",
       "schema": "public",
-      "values": ["KOHAL", "PUUDUB"]
+      "values": [
+        "KOHAL",
+        "PUUDUB"
+      ]
     },
     "public.teacher_role": {
       "name": "teacher_role",
       "schema": "public",
-      "values": ["PEA", "TAVA", "ABI"]
+      "values": [
+        "PEA",
+        "TAVA",
+        "ABI"
+      ]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": ["ADMIN", "TEACHER", "PARENT"]
+      "values": [
+        "ADMIN",
+        "TEACHER",
+        "PARENT"
+      ]
     }
   },
   "schemas": {},

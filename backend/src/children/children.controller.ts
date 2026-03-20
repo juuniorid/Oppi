@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ChildrenService } from './children.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -12,7 +12,7 @@ export class ChildrenController {
 
   @Get('group/:id')
   @Roles('TEACHER')
-  async findByGroup(@Param('id') id: string): Promise<Child[]> {
-    return this.childrenService.findByGroup(+id);
+  async findByGroup(@Param('id', ParseIntPipe) id: number): Promise<Child[]> {
+    return this.childrenService.findByGroup(id);
   }
-}  
+}

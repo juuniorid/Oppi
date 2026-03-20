@@ -1,13 +1,16 @@
 import { NewPost } from 'database/schema';
 
-export class CreatePostDto implements Omit<NewPost, 'id' | 'createdAt' | 'authorId'> {
-  title: string;
-  content: string;
+export class CreatePostDto implements Omit<
+  NewPost,
+  'id' | 'createdAt' | 'updatedAt' | 'createdByUserId' | 'deletedAt'
+> {
   groupId: number;
+  title: string;
+  message: string;
 
-  constructor(title: string, content: string, groupId: number) {
-    this.title = title;
-    this.content = content;
+  constructor(groupId: number, title: string, message: string) {
     this.groupId = groupId;
+    this.title = title;
+    this.message = message;
   }
 }
