@@ -1,5 +1,8 @@
-import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 import * as path from 'path';
+
+// Load root-level .env (one level above the backend/ directory)
+dotenv.config({ path: path.resolve(process.cwd(), '../.env'), quiet: true });
 
 export interface AppConfig {
   app: {
@@ -29,29 +32,30 @@ export interface AppConfig {
 }
 
 function loadConfig(): AppConfig {
-  const configPath = path.join(process.cwd(), 'config.json');
-  const configFile = fs.readFileSync(configPath, 'utf-8');
-  const config: AppConfig = JSON.parse(configFile);
-
-  // Override with environment variables
-  config.app.port = parseInt(process.env.PORT || `${config.app.port}`, 10);
-  config.app.nodeEnv = process.env.NODE_ENV || config.app.nodeEnv;
-  config.app.frontendUrl = process.env.FRONTEND_URL || config.app.frontendUrl;
-
-  config.jwt.secret = process.env.JWT_SECRET || config.jwt.secret;
-  config.jwt.expiresIn = process.env.JWT_EXPIRES_IN || config.jwt.expiresIn;
-
-  config.google.clientId = process.env.GOOGLE_CLIENT_ID || config.google.clientId;
-  config.google.clientSecret = process.env.GOOGLE_CLIENT_SECRET || config.google.clientSecret;
-  config.google.callbackUrl = process.env.GOOGLE_CALLBACK_URL || config.google.callbackUrl;
-
-  config.database.url = process.env.DATABASE_URL || config.database.url;
-
-  if (!config.database.url) {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
     throw new Error('DATABASE_URL is required');
   }
 
-  return config;
+  return {
+    app: {
+      port: parseInt(process.env.PORT ?? '3001', 10),
+      nodeEnv: process.env.NODE_ENV ?? 'development',
+      frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    },
+    jwt: {
+      secret: process.env.JWT_SECRET ?? 'dev-secret',
+      expiresIn: process.env.JWT_EXPIRES_IN ?? '60m',
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      callbackUrl: process.env.GOOGLE_CALLBACK_URL ?? 'http://localhost:3000/auth/google/callback',
+    },
+    database: {
+      url: databaseUrl,
+    },
+  };
 }
 
 export const appConfig = loadConfig();

@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
-import { db } from '../database/db'; // Ensure correct relative path
-import { users, User } from '../database/schema'; // Ensure correct relative path
-import { JwtPayload } from '../common/dto/jwt.payload';
+import { db } from 'database/db';
+import { users, User } from 'database/schema';
+import { JwtPayload } from 'src/common/dto/jwt.payload';
 
 interface OAuthUser {
   email: string;
@@ -13,43 +13,43 @@ interface OAuthUser {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(private jwtService: JwtService) {}
 
   async validateOAuthLogin(user: OAuthUser): Promise<User> {
-    // 1. Search by email first (the whitelist)
-    const existingUsers = await db.select().from(users).where(eq(users.email, user.email)).limit(1);
-    
-    if (existingUsers.length === 0) {
-      // User is not pre-registered/invited
+    const [existingUser] = await db.select().from(users).where(eq(users.email, user.email)).limit(1);
+
+    if (!existingUser) {
+      this.logger.warn(`Login rejected: email not in whitelist (${user.email})`);
       throw new UnauthorizedException('You are not invited to this platform. Please contact an administrator.');
     }
 
-    const dbUser = existingUsers[0];
-
-    // 2. Link googleId if it's missing (claiming the invite)
-    if (!dbUser.googleId) {
-      const updatedUser = await db
+    if (!existingUser.googleId) {
+      this.logger.log(`Linking Google account for invited user (${user.email})`);
+      const [updatedUser] = await db
         .update(users)
         .set({ googleId: user.googleId })
-        .where(eq(users.id, dbUser.id))
+        .where(eq(users.id, existingUser.id))
         .returning();
-      return updatedUser[0];
+      return updatedUser;
     }
 
-    // 3. Ensure the googleId matches if it was already linked
-    if (dbUser.googleId !== user.googleId) {
+    if (existingUser.googleId !== user.googleId) {
+      this.logger.warn(`Login rejected: googleId mismatch for email (${user.email})`);
       throw new UnauthorizedException('This email is already linked to a different Google account.');
     }
 
-    return dbUser;
+    this.logger.log(`User authenticated (${user.email})`);
+    return existingUser;
   }
 
   async login(user: User): Promise<string> {
-    // Include the role and sub in the payload for RBAC
-    const payload: JwtPayload = { 
-      email: user.email, 
-      sub: user.id, 
-      role: user.role 
+    this.logger.log(`Issuing JWT for user id=${user.id} role=${user.role}`);
+    const payload: JwtPayload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
     };
     return this.jwtService.sign(payload);
   }
