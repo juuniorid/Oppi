@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { Request } from 'express';
 import { PostsService } from './posts.service';
 import {
@@ -45,10 +45,10 @@ export class PostsController {
   @ApiResponse({ status: 403, description: 'Forbidden — only TEACHER or ADMIN role can update posts.' })
   @ApiResponse({ status: 404, description: 'Post not found.' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<PostEntity> {
-    return this.postsService.update(+id, updatePostDto);
+    return this.postsService.update(id, updatePostDto);
   }
 
   @Get('group/:id')
@@ -57,7 +57,10 @@ export class PostsController {
   @ApiResponse({ status: 200, description: 'Posts returned successfully.' })
   @ApiResponse({ status: 403, description: 'Forbidden — PARENT does not have a child in this group.' })
   @ApiResponse({ status: 404, description: 'Group not found.' })
-  async findByGroup(@Param('id') id: string, @Req() req: Request & { user?: User }): Promise<PostEntity[]> {
-    return this.postsService.findByGroup(+id, req.user!);
+  async findByGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user?: User },
+  ): Promise<PostEntity[]> {
+    return this.postsService.findByGroup(id, req.user!);
   }
 }
