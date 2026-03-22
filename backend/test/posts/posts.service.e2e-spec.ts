@@ -21,24 +21,24 @@ describe('PostsService (e2e)', () => {
   describe('create', () => {
     it('should insert and return a post', async () => {
       const group = await createTestGroup('Bumblebees');
-      const author = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', 'TEACHER');
 
       const result = await service.create(
         { title: 'Hello', content: 'World', groupId: group.id },
-        author.id,
+        user.id,
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Hello');
-      expect(result[0].authorId).toBe(author.id);
+      expect(result[0].userId).toBe(user.id);
       expect(result[0].groupId).toBe(group.id);
     });
 
     it('should throw NotFoundException when group does not exist', async () => {
-      const author = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', 'TEACHER');
 
       await expect(
-        service.create({ title: 'Test', content: 'Content', groupId: 99999 }, author.id),
+        service.create({ title: 'Test', content: 'Content', groupId: 99999 }, user.id),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -46,10 +46,10 @@ describe('PostsService (e2e)', () => {
   describe('update', () => {
     it('should update title and content of an existing post', async () => {
       const group = await createTestGroup('Sunflowers');
-      const author = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', 'TEACHER');
       const [created] = await service.create(
         { title: 'Original', content: 'Original content', groupId: group.id },
-        author.id,
+        user.id,
       );
 
       const result = await service.update(created.id, { title: 'Updated', content: 'New content' });
@@ -62,10 +62,10 @@ describe('PostsService (e2e)', () => {
 
     it('should update only title when content is omitted', async () => {
       const group = await createTestGroup('Daisies');
-      const author = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', 'TEACHER');
       const [created] = await service.create(
         { title: 'Old title', content: 'Keep this', groupId: group.id },
-        author.id,
+        user.id,
       );
 
       const result = await service.update(created.id, { title: 'New title' });

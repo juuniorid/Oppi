@@ -14,7 +14,7 @@ describe('PostsController', () => {
     title: 'Test Post',
     content: 'This is a test post',
     groupId: 1,
-    authorId: 1,
+    userId: 1,
     createdAt: new Date(),
   };
 
@@ -24,7 +24,7 @@ describe('PostsController', () => {
       title: 'Test Post 1',
       content: 'Content 1',
       groupId: 1,
-      authorId: 1,
+      userId: 1,
       createdAt: new Date(),
     },
     {
@@ -32,7 +32,7 @@ describe('PostsController', () => {
       title: 'Test Post 2',
       content: 'Content 2',
       groupId: 1,
-      authorId: 2,
+      userId: 2,
       createdAt: new Date(),
     },
   ];

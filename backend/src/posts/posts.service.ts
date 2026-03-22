@@ -8,14 +8,14 @@ import { UpdatePostDto } from '../common/dto/update-post.dto';
 export class PostsService {
   private readonly logger = new Logger(PostsService.name);
 
-  async create(createPostDto: Omit<NewPost, 'id' | 'createdAt' | 'authorId'>, authorId: number): Promise<Post[]> {
+  async create(createPostDto: Omit<NewPost, 'id' | 'createdAt' | 'userId'>, userId: number): Promise<Post[]> {
     await this.assertGroupExists(createPostDto.groupId);
-    this.logger.verbose(`Creating post in group ${createPostDto.groupId} by user ${authorId}`);
+    this.logger.verbose(`Creating post in group ${createPostDto.groupId} by user ${userId}`);
     return db.insert(posts).values({
       title: createPostDto.title,
       content: createPostDto.content,
       groupId: createPostDto.groupId,
-      authorId,
+      userId,
     }).returning();
   }
 
