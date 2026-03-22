@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { PostsController } from '../../src/posts/posts.controller';
 import { PostsService } from '../../src/posts/posts.service';
 import { Post, User } from 'database/schema';
@@ -13,7 +14,7 @@ describe('PostsController', () => {
     title: 'Test Post',
     content: 'This is a test post',
     groupId: 1,
-    authorId: 1,
+    userId: 1,
     createdAt: new Date(),
   };
 
@@ -23,7 +24,7 @@ describe('PostsController', () => {
       title: 'Test Post 1',
       content: 'Content 1',
       groupId: 1,
-      authorId: 1,
+      userId: 1,
       createdAt: new Date(),
     },
     {
@@ -31,7 +32,7 @@ describe('PostsController', () => {
       title: 'Test Post 2',
       content: 'Content 2',
       groupId: 1,
-      authorId: 2,
+      userId: 2,
       createdAt: new Date(),
     },
   ];
@@ -54,6 +55,7 @@ describe('PostsController', () => {
           useValue: {
             create: jest.fn().mockResolvedValue([mockPost]),
             findByGroup: jest.fn().mockResolvedValue(mockPosts),
+            update: jest.fn().mockResolvedValue({ ...mockPost, title: 'Updated' }),
           },
         },
       ],
@@ -85,10 +87,45 @@ describe('PostsController', () => {
 
   describe('findByGroup', () => {
     it('should return posts for a specific group', async () => {
-      const result = await controller.findByGroup('1');
+      const mockRequest = { user: mockUser } as Request & { user?: User };
 
-      expect(postsService.findByGroup).toHaveBeenCalledWith(1);
+      const result = await controller.findByGroup(1, mockRequest);
+
+      expect(postsService.findByGroup).toHaveBeenCalledWith(1, mockUser);
       expect(result).toEqual(mockPosts);
+    });
+
+    it('should propagate NotFoundException when group does not exist', async () => {
+      jest.spyOn(postsService, 'findByGroup').mockRejectedValue(new NotFoundException('Group 999 not found'));
+      const mockRequest = { user: mockUser } as Request & { user?: User };
+
+      await expect(controller.findByGroup(999, mockRequest)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('update', () => {
+    it('should update a post', async () => {
+      const result = await controller.update(1, { title: 'Updated' });
+
+      expect(postsService.update).toHaveBeenCalledWith(1, { title: 'Updated' });
+      expect(result).toEqual({ ...mockPost, title: 'Updated' });
+    });
+
+    it('should propagate NotFoundException when post does not exist', async () => {
+      jest.spyOn(postsService, 'update').mockRejectedValue(new NotFoundException('Post 999 not found'));
+
+      await expect(controller.update(999, { title: 'X' })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('create — 404 propagation', () => {
+    it('should propagate NotFoundException when group does not exist', async () => {
+      jest.spyOn(postsService, 'create').mockRejectedValue(new NotFoundException('Group 999 not found'));
+      const mockRequest = { user: mockUser } as Request & { user?: User };
+
+      await expect(
+        controller.create({ title: 'Test', content: 'Content', groupId: 999 }, mockRequest),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });
