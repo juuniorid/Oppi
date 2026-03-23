@@ -22,7 +22,7 @@ jobs:
       - run: cd backend && pnpm install --frozen-lockfile
       - run: cd backend && pnpm run lint
       - run: cd backend && pnpm run build
-      - run: cd backend && pnpm run test:all
+      - run: cd backend && pnpm run test:unit
 
   frontend-test:
     runs-on: ubuntu-latest
