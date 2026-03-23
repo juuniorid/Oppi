@@ -11,7 +11,7 @@ describe('PostsController', () => {
   const mockPost: Post = {
     id: 1,
     groupId: 1,
-    createdByUserId: 1,
+    userId: 1,
     title: 'Test title',
     message: 'This is a test post',
     deletedAt: null,
@@ -23,7 +23,7 @@ describe('PostsController', () => {
     {
       id: 1,
       groupId: 1,
-      createdByUserId: 1,
+      userId: 1,
       title: 'Title 1',
       message: 'Content 1',
       deletedAt: null,
@@ -33,7 +33,7 @@ describe('PostsController', () => {
     {
       id: 2,
       groupId: 1,
-      createdByUserId: 2,
+      userId: 2,
       title: 'Title 2',
       message: 'Content 2',
       deletedAt: null,

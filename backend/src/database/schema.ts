@@ -12,11 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
-export const userRoleEnum = pgEnum('user_role', [
-  'ADMIN',
-  'OPETAJA',
-  'LAPSEVANEM',
-]);
+export const userRoleEnum = pgEnum('user_role', ['ADMIN', 'TEACHER', 'PARENT']);
 export const teacherRoleEnum = pgEnum('teacher_role', [
   'HEAD',
   'GENERAL',
@@ -218,7 +214,7 @@ export type NewPostMedia = InferInsertModel<typeof postMedia>;
 // Shared message envelope for direct and group messages
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
-  senderUserId: integer('sender_user_id')
+  userId: integer('user_id')
     .references(() => users.id)
     .notNull(),
   targetGroupId: integer('target_group_id').references(() => groups.id),
@@ -337,7 +333,7 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
 
 export const messagesRelations = relations(messages, ({ one, many }) => ({
   sender: one(users, {
-    fields: [messages.senderUserId],
+    fields: [messages.userId],
     references: [users.id],
     relationName: 'message_sender',
   }),

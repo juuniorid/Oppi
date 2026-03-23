@@ -1,5 +1,5 @@
 import { db, client } from '../db';
-import { users, groups, children, childUsers } from '../schema';
+import { users, groups, children, userChildren } from '../schema';
 
 async function seed(): Promise<void> {
   try {
@@ -102,7 +102,7 @@ async function seed(): Promise<void> {
 
     if (parent1 && parent2 && emma) {
       await db
-        .insert(childUsers)
+        .insert(userChildren)
         .values([
           { userId: parent1.id, childId: emma.id },
           { userId: parent2.id, childId: emma.id },

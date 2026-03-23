@@ -2,7 +2,7 @@ import { NewPost } from 'database/schema';
 
 export class CreatePostDto implements Omit<
   NewPost,
-  'id' | 'createdAt' | 'updatedAt' | 'createdByUserId' | 'deletedAt'
+  'id' | 'createdAt' | 'updatedAt' | 'userId' | 'deletedAt'
 > {
   groupId: number;
   title: string;

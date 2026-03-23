@@ -16,7 +16,7 @@ export class PostsService {
         groupId: createPostDto.groupId,
         title: createPostDto.title,
         message: createPostDto.message,
-        createdByUserId: authorId,
+        userId: authorId,
       })
       .returning();
   }
