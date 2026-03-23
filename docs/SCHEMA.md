@@ -24,12 +24,17 @@ Pure relationship tables do not currently use soft delete and can be hard-delete
 
 ## Enums
 
+The following enums are currently defined in [`backend/src/database/schema.ts`](/Users/karl/04_TalTech/Oppi/backend/src/database/schema.ts):
+
 ```sql
 CREATE TYPE user_role AS ENUM ('ADMIN', 'TEACHER', 'PARENT');
-CREATE TYPE teacher_role AS ENUM ('PEA', 'TAVA', 'ABI');
-CREATE TYPE child_present AS ENUM ('KOHAL', 'PUUDUB');
+CREATE TYPE teacher_role AS ENUM ('HEAD', 'GENERAL', 'ASSISTANT');
+CREATE TYPE child_present AS ENUM ('PRESENT', 'ABSENT');
 CREATE TYPE message_audience AS ENUM ('DIRECT', 'GROUP');
+CREATE TYPE relationship AS ENUM ('MOTHER', 'FATHER', 'GUARDIAN');
 ```
+
+`child_users.relationship` is currently stored as `TEXT`; the `relationship` enum exists in `schema.ts` but is not used by a table column.
 
 ## Users
 
@@ -41,7 +46,7 @@ CREATE TABLE users (
   role user_role NOT NULL,
   phone TEXT,
   email TEXT NOT NULL UNIQUE,
-  google_id TEXT NOT NULL UNIQUE,
+  google_id TEXT UNIQUE,
   deleted_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -70,8 +75,9 @@ CREATE TABLE groups (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  age_min INT,
-  age_max INT,
+  age_min TEXT,
+  age_max TEXT,
+  kindergarten_name TEXT,
   deleted_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -82,8 +88,8 @@ CREATE TABLE groups (
 
 ```sql
 CREATE TABLE group_users (
-  group_id INT NOT NULL REFERENCES groups(id),
-  user_id INT NOT NULL REFERENCES users(id),
+  group_id INT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   role teacher_role,
   PRIMARY KEY (group_id, user_id)
 );
@@ -111,8 +117,8 @@ CREATE UNIQUE INDEX attendance_child_id_date_unique
 
 ```sql
 CREATE TABLE child_users (
-  child_id INT NOT NULL REFERENCES children(id),
-  user_id INT NOT NULL REFERENCES users(id),
+  child_id INT NOT NULL REFERENCES children(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   relationship TEXT,
   is_primary BOOLEAN,
   PRIMARY KEY (child_id, user_id)
@@ -140,7 +146,7 @@ CREATE TABLE enrollments (
 CREATE TABLE group_posts (
   id SERIAL PRIMARY KEY,
   group_id INT NOT NULL REFERENCES groups(id),
-  created_by_user_id INT NOT NULL REFERENCES users(id),
+  user_id INT NOT NULL REFERENCES users(id),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   deleted_at TIMESTAMPTZ,
@@ -154,7 +160,7 @@ CREATE TABLE group_posts (
 ```sql
 CREATE TABLE post_media (
   id SERIAL PRIMARY KEY,
-  group_post_id INT NOT NULL REFERENCES group_posts(id),
+  group_post_id INT NOT NULL REFERENCES group_posts(id) ON DELETE CASCADE,
   s3_key TEXT,
   content_type TEXT,
   deleted_at TIMESTAMPTZ,
@@ -167,7 +173,7 @@ CREATE TABLE post_media (
 ```sql
 CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
-  sender_user_id INT NOT NULL REFERENCES users(id),
+  user_id INT NOT NULL REFERENCES users(id),
   target_group_id INT REFERENCES groups(id),
   audience message_audience NOT NULL DEFAULT 'DIRECT',
   subject TEXT,
@@ -182,8 +188,8 @@ CREATE TABLE messages (
 
 ```sql
 CREATE TABLE message_recipients (
-  message_id INT NOT NULL REFERENCES messages(id),
-  user_id INT NOT NULL REFERENCES users(id),
+  message_id INT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   read_at TIMESTAMPTZ,
   PRIMARY KEY (message_id, user_id)
 );

@@ -24,7 +24,7 @@ export const messageAudienceEnum = pgEnum('message_audience', [
   'GROUP',
 ]);
 export const relationshipEnum = pgEnum('relationship', [
-  'MOTHER ',
+  'MOTHER',
   'FATHER',
   'GUARDIAN',
 ]);
