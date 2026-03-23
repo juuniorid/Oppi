@@ -12,9 +12,22 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
-export const userRoleEnum = pgEnum('user_role', ['ADMIN', 'TEACHER', 'PARENT']);
-export const teacherRoleEnum = pgEnum('teacher_role', ['PEA', 'TAVA', 'ABI']);
-export const childPresentEnum = pgEnum('child_present', ['KOHAL', 'PUUDUB']);
+export const userRoleEnum = pgEnum('user_role', [
+  'ADMIN',
+  'OPETAJA',
+  'LAPSEVANEM',
+]);
+export const teacherRoleEnum = pgEnum('teacher_role', [
+  'HEAD',
+  'GENERAL',
+  'ASSISTANT',
+]);
+export const childPresentEnum = pgEnum('child_present', ['PRESENT', 'ABSENT']);
+export const relationshipEnum = pgEnum('relationship', [
+  'MOTHER ',
+  'FATHER',
+  'GUARDIAN',
+]);
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -58,8 +71,8 @@ export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   description: text('description'),
-  ageMin: integer('age_min'),
-  ageMax: integer('age_max'),
+  ageMin: text('age_min'),
+  ageMax: text('age_max'),
   kindergartenName: text('kindergarten_name'),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
@@ -119,7 +132,7 @@ export const attendance = pgTable(
 export type Attendance = InferSelectModel<typeof attendance>;
 export type NewAttendance = InferInsertModel<typeof attendance>;
 
-export const childUsers = pgTable(
+export const userChildren = pgTable(
   'child_users',
   {
     childId: integer('child_id')
@@ -134,8 +147,8 @@ export const childUsers = pgTable(
   (table) => [primaryKey({ columns: [table.childId, table.userId] })]
 );
 
-export type ChildUser = InferSelectModel<typeof childUsers>;
-export type NewChildUser = InferInsertModel<typeof childUsers>;
+export type ChildUser = InferSelectModel<typeof userChildren>;
+export type NewUserChildren = InferInsertModel<typeof userChildren>;
 
 export const enrollments = pgTable('enrollments', {
   id: serial('id').primaryKey(),
@@ -165,7 +178,7 @@ export const posts = pgTable('group_posts', {
   groupId: integer('group_id')
     .references(() => groups.id)
     .notNull(),
-  createdByUserId: integer('created_by_user_id')
+  userId: integer('user_id')
     .references(() => users.id)
     .notNull(),
   title: text('title').notNull(),
@@ -264,7 +277,7 @@ export type NewGroupMessageRecipient = InferInsertModel<
 >;
 
 export const usersRelations = relations(users, ({ many }) => ({
-  childLinks: many(childUsers),
+  childLinks: many(userChildren),
   groupLinks: many(groupUsers),
   groupPosts: many(posts),
   sentMessages: many(messages, { relationName: 'message_sender' }),
@@ -275,7 +288,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const childrenRelations = relations(children, ({ many }) => ({
   attendance: many(attendance),
-  userLinks: many(childUsers),
+  userLinks: many(userChildren),
   enrollments: many(enrollments),
 }));
 
@@ -303,13 +316,13 @@ export const attendanceRelations = relations(attendance, ({ one }) => ({
   }),
 }));
 
-export const childUsersRelations = relations(childUsers, ({ one }) => ({
+export const userChildrenRelations = relations(userChildren, ({ one }) => ({
   child: one(children, {
-    fields: [childUsers.childId],
+    fields: [userChildren.childId],
     references: [children.id],
   }),
   user: one(users, {
-    fields: [childUsers.userId],
+    fields: [userChildren.userId],
     references: [users.id],
   }),
 }));
@@ -331,7 +344,7 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
     references: [groups.id],
   }),
   author: one(users, {
-    fields: [posts.createdByUserId],
+    fields: [posts.userId],
     references: [users.id],
   }),
   media: many(postMedia),
