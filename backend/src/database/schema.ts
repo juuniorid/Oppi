@@ -23,6 +23,10 @@ export const teacherRoleEnum = pgEnum('teacher_role', [
   'ASSISTANT',
 ]);
 export const childPresentEnum = pgEnum('child_present', ['PRESENT', 'ABSENT']);
+export const messageAudienceEnum = pgEnum('message_audience', [
+  'DIRECT',
+  'GROUP',
+]);
 export const relationshipEnum = pgEnum('relationship', [
   'MOTHER ',
   'FATHER',
@@ -211,18 +215,16 @@ export const postMedia = pgTable('post_media', {
 export type PostMedia = InferSelectModel<typeof postMedia>;
 export type NewPostMedia = InferInsertModel<typeof postMedia>;
 
-// Direct messages between users
+// Shared message envelope for direct and group messages
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
   senderUserId: integer('sender_user_id')
     .references(() => users.id)
     .notNull(),
-  recipientUserId: integer('recipient_user_id')
-    .references(() => users.id)
-    .notNull(),
+  targetGroupId: integer('target_group_id').references(() => groups.id),
+  audience: messageAudienceEnum('audience').default('DIRECT').notNull(),
   subject: text('subject'),
   body: text('body'),
-  readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
@@ -235,55 +237,30 @@ export const messages = pgTable('messages', {
 export type Message = InferSelectModel<typeof messages>;
 export type NewMessage = InferInsertModel<typeof messages>;
 
-// Group-wide messages (broadcast)
-export const groupMessages = pgTable('group_messages', {
-  id: serial('id').primaryKey(),
-  senderUserId: integer('sender_user_id')
-    .references(() => users.id)
-    .notNull(),
-  subject: text('subject'),
-  body: text('body'),
-  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
-    .defaultNow()
-    .notNull(),
-});
-
-export type GroupMessage = InferSelectModel<typeof groupMessages>;
-export type NewGroupMessage = InferInsertModel<typeof groupMessages>;
-
-export const groupMessageRecipients = pgTable(
-  'group_message_recipients',
+// Per-recipient delivery and read state for all messages
+export const messageRecipients = pgTable(
+  'message_recipients',
   {
-    groupMessageId: integer('group_message_id')
-      .references(() => groupMessages.id, { onDelete: 'cascade' })
+    messageId: integer('message_id')
+      .references(() => messages.id, { onDelete: 'cascade' })
       .notNull(),
     userId: integer('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   },
-  (table) => [primaryKey({ columns: [table.groupMessageId, table.userId] })]
+  (table) => [primaryKey({ columns: [table.messageId, table.userId] })]
 );
 
-export type GroupMessageRecipient = InferSelectModel<
-  typeof groupMessageRecipients
->;
-export type NewGroupMessageRecipient = InferInsertModel<
-  typeof groupMessageRecipients
->;
+export type MessageRecipient = InferSelectModel<typeof messageRecipients>;
+export type NewMessageRecipient = InferInsertModel<typeof messageRecipients>;
 
 export const usersRelations = relations(users, ({ many }) => ({
   childLinks: many(userChildren),
   groupLinks: many(groupUsers),
   groupPosts: many(posts),
   sentMessages: many(messages, { relationName: 'message_sender' }),
-  receivedMessages: many(messages, { relationName: 'message_recipient' }),
-  sentGroupMessages: many(groupMessages),
-  groupMessageRecipients: many(groupMessageRecipients),
+  messageRecipients: many(messageRecipients),
 }));
 
 export const childrenRelations = relations(children, ({ many }) => ({
@@ -296,6 +273,7 @@ export const groupsRelations = relations(groups, ({ many }) => ({
   userLinks: many(groupUsers),
   enrollments: many(enrollments),
   posts: many(posts),
+  messages: many(messages),
 }));
 
 export const groupUsersRelations = relations(groupUsers, ({ one }) => ({
@@ -357,39 +335,28 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
   }),
 }));
 
-export const messagesRelations = relations(messages, ({ one }) => ({
+export const messagesRelations = relations(messages, ({ one, many }) => ({
   sender: one(users, {
     fields: [messages.senderUserId],
     references: [users.id],
     relationName: 'message_sender',
   }),
-  recipient: one(users, {
-    fields: [messages.recipientUserId],
-    references: [users.id],
-    relationName: 'message_recipient',
+  targetGroup: one(groups, {
+    fields: [messages.targetGroupId],
+    references: [groups.id],
   }),
+  recipients: many(messageRecipients),
 }));
 
-export const groupMessagesRelations = relations(
-  groupMessages,
-  ({ one, many }) => ({
-    sender: one(users, {
-      fields: [groupMessages.senderUserId],
-      references: [users.id],
-    }),
-    recipients: many(groupMessageRecipients),
-  })
-);
-
-export const groupMessageRecipientsRelations = relations(
-  groupMessageRecipients,
+export const messageRecipientsRelations = relations(
+  messageRecipients,
   ({ one }) => ({
-    groupMessage: one(groupMessages, {
-      fields: [groupMessageRecipients.groupMessageId],
-      references: [groupMessages.id],
+    message: one(messages, {
+      fields: [messageRecipients.messageId],
+      references: [messages.id],
     }),
     user: one(users, {
-      fields: [groupMessageRecipients.userId],
+      fields: [messageRecipients.userId],
       references: [users.id],
     }),
   })

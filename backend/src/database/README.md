@@ -70,7 +70,8 @@ The schema is defined in `schema.ts` using Drizzle ORM. Key tables:
 - **groups** - Kindergarten classes/groups
 - **children** - Children enrolled in groups
 - **posts** - Announcements from teachers
-- **messages** - Direct messages between users
+- **messages** - Shared message records for direct and group communication
+- **messageRecipients** - Per-user delivery/read state for messages
 - **parentsToChildren** - Many-to-many relationship (up to 2 parents per child)
 
 See [docs/SCHEMA.md](../docs/SCHEMA.md) for detailed schema information.

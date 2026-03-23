@@ -15,13 +15,12 @@ Main domain records use soft delete via `deleted_at`:
 - `group_posts`
 - `post_media`
 - `messages`
-- `group_messages`
 
 Pure relationship tables do not currently use soft delete and can be hard-deleted when links are removed:
 
 - `child_users`
 - `group_users`
-- `group_message_recipients`
+- `message_recipients`
 
 ## Enums
 
@@ -29,6 +28,7 @@ Pure relationship tables do not currently use soft delete and can be hard-delete
 CREATE TYPE user_role AS ENUM ('ADMIN', 'TEACHER', 'PARENT');
 CREATE TYPE teacher_role AS ENUM ('PEA', 'TAVA', 'ABI');
 CREATE TYPE child_present AS ENUM ('KOHAL', 'PUUDUB');
+CREATE TYPE message_audience AS ENUM ('DIRECT', 'GROUP');
 ```
 
 ## Users
@@ -168,22 +168,8 @@ CREATE TABLE post_media (
 CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
   sender_user_id INT NOT NULL REFERENCES users(id),
-  recipient_user_id INT NOT NULL REFERENCES users(id),
-  subject TEXT,
-  body TEXT,
-  read_at TIMESTAMPTZ,
-  deleted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-## Group Messages
-
-```sql
-CREATE TABLE group_messages (
-  id SERIAL PRIMARY KEY,
-  sender_user_id INT NOT NULL REFERENCES users(id),
+  target_group_id INT REFERENCES groups(id),
+  audience message_audience NOT NULL DEFAULT 'DIRECT',
   subject TEXT,
   body TEXT,
   deleted_at TIMESTAMPTZ,
@@ -192,13 +178,13 @@ CREATE TABLE group_messages (
 );
 ```
 
-## Group Message Recipients
+## Message Recipients
 
 ```sql
-CREATE TABLE group_message_recipients (
-  group_message_id INT NOT NULL REFERENCES group_messages(id),
+CREATE TABLE message_recipients (
+  message_id INT NOT NULL REFERENCES messages(id),
   user_id INT NOT NULL REFERENCES users(id),
   read_at TIMESTAMPTZ,
-  PRIMARY KEY (group_message_id, user_id)
+  PRIMARY KEY (message_id, user_id)
 );
 ```

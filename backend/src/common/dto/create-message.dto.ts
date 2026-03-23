@@ -1,9 +1,4 @@
-import { NewMessage } from 'database/schema';
-
-export class CreateMessageDto implements Omit<
-  NewMessage,
-  'id' | 'senderUserId' | 'readAt' | 'deletedAt' | 'createdAt' | 'updatedAt'
-> {
+export class CreateMessageDto {
   recipientUserId: number;
   subject?: string;
   body?: string;
