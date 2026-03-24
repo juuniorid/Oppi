@@ -5,7 +5,9 @@ import { appConfig } from '../config';
 
 const connectionString = appConfig.database.url;
 
-const client = postgres(connectionString);
+const client = postgres(connectionString, {
+  idle_timeout: appConfig.app.nodeEnv === 'test' ? 1 : undefined,
+});
 
 export const db = drizzle(client, { schema });
 export type Database = typeof db;

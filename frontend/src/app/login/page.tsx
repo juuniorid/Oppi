@@ -5,6 +5,11 @@ import Image from "next/image";
 import { BookOpen } from "lucide-react";
 
 export default function LoginPage() {
+  const handleGoogleLogin = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+    window.location.href = `${apiUrl}/auth/google`;
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9F9] flex flex-col items-center justify-center p-6 text-center">
       <div className="mb-8 space-y-4">

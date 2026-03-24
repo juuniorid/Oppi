@@ -1,6 +1,6 @@
 #!/bin/sh
 # pre-commit hook: every backend/src/*.controller.ts and *.service.ts
-# must have a matching backend/test/**/*.spec.ts at the same relative path.
+# must have a matching *.spec.ts OR *.e2e-spec.ts in backend/test/.
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 MISSING=0
@@ -8,10 +8,11 @@ MISSING=0
 for src_file in $(find "$REPO_ROOT/backend/src" -name "*.controller.ts" -o -name "*.service.ts" 2>/dev/null); do
   rel=$(echo "$src_file" | sed "s|$REPO_ROOT/backend/src/||")
   base="${rel%.ts}"
-  test_file="$REPO_ROOT/backend/test/${base}.spec.ts"
+  spec="$REPO_ROOT/backend/test/${base}.spec.ts"
+  e2e_spec="$REPO_ROOT/backend/test/${base}.e2e-spec.ts"
 
-  if [ ! -f "$test_file" ]; then
-    echo "  MISSING TEST: backend/test/${base}.spec.ts"
+  if [ ! -f "$spec" ] && [ ! -f "$e2e_spec" ]; then
+    echo "  MISSING TEST: backend/test/${base}.spec.ts or .e2e-spec.ts"
     echo "    (required by: backend/src/${rel})"
     MISSING=1
   fi

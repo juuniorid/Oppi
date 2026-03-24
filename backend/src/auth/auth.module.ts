@@ -5,13 +5,14 @@ import { GoogleStrategy } from './google.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { appConfig } from 'src/config';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60m' },
+      secret: appConfig.jwt.secret,
+      signOptions: { expiresIn: appConfig.jwt.expiresIn },
     }),
   ],
   controllers: [AuthController],
