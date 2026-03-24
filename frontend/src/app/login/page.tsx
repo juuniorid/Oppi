@@ -1,5 +1,7 @@
 import React from "react";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import Image from "next/image";
 import { BookOpen } from "lucide-react";
 
 export default function LoginPage() {
@@ -9,9 +11,9 @@ export default function LoginPage() {
         <div className="mx-auto bg-[#F9E79F] w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-lg">
           <BookOpen className="w-10 h-10 text-yellow-700" strokeWidth={2.5} />
         </div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Oppi [cite: 12]</h1>
+        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Oppi</h1>
         <p className="text-gray-500 font-medium max-w-[280px] mx-auto">
-          Kaasaegne ja kasutajasõbralik platvorm lasteaedadele [cite: 3]
+          Kaasaegne ja kasutajasõbralik platvorm lasteaedadele
         </p>
       </div>
 
@@ -19,17 +21,17 @@ export default function LoginPage() {
         <h2 className="text-xl font-bold mb-8">Tere tulemast tagasi!</h2>
 
         <Button className="w-full py-8 bg-white border-2 border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-700 font-bold flex items-center justify-center gap-3 transition-all">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-          Logi sisse Google'iga
+          <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} height={20} unoptimized />
+          Logi sisse Google&apos;iga
         </Button>
 
         <p className="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-          Liitumine kutse- või rühmakoodiga [cite: 57]
+          Liitumine kutse- või rühmakoodiga
         </p>
       </Card>
 
       <p className="mt-12 text-sm text-gray-400 font-medium">
-        Oppi kehittyy — me kasvame koos [cite: 18]
+        Oppi kehittyy — me kasvame koos
       </p>
     </div>
   );

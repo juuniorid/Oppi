@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, Bell } from "lucide-react";
 import { ViewSwitcher } from "./view-switcher";
+import Image from "next/image";
 
 export function Header() {
   return (
@@ -25,10 +26,13 @@ export function Header() {
         </button>
 
         <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gray-200">
-          <img
+          <Image
             src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
             alt="Profiil"
             className="w-full h-full object-cover"
+            width={40}
+            height={40}
+            unoptimized
           />
         </div>
       </div>

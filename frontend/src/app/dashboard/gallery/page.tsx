@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { ImageIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function GalleryPage() {
   return (
@@ -19,10 +20,13 @@ export default function GalleryPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <Card key={i} className="aspect-square border-none shadow-sm rounded-[2rem] overflow-hidden group cursor-pointer relative">
-            <img
+            <Image
               src={`https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&sig=${i}`}
+              width={400}
+              height={400}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               alt="Tegevus"
+              unoptimized
             />
             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <ImageIcon className="text-white w-8 h-8" />

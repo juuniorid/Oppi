@@ -1,7 +1,7 @@
 import React from "react";
-import { Card, CardContent } from "../../../components/ui/card";
+import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AbsencesPage() {
   // Näidisandmed kalendri jaoks
@@ -15,7 +15,7 @@ export default function AbsencesPage() {
       <section className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-black text-gray-900">Puudumised</h1>
-          <p className="text-gray-500 font-medium italic">Kate'i kohalolu graafik [cite: 179]</p>
+          <p className="text-gray-500 font-medium italic">Kate&apos;i kohalolu graafik</p>
         </div>
         <div className="flex gap-2">
           <Badge className="bg-green-100 text-green-700 border-none">Kohal</Badge>
@@ -49,7 +49,7 @@ export default function AbsencesPage() {
         </div>
       </Card>
 
-      {/* Eventide info kalendri all [cite: 189-190] */}
+      {/* Eventide info kalendri all */}
       <Card className="border-none shadow-sm rounded-3xl p-6 bg-blue-50/30">
         <h3 className="font-bold text-blue-900 mb-2">Päeva info: 3. juuni</h3>
         <p className="text-sm text-blue-700 font-medium">Laps oli kohal. Toimus hommikune jalutuskäik ja joonistamine.</p>
