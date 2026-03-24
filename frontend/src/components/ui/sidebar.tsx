@@ -15,7 +15,7 @@ import {
 
 const navItems = [
   { name: "Kodu", href: "/dashboard", icon: Home },
-  { name: "Teated", href: "/dashboard/announcements", icon: MessageSquare },
+  { name: "Teated", href: "/dashboard/announcements/create", icon: MessageSquare },
   { name: "Puudumised", href: "/dashboard/absences", icon: UserMinus },
   { name: "Grupid", href: "/dashboard/group", icon: Users },
   { name: "Galerii", href: "/dashboard/gallery", icon: ImageIcon },
@@ -26,7 +26,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 h-screen bg-[#F8F9F9] flex flex-col px-6 py-8 hidden md:flex border-r border-gray-100">
+    <aside className="w-64 h-screen bg-[#F8F9F9] flex-col px-6 py-8 hidden md:flex border-r border-gray-100">
       {/* Logo Section */}
       <div className="flex items-center gap-3 mb-10 pl-2">
         <div className="bg-[#F9E79F] p-2 rounded-xl">

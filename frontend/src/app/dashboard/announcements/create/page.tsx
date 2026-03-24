@@ -12,7 +12,7 @@ export default function CreateAnnouncementPage() {
       </Link>
 
       <section>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Lisa uus teade [cite: 246]</h1>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Lisa uus teade</h1>
         <p className="text-gray-500 font-medium">Teade saadetakse kõigile rühma vanematele.</p>
       </section>
 
@@ -27,7 +27,7 @@ export default function CreateAnnouncementPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sisu [cite: 248]</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sisu</label>
             <textarea
               className="w-full p-4 bg-gray-50 border-none rounded-2xl text-sm font-medium outline-none ring-2 ring-transparent focus:ring-[#f9e79f] transition-all min-h-[200px] resize-none"
               placeholder="Kirjuta teate sisu siia..."
