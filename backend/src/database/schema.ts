@@ -133,7 +133,7 @@ export type Attendance = InferSelectModel<typeof attendance>;
 export type NewAttendance = InferInsertModel<typeof attendance>;
 
 export const userChildren = pgTable(
-  'child_users',
+  'user_children',
   {
     childId: integer('child_id')
       .references(() => children.id, { onDelete: 'cascade' })
@@ -141,7 +141,7 @@ export const userChildren = pgTable(
     userId: integer('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
-    relationship: text('relationship'),
+    relationship: relationshipEnum('relationship'),
     isPrimary: boolean('is_primary'),
   },
   (table) => [primaryKey({ columns: [table.childId, table.userId] })]

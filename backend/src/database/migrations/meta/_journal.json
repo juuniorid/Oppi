@@ -43,6 +43,13 @@
       "when": 1774299912512,
       "tag": "0005_careless_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774340071630,
+      "tag": "0006_lovely_madame_web",
+      "breakpoints": true
     }
   ]
 }
