@@ -150,7 +150,7 @@ describe('PostsController', () => {
 
       await expect(
         controller.create(
-          { title: 'Test', content: 'Content', groupId: 999 },
+          { title: 'Test', message: 'Content', groupId: 999 },
           mockRequest
         )
       ).rejects.toThrow(NotFoundException);
