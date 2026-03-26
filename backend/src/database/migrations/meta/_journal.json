@@ -5,57 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1772969129394,
-      "tag": "0000_third_timeslip",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773619200000,
-      "tag": "0001_schema_restructure",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1773697959379,
-      "tag": "0002_powerful_edwin_jarvis",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1773699199125,
-      "tag": "0003_gigantic_living_mummy",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1774048697678,
-      "tag": "0004_sturdy_meltdown",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1774299912512,
-      "tag": "0005_careless_frog_thor",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1774340071630,
-      "tag": "0006_lovely_madame_web",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1774196595042,
-      "tag": "0002_powerful_warhawk",
+      "when": 1774547500734,
+      "tag": "0000_past_rhino",
       "breakpoints": true
     }
   ]

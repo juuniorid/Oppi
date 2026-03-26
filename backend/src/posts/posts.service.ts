@@ -47,9 +47,20 @@ export class PostsService {
     if (!existing) {
       throw new NotFoundException(`Post ${postId} not found`);
     }
+
+    const updateData: Partial<NewPost> = {};
+
+    if (updatePostDto.title !== undefined) {
+      updateData.title = updatePostDto.title;
+    }
+
+    if (updatePostDto.content !== undefined) {
+      updateData.message = updatePostDto.content;
+    }
+
     const [updated] = await db
       .update(posts)
-      .set({ ...updatePostDto })
+      .set(updateData)
       .where(eq(posts.id, postId))
       .returning();
     return updated;
