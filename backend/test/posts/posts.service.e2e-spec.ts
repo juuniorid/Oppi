@@ -5,7 +5,7 @@ import { createTestUser } from '../helpers/create-users';
 import { createTestGroup } from '../helpers/create-groups';
 import { createTestChild } from '../helpers/create-children';
 import { testDb } from '../helpers/test-db';
-import { parentsToChildren } from '../../src/database/schema';
+import { userChildren } from 'database/schema';
 
 describe('PostsService (e2e)', () => {
   let service: PostsService;
@@ -24,7 +24,7 @@ describe('PostsService (e2e)', () => {
       const user = await createTestUser('teacher@test.com', 'TEACHER');
 
       const result = await service.create(
-        { title: 'Hello', content: 'World', groupId: group.id },
+        { title: 'Hello', message: 'World', groupId: group.id },
         user.id
       );
 
@@ -39,7 +39,7 @@ describe('PostsService (e2e)', () => {
 
       await expect(
         service.create(
-          { title: 'Test', content: 'Content', groupId: 99999 },
+          { title: 'Test', message: 'Content', groupId: 99999 },
           user.id
         )
       ).rejects.toThrow(NotFoundException);
@@ -51,7 +51,7 @@ describe('PostsService (e2e)', () => {
       const group = await createTestGroup('Sunflowers');
       const user = await createTestUser('teacher@test.com', 'TEACHER');
       const [created] = await service.create(
-        { title: 'Original', content: 'Original content', groupId: group.id },
+        { title: 'Original', message: 'Original content', groupId: group.id },
         user.id
       );
 
@@ -62,7 +62,7 @@ describe('PostsService (e2e)', () => {
 
       expect(result.id).toBe(created.id);
       expect(result.title).toBe('Updated');
-      expect(result.content).toBe('New content');
+      expect(result.message).toBe('New content');
       expect(result.groupId).toBe(group.id);
     });
 
@@ -70,14 +70,14 @@ describe('PostsService (e2e)', () => {
       const group = await createTestGroup('Daisies');
       const user = await createTestUser('teacher@test.com', 'TEACHER');
       const [created] = await service.create(
-        { title: 'Old title', content: 'Keep this', groupId: group.id },
+        { title: 'Old title', message: 'Keep this', groupId: group.id },
         user.id
       );
 
       const result = await service.update(created.id, { title: 'New title' });
 
       expect(result.title).toBe('New title');
-      expect(result.content).toBe('Keep this');
+      expect(result.message).toBe('Keep this');
     });
 
     it('should throw NotFoundException when post does not exist', async () => {
@@ -94,11 +94,11 @@ describe('PostsService (e2e)', () => {
 
       await service.create(
         { title: 'First', message: 'A', groupId: group.id },
-        author.id
+        teacher.id
       );
       await service.create(
         { title: 'Second', message: 'B', groupId: group.id },
-        author.id
+        teacher.id
       );
 
       const result = await service.findByGroup(group.id, teacher);
@@ -114,11 +114,11 @@ describe('PostsService (e2e)', () => {
       const parent = await createTestUser('parent@test.com', 'PARENT');
       const child = await createTestChild('Ada', 'Lovelace', group.id);
       await testDb
-        .insert(parentsToChildren)
-        .values({ parentId: parent.id, childId: child.id });
+        .insert(userChildren)
+        .values({ userId: parent.id, childId: child.id });
 
       await service.create(
-        { title: 'Hello parents', content: 'Info', groupId: group.id },
+        { title: 'Hello parents', message: 'Info', groupId: group.id },
         teacher.id
       );
 
@@ -152,7 +152,7 @@ describe('PostsService (e2e)', () => {
       const teacher = await createTestUser('teacher@test.com', 'TEACHER');
 
       await service.create(
-        { title: 'In Group 1', content: 'X', groupId: group1.id },
+        { title: 'In Group 1', message: 'X', groupId: group1.id },
         teacher.id
       );
 
