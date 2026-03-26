@@ -16,7 +16,7 @@ export class CreatePostDto {
   })
   @IsString()
   @IsNotEmpty()
-  content!: string;
+  message!: string;
 
   @ApiProperty({
     example: 1,
