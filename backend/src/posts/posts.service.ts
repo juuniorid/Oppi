@@ -8,11 +8,11 @@ import { db } from 'database/db';
 import {
   posts,
   groups,
-  children,
-  parentsToChildren,
   Post,
   NewPost,
   User,
+  userChildren,
+  enrollments,
 } from 'database/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { UpdatePostDto } from '../common/dto/update-post.dto';
@@ -33,7 +33,7 @@ export class PostsService {
       .insert(posts)
       .values({
         title: createPostDto.title,
-        content: createPostDto.content,
+        message: createPostDto.message,
         groupId: createPostDto.groupId,
         userId,
       })
@@ -80,18 +80,16 @@ export class PostsService {
     user: User
   ): Promise<void> {
     if (user.role === 'ADMIN' || user.role === 'TEACHER') return;
-    // PARENT: must have a child in this group
+
     const link = await db
       .select()
-      .from(parentsToChildren)
-      .innerJoin(children, eq(parentsToChildren.childId, children.id))
+      .from(userChildren)
+      .innerJoin(enrollments, eq(userChildren.childId, enrollments.childId))
       .where(
-        and(
-          eq(parentsToChildren.parentId, user.id),
-          eq(children.groupId, groupId)
-        )
+        and(eq(userChildren.userId, user.id), eq(enrollments.groupId, groupId))
       )
       .limit(1);
+
     if (link.length === 0) {
       throw new ForbiddenException('You do not have access to this group');
     }
