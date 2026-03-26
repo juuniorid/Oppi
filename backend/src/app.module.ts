@@ -8,6 +8,8 @@ import { ChildrenModule } from './children/children.module';
 import { GroupsModule } from './groups/groups.module';
 import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
+import { MailerModule } from './mail/mailer.module';
+import { InvitesModule } from './invites/invites.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 
@@ -36,6 +38,9 @@ import { appConfig } from './config';
     GroupsModule,
     MessagesModule,
     UsersModule,
+    MailerModule,
+    InvitesModule,
   ],
 })
 export class AppModule {}
+

@@ -29,7 +29,10 @@ export class AuthService {
       this.logger.log(`Linking Google account for invited user (${user.email})`);
       const [updatedUser] = await db
         .update(users)
-        .set({ googleId: user.googleId })
+        .set({ 
+          googleId: user.googleId,
+          name: user.name // Update placeholder name with actual name from Google
+        })
         .where(eq(users.id, existingUser.id))
         .returning();
       return updatedUser;
