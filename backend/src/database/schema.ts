@@ -41,7 +41,7 @@ export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   content: text('content').notNull(),
-  authorId: integer('author_id').references(() => users.id).notNull(),
+  userId: integer('user_id').references(() => users.id).notNull(),
   groupId: integer('group_id').references(() => groups.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -92,7 +92,7 @@ export const childrenRelations = relations(children, ({ one, many }) => ({
 }));
 
 export const postsRelations = relations(posts, ({ one }) => ({
-  author: one(users, { fields: [posts.authorId], references: [users.id] }),
+  user: one(users, { fields: [posts.userId], references: [users.id] }),
   group: one(groups, { fields: [posts.groupId], references: [groups.id] }),
 }));
 
