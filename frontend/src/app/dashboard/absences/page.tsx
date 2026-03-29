@@ -23,13 +23,17 @@ export default function AbsencesPage() {
         </div>
       </section>
 
-      {/* Kalendri vaade  */}
+      {/* Kalendri vaade */}
       <Card className="border-none shadow-sm rounded-[2rem] p-8 bg-white">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-bold">Juuni 2024</h2>
           <div className="flex gap-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full"><ChevronLeft /></button>
-            <button className="p-2 hover:bg-gray-100 rounded-full"><ChevronRight /></button>
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <ChevronLeft />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <ChevronRight />
+            </button>
           </div>
         </div>
 

@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -25,7 +27,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm border-none shadow-2xl rounded-[3rem] p-10 bg-white">
         <h2 className="text-xl font-bold mb-8">Tere tulemast tagasi!</h2>
 
-        <Button className="w-full py-8 bg-white border-2 border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-700 font-bold flex items-center justify-center gap-3 transition-all">
+        <Button
+          onClick={handleGoogleLogin}
+          className="w-full py-8 bg-white border-2 border-gray-100 rounded-2xl hover:bg-gray-50 text-gray-700 font-bold flex items-center justify-center gap-3 transition-all"
+        >
           <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={20} height={20} unoptimized />
           Logi sisse Google&apos;iga
         </Button>
