@@ -2,7 +2,6 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Search, Send } from "lucide-react";
 export default function MessagesPage() {
   const chats = [
