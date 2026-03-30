@@ -83,9 +83,10 @@ If you prefer running locally without Docker:
    pnpm install
    ```
 
-5. Run migrations and seed:
+5. Generate/apply migrations and seed:
    ```bash
    cd backend
+   pnpm run db:generate
    pnpm run db:migrate
    pnpm run db:seed
    ```
@@ -150,8 +151,14 @@ cd backend
 # Generate new migrations (after schema changes)
 pnpm run db:generate
 
-# Run migrations
+# Generate migration files from schema.ts changes
+pnpm run db:generate
+
+# Apply committed migrations
 pnpm run db:migrate
+
+# Push schema changes directly to your local DB without creating migration files
+pnpm run db:push
 
 # Seed database with sample data
 pnpm run db:seed
@@ -197,8 +204,9 @@ pnpm run test:watch       # Watch mode
 pnpm run test:cov         # With coverage
 
 # Database
-pnpm run db:generate      # Generate migrations from schema
-pnpm run db:migrate       # Apply migrations (drizzle-kit push)
+pnpm run db:generate      # Generate SQL migration files from schema changes
+pnpm run db:migrate       # Apply committed migrations
+pnpm run db:push          # Update local DB directly without creating migration files
 pnpm run db:seed          # Seed database with test data
 pnpm run db:reset         # Reset database (destructive)
 The project is fully containerized with automated database setup:
