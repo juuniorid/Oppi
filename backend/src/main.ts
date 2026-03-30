@@ -29,6 +29,7 @@ async function bootstrap(): Promise<void> {
       .addCookieAuth('jwt')
       .build();
     const document = SwaggerModule.createDocument(app, config);
+
     SwaggerModule.setup('api', app, document);
 
     await app.listen(appConfig.app.port);

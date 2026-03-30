@@ -8,6 +8,13 @@
       "when": 1774547500734,
       "tag": "0000_past_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774894662926,
+      "tag": "0001_hesitant_santa_claus",
+      "breakpoints": true
     }
   ]
 }

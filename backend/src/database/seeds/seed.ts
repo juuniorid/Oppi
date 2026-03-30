@@ -1,5 +1,5 @@
 import { db, client } from '../db';
-import { users, groups, children, userChildren } from '../schema';
+import { users, groups, children, userChildren, ROLE } from '../schema';
 
 async function seed(): Promise<void> {
   try {
@@ -32,7 +32,7 @@ async function seed(): Promise<void> {
           firstName: 'Jane',
           lastName: 'Smith',
           googleId: 'google-teacher-1',
-          role: 'TEACHER',
+          role: ROLE.Teacher,
           phone: '+372 5123 4567',
         },
         {
@@ -40,7 +40,7 @@ async function seed(): Promise<void> {
           firstName: 'John',
           lastName: 'Doe',
           googleId: 'google-parent-1',
-          role: 'PARENT',
+          role: ROLE.Parent,
           phone: '+372 5123 4568',
         },
         {
@@ -48,7 +48,7 @@ async function seed(): Promise<void> {
           firstName: 'Sarah',
           lastName: 'Doe',
           googleId: 'google-parent-2',
-          role: 'PARENT',
+          role: ROLE.Parent,
           phone: '+372 5123 4569',
         },
       ])

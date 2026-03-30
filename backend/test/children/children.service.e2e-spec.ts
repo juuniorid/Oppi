@@ -3,6 +3,7 @@ import { ChildrenService } from '../../src/children/children.service';
 import { createTestUser } from '../helpers/create-users';
 import { createTestGroup } from '../helpers/create-groups';
 import { createTestChild } from '../helpers/create-children';
+import { createTestEnrollment } from '../helpers/create-enrollments';
 
 describe('ChildrenService (e2e)', () => {
   let service: ChildrenService;
@@ -18,8 +19,10 @@ describe('ChildrenService (e2e)', () => {
   describe('findByGroup', () => {
     it('should return children for a group', async () => {
       const group = await createTestGroup('Bumblebees');
-      await createTestChild('Emma', 'Doe', group.id);
-      await createTestChild('Oliver', 'Smith', group.id);
+      const emma = await createTestChild('Emma', 'Doe');
+      const oliver = await createTestChild('Oliver', 'Smith');
+      await createTestEnrollment(emma.id, group.id);
+      await createTestEnrollment(oliver.id, group.id);
 
       const result = await service.findByGroup(group.id);
 
@@ -39,7 +42,8 @@ describe('ChildrenService (e2e)', () => {
       const group1 = await createTestGroup('Group One');
       const group2 = await createTestGroup('Group Two');
       await createTestUser('teacher@test.com', 'TEACHER');
-      await createTestChild('Ava', 'Johnson', group1.id);
+      const ava = await createTestChild('Ava', 'Johnson');
+      await createTestEnrollment(ava.id, group1.id);
 
       const result = await service.findByGroup(group2.id);
 

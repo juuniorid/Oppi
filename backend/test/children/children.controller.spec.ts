@@ -6,6 +6,8 @@ import { Child } from 'database/schema';
 describe('ChildrenController', () => {
   let controller: ChildrenController;
   let childrenService: ChildrenService;
+  const createdAt = new Date('2026-03-01T08:00:00.000Z');
+  const updatedAt = new Date('2026-03-01T08:00:00.000Z');
 
   const mockChildren: Child[] = [
     {
@@ -15,8 +17,8 @@ describe('ChildrenController', () => {
       dateOfBirth: new Date('2020-01-15'),
       notes: null,
       deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt,
+      updatedAt,
     },
     {
       id: 2,
@@ -25,8 +27,8 @@ describe('ChildrenController', () => {
       dateOfBirth: new Date('2020-03-20'),
       notes: null,
       deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt,
+      updatedAt,
     },
   ];
 
