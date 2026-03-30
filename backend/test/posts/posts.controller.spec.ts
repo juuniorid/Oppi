@@ -23,23 +23,23 @@ describe('PostsController', () => {
   const mockPosts: Post[] = [
     {
       id: 1,
-      title: 'Test Post 1',
-      message: 'Content 1',
       groupId: 1,
       userId: 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      title: 'Test Post 1',
+      message: 'Content 1',
       deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 2,
-      title: 'Test Post 2',
-      message: 'Content 2',
       groupId: 1,
       userId: 2,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      title: 'Test Post 2',
+      message: 'Content 2',
       deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
   ];
 
