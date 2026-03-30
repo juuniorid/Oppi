@@ -5,8 +5,10 @@ This folder contains the Next.js 16.1.6 (App Router) frontend for the Oppi platf
 ## Tech Stack
 
 - **Framework**: [Next.js 16.1.6](https://nextjs.org) (App Router)
-- **UI**: [Tailwind CSS](https://tailwindcss.com/), [Shadcn/UI](https://ui.shadcn.com),
-  [Lucide React](https://lucide.dev/react), [Sonner](https://sonner.drkrs.work) (toast notifications)
+- **UI**: [Tailwind CSS](https://tailwindcss.com/) for page layout and route shells,
+  [Material UI](https://mui.com/) for reusable UI components,
+  [Shadcn/UI](https://ui.shadcn.com), [Lucide React](https://lucide.dev/react),
+  [Sonner](https://sonner.drkrs.work) (toast notifications)
 - **Utilities**: class-variance-authority, clsx, tailwind-merge
 - **Auth / API**: Communicates with backend via fetch; authenticated requests
   include credentials and use JWT cookies
@@ -24,6 +26,7 @@ docker compose up --build
 ```
 
 This automatically:
+
 - Starts PostgreSQL database
 - Starts the backend API on http://localhost:3001
 - Starts the frontend on http://localhost:3000
@@ -32,12 +35,14 @@ This automatically:
 ## Local Development Setup
 
 1. Install dependencies:
+
    ```bash
    cd frontend
    pnpm install
    ```
 
 2. Create `.env.local` (optional, uses default if not present):
+
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:3001
    ```
@@ -61,6 +66,13 @@ pnpm run lint         # Run ESLint
 ```
 
 ## Features
+
+- **Styling Approach**:
+  - Use Tailwind utility classes in `layout.tsx` files and page containers for layout,
+    spacing, and responsive structure
+  - Use Material UI components for shared interactive UI such as buttons, cards,
+    form fields, lists, and avatars
+  - Global MUI theming is provided through `src/components/providers.tsx`
 
 - **Authentication Flow**:
   - `/login` page with "Sign in with Google" button
@@ -129,19 +141,25 @@ frontend/
 ## Key Components
 
 ### useApi Hook
+
 Custom hook for API calls with error handling:
+
 ```typescript
 const { data, loading, error } = useApi<Post[]>('/posts/group/1');
 ```
 
 ### Sidebar Component
+
 Navigation sidebar with role-based menu items:
+
 - Announcements (all users)
 - My Group (all users)
 - Messages (all users)
 
 ### AuthContext
+
 Global authentication state management:
+
 - Current user information
 - Login/logout functions
 - Protected route handling
@@ -170,15 +188,18 @@ docker run -p 3000:3000 oppi-frontend
 ## Troubleshooting
 
 **API requests fail with CORS errors:**
+
 - Ensure backend is running on http://localhost:3001
 - Check backend has CORS enabled for http://localhost:3000
 - Verify cookies are being sent (credentials: 'include')
 
 **Google OAuth redirect fails:**
+
 - Check backend `GOOGLE_CALLBACK_URL` matches Google Cloud Console
 - Ensure redirect URI is whitelisted in Google OAuth settings
 
 **Build errors:**
+
 - Run `pnpm install` to ensure dependencies are up to date
 - Clear `.next` folder: `rm -rf .next`
 - Check Node version is 20+
@@ -190,4 +211,3 @@ docker run -p 3000:3000 oppi-frontend
 - [Shadcn/UI](https://ui.shadcn.com)
 - [Sonner](https://sonner.drkrs.work)
 - [Lucide Icons](https://lucide.dev)
-
