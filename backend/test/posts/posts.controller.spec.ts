@@ -25,21 +25,21 @@ describe('PostsController', () => {
       id: 1,
       groupId: 1,
       userId: 1,
-      title: 'Test Post 1',
+      title: 'Title 1',
       message: 'Content 1',
       deletedAt: null,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     },
     {
       id: 2,
       groupId: 1,
       userId: 2,
-      title: 'Test Post 2',
+      title: 'Title 2',
       message: 'Content 2',
       deletedAt: null,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     },
   ];
 
