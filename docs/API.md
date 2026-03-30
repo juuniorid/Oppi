@@ -29,7 +29,7 @@ a valid JWT token stored in the `jwt` cookie.
   ```json
   {
     "title": "string",
-    "content": "string",
+    "message": "string",
     "groupId": number
   }
   ```

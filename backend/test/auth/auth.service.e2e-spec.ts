@@ -27,7 +27,8 @@ describe('AuthService (e2e)', () => {
 
       const result = await service.validateOAuthLogin({
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         googleId: user.googleId!,
       });
 
@@ -39,7 +40,8 @@ describe('AuthService (e2e)', () => {
       await expect(
         service.validateOAuthLogin({
           email: 'stranger@test.com',
-          name: 'Stranger',
+          firstName: 'Stranger',
+          lastName: 'User',
           googleId: 'google-stranger',
         }),
       ).rejects.toThrow(UnauthorizedException);
@@ -52,7 +54,8 @@ describe('AuthService (e2e)', () => {
         .insert(users)
         .values({
           email: 'invited@test.com',
-          name: 'Invited User',
+          firstName: 'Invited',
+          lastName: 'User',
           googleId: null,
           role: 'PARENT',
           phone: null,
@@ -60,7 +63,8 @@ describe('AuthService (e2e)', () => {
 
       const result = await service.validateOAuthLogin({
         email: 'invited@test.com',
-        name: 'Invited User',
+        firstName: 'Invited',
+        lastName: 'User',
         googleId: 'google-new',
       });
 
@@ -73,7 +77,8 @@ describe('AuthService (e2e)', () => {
       await expect(
         service.validateOAuthLogin({
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           googleId: 'google-different',
         }),
       ).rejects.toThrow(UnauthorizedException);
