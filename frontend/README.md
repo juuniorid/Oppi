@@ -96,33 +96,45 @@ pnpm run lint         # Run ESLint
 ```
 frontend/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout
+│   ├── app/                    # Next.js App Router routes and nested layouts
+│   │   ├── layout.tsx          # Root layout with MUI App Router cache/provider setup
 │   │   ├── page.tsx            # Landing page
-│   │   ├── globals.css         # Global styles
+│   │   ├── globals.css         # Global Tailwind styles
 │   │   ├── login/
-│   │   │   └── page.tsx        # Login page
-│   │   └── dashboard/          # Protected routes
-│   │       ├── layout.tsx      # Dashboard layout with sidebar
-│   │       ├── page.tsx        # Dashboard home
-│   │       ├── announcements/
-│   │       │   └── page.tsx    # Announcements feed
-│   │       ├── group/
-│   │       │   └── page.tsx    # Group/children view
-│   │       └── messages/
-│   │           └── page.tsx    # Messaging (placeholder)
+│   │   │   └── page.tsx        # Login route
+│   │   ├── dashboard/
+│   │   │   ├── layout.tsx      # Dashboard shell with sidebar
+│   │   │   └── page.tsx        # Dashboard landing page
+│   │   ├── announcements/
+│   │   │   └── page.tsx        # Standalone announcements route
+│   │   ├── calendar/
+│   │   │   ├── layout.tsx      # Calendar route layout
+│   │   │   └── page.tsx        # Calendar page
+│   │   ├── docs/
+│   │   │   ├── layout.tsx      # Tailwind route shell for component docs
+│   │   │   └── page.tsx        # Material UI showcase / team docs page
+│   │   ├── group/
+│   │   │   └── page.tsx        # Group route
+│   │   ├── messages/
+│   │   │   └── page.tsx        # Messages route
+│   │   └── settings/
+│   │       ├── layout.tsx      # Settings route layout
+│   │       └── page.tsx        # Settings page
 │   ├── components/
-│   │   ├── Sidebar.tsx         # Dashboard sidebar
-│   │   └── ui/                 # Shadcn/UI components
+│   │   ├── Sidebar.tsx         # Shared dashboard/sidebar navigation
+│   │   ├── providers.tsx       # Global MUI ThemeProvider, CssBaseline, Sonner
+│   │   └── ui/                 # Shadcn/UI components kept in the project
 │   │       └── button.tsx
 │   ├── context/
 │   │   └── AuthContext.tsx     # Global auth state
 │   ├── hooks/
 │   │   └── useApi.ts           # API wrapper with error handling
-│   ├── services/               # API service layer
+│   ├── services/               # Frontend API service layer
 │   │   ├── auth.service.ts
 │   │   ├── post.service.ts
 │   │   └── child.service.ts
+│   ├── theme/
+│   │   └── theme.ts            # Central Material UI theme definition
 │   ├── types/
 │   │   └── index.ts            # TypeScript type definitions
 │   ├── utils/
