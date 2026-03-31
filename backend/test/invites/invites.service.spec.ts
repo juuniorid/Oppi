@@ -43,10 +43,14 @@ describe('InvitesService', () => {
   const mockCreatedUser: User = {
     id: 10,
     email: 'teacher@example.com',
-    name: 'teacher@example.com',
+    firstName: null,
+    lastName: null,
     googleId: null,
     role: 'TEACHER',
     phone: null,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {

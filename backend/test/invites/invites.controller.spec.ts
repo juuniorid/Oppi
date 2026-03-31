@@ -11,10 +11,14 @@ describe('InvitesController', () => {
   const mockInvitedUser: User = {
     id: 10,
     email: 'newteacher@example.com',
-    name: 'newteacher@example.com',
+    firstName: null,
+    lastName: null,
     googleId: null,
     role: 'TEACHER',
     phone: null,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {

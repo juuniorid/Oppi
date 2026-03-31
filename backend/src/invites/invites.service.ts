@@ -26,7 +26,8 @@ export class InvitesService {
       .insert(users)
       .values({
         email: dto.email,
-        name: dto.email,
+        firstName: null,
+        lastName: null,
         role: dto.role,
         googleId: null,
       })
