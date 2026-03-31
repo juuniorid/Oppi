@@ -53,6 +53,13 @@ describe('InvitesService', () => {
     updatedAt: new Date(),
   };
 
+  const mockRegisteredUser: User = {
+    ...mockCreatedUser,
+    googleId: 'google-123',
+    firstName: 'Jane',
+    lastName: 'Doe',
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -88,13 +95,54 @@ describe('InvitesService', () => {
       expect(mailerService.sendInvitationEmail).toHaveBeenCalledWith('teacher@example.com', 'TEACHER');
     });
 
-    it('should throw ConflictException if email already exists', async () => {
-      __mocks.mockLimit.mockResolvedValueOnce([mockCreatedUser]);
+    it('should throw ConflictException if email is already fully registered', async () => {
+      __mocks.mockLimit.mockResolvedValueOnce([mockRegisteredUser]);
 
       const dto = { email: 'teacher@example.com', role: 'TEACHER' as const };
 
       await expect(service.createInvite(dto)).rejects.toThrow(ConflictException);
       expect(mailerService.sendInvitationEmail).not.toHaveBeenCalled();
+    });
+
+    it('should resend invitation if user was invited but has not logged in yet', async () => {
+      __mocks.mockLimit.mockResolvedValueOnce([mockCreatedUser]); // existing, googleId is null
+
+      const dto = { email: 'teacher@example.com', role: 'TEACHER' as const };
+      const result = await service.createInvite(dto);
+
+      expect(result).toEqual(mockCreatedUser);
+      expect(mailerService.sendInvitationEmail).toHaveBeenCalledWith('teacher@example.com', 'TEACHER');
+      // Should NOT have tried to insert a new user
+      expect(__mocks.mockInsert).not.toHaveBeenCalled();
+    });
+
+    it('should retry email sending on failure and succeed', async () => {
+      __mocks.mockLimit.mockResolvedValueOnce([]);
+      __mocks.mockReturning.mockResolvedValueOnce([mockCreatedUser]);
+
+      jest.spyOn(mailerService, 'sendInvitationEmail')
+        .mockRejectedValueOnce(new Error('SMTP timeout'))
+        .mockResolvedValueOnce(undefined);
+
+      const dto = { email: 'teacher@example.com', role: 'TEACHER' as const };
+      const result = await service.createInvite(dto);
+
+      expect(result).toEqual(mockCreatedUser);
+      expect(mailerService.sendInvitationEmail).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw after all email retries are exhausted', async () => {
+      __mocks.mockLimit.mockResolvedValueOnce([]);
+      __mocks.mockReturning.mockResolvedValueOnce([mockCreatedUser]);
+
+      const smtpError = new Error('SMTP connection refused');
+      jest.spyOn(mailerService, 'sendInvitationEmail')
+        .mockRejectedValue(smtpError);
+
+      const dto = { email: 'teacher@example.com', role: 'TEACHER' as const };
+
+      await expect(service.createInvite(dto)).rejects.toThrow('SMTP connection refused');
+      expect(mailerService.sendInvitationEmail).toHaveBeenCalledTimes(3);
     });
   });
 });

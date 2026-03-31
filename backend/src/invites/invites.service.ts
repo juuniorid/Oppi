@@ -5,6 +5,8 @@ import { users, User } from 'database/schema';
 import { MailerService } from '../mail/mailer.service';
 import { CreateInviteDto } from '../common/dto/create-invite.dto';
 
+const MAX_EMAIL_RETRIES = 3;
+
 @Injectable()
 export class InvitesService {
   private readonly logger = new Logger(InvitesService.name);
@@ -19,24 +21,55 @@ export class InvitesService {
       .limit(1);
 
     if (existing) {
-      throw new ConflictException('A user with this email has already been invited or registered.');
+      // If the user already linked their Google account, they're fully registered
+      if (existing.googleId) {
+        throw new ConflictException('A user with this email is already registered.');
+      }
+
+      // User was invited before but hasn't logged in yet — resend the invite
+      this.logger.log(`Resending invitation to existing invited user (${dto.email})`);
+      await this.sendEmailWithRetry(dto.email, dto.role);
+      return existing;
     }
 
     const [newUser] = await db
       .insert(users)
       .values({
         email: dto.email,
-        firstName: null,
-        lastName: null,
         role: dto.role,
-        googleId: null,
       })
       .returning();
 
     this.logger.log(`Invited user created: ${newUser.email} (role=${newUser.role})`);
 
-    await this.mailerService.sendInvitationEmail(dto.email, dto.role);
+    await this.sendEmailWithRetry(dto.email, dto.role);
 
     return newUser;
+  }
+
+  private async sendEmailWithRetry(email: string, role: string): Promise<void> {
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= MAX_EMAIL_RETRIES; attempt++) {
+      try {
+        await this.mailerService.sendInvitationEmail(email, role);
+        return;
+      } catch (error) {
+        lastError = error as Error;
+        this.logger.warn(
+          `Email send attempt ${attempt}/${MAX_EMAIL_RETRIES} failed for ${email}: ${lastError.message}`,
+        );
+
+        if (attempt < MAX_EMAIL_RETRIES) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+
+    this.logger.error(
+      `Failed to send invitation email to ${email} after ${MAX_EMAIL_RETRIES} attempts`,
+      lastError?.stack,
+    );
+    throw lastError;
   }
 }
