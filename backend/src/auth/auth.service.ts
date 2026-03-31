@@ -7,8 +7,9 @@ import { JwtPayload } from 'src/common/dto/jwt.payload';
 
 interface OAuthUser {
   email: string;
-  name: string;
   googleId: string;
+  firstName: string | null;
+  lastName: string | null;
 }
 
 @Injectable()
@@ -18,20 +19,39 @@ export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   async validateOAuthLogin(user: OAuthUser): Promise<User> {
-    const [existingUser] = await db.select().from(users).where(eq(users.email, user.email)).limit(1);
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, user.email))
+      .limit(1);
 
     if (!existingUser) {
-      this.logger.warn(`Login rejected: email not in whitelist (${user.email})`);
-      throw new UnauthorizedException('You are not invited to this platform. Please contact an administrator.');
+      this.logger.warn(
+        `Login rejected: email not in whitelist (${user.email})`
+      );
+      throw new UnauthorizedException(
+        'You are not invited to this platform. Please contact an administrator.'
+      );
+    }
+
+    if (existingUser.deletedAt) {
+      this.logger.warn(`Login rejected: access revoked (${user.email})`);
+      throw new UnauthorizedException(
+        'Your access has been revoked. Please contact an administrator.'
+      );
     }
 
     if (!existingUser.googleId) {
-      this.logger.log(`Linking Google account for invited user (${user.email})`);
+      this.logger.log(
+        `Linking Google account for invited user (${user.email})`
+      );
       const [updatedUser] = await db
         .update(users)
-        .set({ 
+        .set({
           googleId: user.googleId,
-          name: user.name // Update placeholder name with actual name from Google
+          firstName: user.firstName,
+          lastName: user.lastName,
+          updatedAt: new Date(),
         })
         .where(eq(users.id, existingUser.id))
         .returning();
@@ -39,8 +59,30 @@ export class AuthService {
     }
 
     if (existingUser.googleId !== user.googleId) {
-      this.logger.warn(`Login rejected: googleId mismatch for email (${user.email})`);
-      throw new UnauthorizedException('This email is already linked to a different Google account.');
+      this.logger.warn(
+        `Login rejected: googleId mismatch for email (${user.email})`
+      );
+      throw new UnauthorizedException(
+        'This email is already linked to a different Google account.'
+      );
+    }
+
+    // Optional sync
+    if (
+      existingUser.firstName !== user.firstName ||
+      existingUser.lastName !== user.lastName
+    ) {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      this.logger.log(`User authenticated and profile synced (${user.email})`);
+      return updatedUser;
     }
 
     this.logger.log(`User authenticated (${user.email})`);

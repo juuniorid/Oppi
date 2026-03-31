@@ -1,6 +1,19 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { db } from 'database/db';
-import { posts, groups, children, parentsToChildren, Post, NewPost, User } from 'database/schema';
+import {
+  posts,
+  groups,
+  Post,
+  NewPost,
+  User,
+  userChildren,
+  enrollments,
+} from 'database/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { UpdatePostDto } from '../common/dto/update-post.dto';
 
@@ -8,25 +21,46 @@ import { UpdatePostDto } from '../common/dto/update-post.dto';
 export class PostsService {
   private readonly logger = new Logger(PostsService.name);
 
-  async create(createPostDto: Omit<NewPost, 'id' | 'createdAt' | 'userId'>, userId: number): Promise<Post[]> {
+  async create(
+    createPostDto: Omit<NewPost, 'id' | 'createdAt' | 'userId'>,
+    userId: number
+  ): Promise<Post[]> {
     await this.assertGroupExists(createPostDto.groupId);
-    this.logger.verbose(`Creating post in group ${createPostDto.groupId} by user ${userId}`);
-    return db.insert(posts).values({
-      title: createPostDto.title,
-      content: createPostDto.content,
-      groupId: createPostDto.groupId,
-      userId,
-    }).returning();
+    this.logger.verbose(
+      `Creating post in group ${createPostDto.groupId} by user ${userId}`
+    );
+    return db
+      .insert(posts)
+      .values({
+        title: createPostDto.title,
+        message: createPostDto.message,
+        groupId: createPostDto.groupId,
+        userId,
+      })
+      .returning();
   }
 
   async update(postId: number, updatePostDto: UpdatePostDto): Promise<Post> {
-    const existing = await db.query.posts.findFirst({ where: eq(posts.id, postId) });
+    const existing = await db.query.posts.findFirst({
+      where: eq(posts.id, postId),
+    });
     if (!existing) {
       throw new NotFoundException(`Post ${postId} not found`);
     }
+
+    const updateData: Partial<NewPost> = {};
+
+    if (updatePostDto.title !== undefined) {
+      updateData.title = updatePostDto.title;
+    }
+
+    if (updatePostDto.content !== undefined) {
+      updateData.message = updatePostDto.content;
+    }
+
     const [updated] = await db
       .update(posts)
-      .set({ ...updatePostDto })
+      .set(updateData)
       .where(eq(posts.id, postId))
       .returning();
     return updated;
@@ -36,25 +70,37 @@ export class PostsService {
     await this.assertGroupExists(groupId);
     await this.assertUserCanAccessGroup(groupId, user);
     this.logger.verbose(`Fetching posts for group ${groupId}`);
-    return db.select().from(posts).where(eq(posts.groupId, groupId)).orderBy(desc(posts.createdAt));
+    return db
+      .select()
+      .from(posts)
+      .where(eq(posts.groupId, groupId))
+      .orderBy(desc(posts.createdAt));
   }
 
   private async assertGroupExists(groupId: number): Promise<void> {
-    const group = await db.query.groups.findFirst({ where: eq(groups.id, groupId) });
+    const group = await db.query.groups.findFirst({
+      where: eq(groups.id, groupId),
+    });
     if (!group) {
       throw new NotFoundException(`Group ${groupId} not found`);
     }
   }
 
-  private async assertUserCanAccessGroup(groupId: number, user: User): Promise<void> {
+  private async assertUserCanAccessGroup(
+    groupId: number,
+    user: User
+  ): Promise<void> {
     if (user.role === 'ADMIN' || user.role === 'TEACHER') return;
-    // PARENT: must have a child in this group
+
     const link = await db
       .select()
-      .from(parentsToChildren)
-      .innerJoin(children, eq(parentsToChildren.childId, children.id))
-      .where(and(eq(parentsToChildren.parentId, user.id), eq(children.groupId, groupId)))
+      .from(userChildren)
+      .innerJoin(enrollments, eq(userChildren.childId, enrollments.childId))
+      .where(
+        and(eq(userChildren.userId, user.id), eq(enrollments.groupId, groupId))
+      )
       .limit(1);
+
     if (link.length === 0) {
       throw new ForbiddenException('You do not have access to this group');
     }

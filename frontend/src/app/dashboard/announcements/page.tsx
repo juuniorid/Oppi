@@ -6,7 +6,7 @@ import { useApi } from '@/hooks/useApi';
 interface Post {
   id: number;
   title: string;
-  content: string;
+  message: string;
   createdAt: string;
 }
 
@@ -24,8 +24,8 @@ export default function AnnouncementsPage() {
       <h1>Announcements</h1>
       {posts.map((post) => (
         <div key={post.id} className="border p-4 mb-2">
-          <h2>{post.title}</h2>
-          <p>{post.content}</p>
+          <h2 className="font-semibold">{post.title}</h2>
+          <p>{post.message}</p>
         </div>
       ))}
     </div>
