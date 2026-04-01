@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import Button from '@mui/material/Button';
 
 export default function LoginPage() {
   const handleGoogleLogin = () => {
