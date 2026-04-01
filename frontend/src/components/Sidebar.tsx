@@ -1,17 +1,14 @@
 'use client';
 
 import clsx from 'clsx';
-import { Power } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isMainNavActive, mainNav } from '@/config/main-nav';
+import authService from '@/services/auth.service';
 
 export function Sidebar() {
   const pathname = usePathname();
-
-  const focusSearch = () => {
-    document.getElementById('global-search')?.focus();
-  };
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col rounded-3xl bg-[#faf8f5] p-3 shadow-sm md:flex">
@@ -47,11 +44,11 @@ export function Sidebar() {
 
       <button
         type="button"
-        onClick={focusSearch}
+        onClick={() => void authService.logout()}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-100/90 px-3 py-3 text-[15px] font-medium text-gray-800 transition hover:bg-amber-200/80"
       >
-        <Power className="h-5 w-5 text-gray-700" strokeWidth={2} />
-        Otsi
+        <LogOut className="h-5 w-5 text-gray-700" strokeWidth={2} />
+        Logi välja
       </button>
     </aside>
   );
