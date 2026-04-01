@@ -3,20 +3,23 @@ import { Bell, BookOpen, Search } from 'lucide-react';
 
 export function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-stone-200/80 bg-[#faf8f5] px-6">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-stone-200/80 bg-[#faf8f5] px-4 md:h-16 md:gap-4 md:px-6">
       <Link
         href="/dashboard"
-        className="flex shrink-0 items-center gap-2.5 text-gray-800"
+        className="flex min-w-0 shrink-0 items-center gap-2 text-gray-800 md:gap-2.5"
       >
         <BookOpen
-          className="h-9 w-9 text-amber-400"
+          className="h-8 w-8 shrink-0 text-amber-400 md:h-9 md:w-9"
           strokeWidth={2}
           aria-hidden
         />
-        <span className="text-xl font-bold tracking-tight">Oppi</span>
+        <span className="text-lg font-bold tracking-tight md:text-xl">
+          Oppi
+        </span>
       </Link>
 
-      <div className="flex min-w-0 flex-1 justify-center px-4">
+      {/* Mobiilis otsing peidetud (mockup); töölaual pill-otsing */}
+      <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex md:px-4">
         <div className="relative w-full max-w-2xl">
           <Search
             className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
@@ -32,7 +35,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-4">
+      <div className="ml-auto flex shrink-0 items-center gap-3 md:gap-4">
         <button
           type="button"
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
