@@ -80,11 +80,13 @@ pnpm run lint         # Run ESLint
   - Sets JWT cookie on successful authentication
   - Automatic redirect to dashboard
 
-- **Dashboard Layout**:
-  - Sidebar navigation with role-based access
-  - `/dashboard/announcements` - View and create posts (teachers)
-  - `/dashboard/group` - View children in your group
-  - `/dashboard/messages` - Direct messaging (coming soon)
+- **App shell (`(main)` route group)**:
+  - A single [route group](https://nextjs.org/docs/app/getting-started/project-structure#route-groups-and-private-folders) `(main)` shares one layout: header, sidebar, and main content. The group name does not appear in URLs.
+  - `/dashboard` - Dashboard landing
+  - `/announcements` - View and create posts (teachers)
+  - `/group` - View children in your group
+  - `/messages` - Direct messaging (coming soon)
+  - `/calendar`, `/docs`, `/settings` - Placeholder or internal pages as implemented
 
 - **API Integration**:
   - `useApi` hook wraps fetch with error handling
@@ -98,30 +100,28 @@ frontend/
 ├── src/
 │   ├── app/                    # Next.js App Router routes and nested layouts
 │   │   ├── layout.tsx          # Root layout with MUI App Router cache/provider setup
-│   │   ├── page.tsx            # Landing page
+│   │   ├── page.tsx            # Landing page (no app shell)
 │   │   ├── globals.css         # Global Tailwind styles
 │   │   ├── login/
-│   │   │   └── page.tsx        # Login route
-│   │   ├── dashboard/
-│   │   │   ├── layout.tsx      # Dashboard shell with sidebar
-│   │   │   └── page.tsx        # Dashboard landing page
-│   │   ├── announcements/
-│   │   │   └── page.tsx        # Standalone announcements route
-│   │   ├── calendar/
-│   │   │   ├── layout.tsx      # Calendar route layout
-│   │   │   └── page.tsx        # Calendar page
-│   │   ├── docs/
-│   │   │   ├── layout.tsx      # Tailwind route shell for component docs
-│   │   │   └── page.tsx        # Material UI showcase / team docs page
-│   │   ├── group/
-│   │   │   └── page.tsx        # Group route
-│   │   ├── messages/
-│   │   │   └── page.tsx        # Messages route
-│   │   └── settings/
-│   │       ├── layout.tsx      # Settings route layout
-│   │       └── page.tsx        # Settings page
+│   │   │   └── page.tsx        # Login route (no app shell)
+│   │   └── (main)/             # Route group: shared header + sidebar; omitted from URL
+│   │       ├── layout.tsx      # App shell (header, Sidebar, main)
+│   │       ├── dashboard/
+│   │       │   └── page.tsx    # /dashboard
+│   │       ├── announcements/
+│   │       │   └── page.tsx    # /announcements
+│   │       ├── calendar/
+│   │       │   └── page.tsx    # /calendar
+│   │       ├── docs/
+│   │       │   └── page.tsx    # /docs (Material UI showcase / team docs)
+│   │       ├── group/
+│   │       │   └── page.tsx    # /group
+│   │       ├── messages/
+│   │       │   └── page.tsx    # /messages
+│   │       └── settings/
+│   │           └── page.tsx    # /settings
 │   ├── components/
-│   │   ├── Sidebar.tsx         # Shared dashboard/sidebar navigation
+│   │   ├── Sidebar.tsx         # Shared sidebar navigation (used by (main)/layout)
 │   │   ├── providers.tsx       # Global MUI ThemeProvider, CssBaseline, Sonner
 │   │   └── ui/                 # Shadcn/UI components kept in the project
 │   │       └── button.tsx
@@ -162,11 +162,9 @@ const { data, loading, error } = useApi<Post[]>('/posts/group/1');
 
 ### Sidebar Component
 
-Navigation sidebar with role-based menu items:
+Navigation sidebar used by the `(main)` layout (links can later be filtered for role-based access):
 
-- Announcements (all users)
-- My Group (all users)
-- Messages (all users)
+- Dashboard, Announcements, My group, Messages, Calendar, Docs, Settings
 
 ### AuthContext
 
