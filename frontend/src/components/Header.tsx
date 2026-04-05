@@ -3,7 +3,7 @@ import { Bell, BookOpen, Search } from 'lucide-react';
 
 export function Header() {
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-stone-200/80 bg-[#faf8f5] px-4 md:h-16 md:gap-4 md:px-6">
+    <header className="flex h-14 mb-4 shrink-0 items-center gap-3 border-b border-stone-200/80 bg-[#faf8f5] px-4 md:h-16 md:gap-4 md:px-6">
       <Link
         href="/dashboard"
         className="flex min-w-0 shrink-0 items-center gap-2 text-gray-800 md:gap-2.5"
