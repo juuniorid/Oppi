@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { Card, CardContent, Divider } from '@mui/material';
 import { PageTitle } from '@/components/PageTitle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -9,52 +10,52 @@ const groupPosts = [
     id: 1,
     title: 'Daily description - Group name',
     message: 'Today we played outside and learned colors.',
-    created_at: '2026-04-05T10:00:00.000Z',
+    createdAt: '2026-04-05T10:00:00.000Z',
   },
   {
     id: 2,
     title: 'Daily description - Group name',
     message: 'We painted and sang songs.',
-    created_at: '2026-04-04T10:00:00.000Z',
+    createdAt: '2026-04-04T10:00:00.000Z',
   },
   {
     id: 3,
     title: 'Daily description - Group name',
     message:
       'We practiced numbers and listened to a story. ndustry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was ',
-    created_at: '2026-04-03T10:00:00.000Z',
+    createdAt: '2026-04-03T10:00:00.000Z',
   },
 ];
 
 // Mock query response
-const absences = [
+const attendanceRecords = [
   {
     status: 'ABSENT',
-    date: new Date('2026-04-04'),
+    date: '2026-04-04',
   },
 ];
 
-function formatDate(date: Date) {
-  return date.toLocaleDateString('en-CA');
+function getDateKey(value: string) {
+  return value.slice(0, 10);
 }
 
-function getPostDate(created_at: string) {
-  return created_at.split('T')[0];
-}
 export default function DashboardPage() {
   const feedData = groupPosts.map((post) => {
-    const postDate = getPostDate(post.created_at);
+    const postDate = getDateKey(post.createdAt);
 
-    const absenceForDay = absences.find((absence) => {
-      return formatDate(absence.date) === postDate;
+    const attendanceForDay = attendanceRecords.find((attendance) => {
+      return getDateKey(attendance.date) === postDate;
     });
+
+    const status = attendanceForDay?.status ?? 'PRESENT';
+    const present = status === 'PRESENT';
 
     return {
       id: post.id,
       date: postDate,
       title: post.title,
       description: post.message,
-      present: !absenceForDay,
+      present,
     };
   });
 
@@ -85,20 +86,15 @@ export default function DashboardPage() {
                       <CancelIcon className="text-red-500" />
                     )}
 
-                    <span className="text-sm sm:text-sm font-semibold">
-                      Attendance
+                    <span
+                      className={clsx(
+                        'text-sm sm:text-base font-semibold',
+                        item.present ? 'text-green-600' : 'text-red-500'
+                      )}
+                    >
+                      {item.present ? 'Present' : 'Absent'}
                     </span>
                   </div>
-
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      item.present
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {item.present ? 'Present' : 'Absent'}
-                  </span>
                 </div>
 
                 {/* Divider */}
