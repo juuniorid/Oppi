@@ -25,5 +25,7 @@ export const colors = palette as {
   readonly accentTeal: string;
   readonly accentSky: string;
   readonly ink: string;
+  readonly mediumInk: string;
+  readonly lightInk: string;
   readonly yellowStrong: string;
 };
