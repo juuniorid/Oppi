@@ -11,7 +11,11 @@ import {
   mainNavOverflowItems,
 } from '@/config/main-nav';
 
-/** Alumine riba: 3 tabi + neljas „Rohkem“ (ülejäänud marsruudid). */
+/**
+ * Mobiilne alumine nav (md peidetud). `fixed` — lehelõigu padding on `(main)/layout.tsx`-is.
+ * Värvid: `surface`, `divider`; aktiivne tab: tekst `ink`, ikoon `yellow-strong`.
+ * „Rohkem“ menüü: sama; taust overlay must/25.
+ */
 export function BottomNav() {
   const pathname = usePathname();
   const dock = mainNavDockItems();
@@ -32,7 +36,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-sm md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-divider bg-surface/95 backdrop-blur-sm md:hidden"
       aria-label="Mobiilne navigeerimine"
     >
       <ul
@@ -50,14 +54,14 @@ export function BottomNav() {
                 className={clsx(
                   'flex flex-col items-center gap-0.5 rounded-lg px-0.5 py-1 text-[10px] font-medium leading-tight transition-colors',
                   active
-                    ? 'text-amber-600'
+                    ? 'text-ink'
                     : 'text-gray-500 hover:text-gray-700',
                 )}
               >
                 <Icon
                   className={clsx(
                     'h-5 w-5 shrink-0',
-                    active ? 'text-amber-500' : 'text-gray-400',
+                    active ? 'text-yellow-strong' : 'text-gray-400',
                   )}
                   strokeWidth={active ? 2.25 : 2}
                 />
@@ -77,14 +81,14 @@ export function BottomNav() {
               className={clsx(
                 'flex w-full flex-col items-center gap-0.5 rounded-lg px-0.5 py-1 text-[10px] font-medium leading-tight transition-colors',
                 overflowActive || moreOpen
-                  ? 'text-amber-600'
+                  ? 'text-ink'
                   : 'text-gray-500 hover:text-gray-700',
               )}
             >
               <Menu
                 className={clsx(
                   'h-5 w-5 shrink-0',
-                  overflowActive || moreOpen ? 'text-amber-500' : 'text-gray-400',
+                  overflowActive || moreOpen ? 'text-yellow-strong' : 'text-gray-400',
                 )}
                 strokeWidth={overflowActive || moreOpen ? 2.25 : 2}
               />
@@ -101,7 +105,7 @@ export function BottomNav() {
                 />
                 <div
                   role="menu"
-                  className="absolute bottom-full left-1/2 z-50 mb-2 w-[min(18rem,calc(100vw-1rem))] -translate-x-1/2 rounded-2xl border border-stone-200/80 bg-white py-2 shadow-lg"
+                  className="absolute bottom-full left-1/2 z-50 mb-2 w-[min(18rem,calc(100vw-1rem))] -translate-x-1/2 rounded-2xl border border-divider bg-white py-2 shadow-lg"
                 >
                   {overflow.map(({ href, label, Icon }) => {
                     const active = isMainNavActive(pathname, href);
@@ -114,14 +118,14 @@ export function BottomNav() {
                         className={clsx(
                           'flex items-center gap-3 px-4 py-3 text-sm font-medium',
                           active
-                            ? 'bg-amber-50 text-amber-800'
+                            ? 'bg-primary/25 text-ink'
                             : 'text-gray-700 hover:bg-stone-50',
                         )}
                       >
                         <Icon
                           className={clsx(
                             'h-5 w-5 shrink-0',
-                            active ? 'text-amber-500' : 'text-gray-400',
+                            active ? 'text-yellow-strong' : 'text-gray-400',
                           )}
                           strokeWidth={2}
                         />

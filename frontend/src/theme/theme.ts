@@ -1,20 +1,30 @@
-// src/theme/theme.ts
+/**
+ * MUI (`@mui/material`) teema — kasutatakse MUI komponentidega (nupud, kaardid, Avatar jne).
+ *
+ * Oluline: Tailwindi tokenid (`bg-canvas`, `bg-primary`, …) tulevad `palette.json`-ist
+ * (`tailwind.config.ts`), mitte siit. Värvid peaksid olema sama mõttega kui paletis, aga
+ * MUI kasutab oma nimetusi:
+ * - `palette.primary` — vaikimisi tume tekst / contained nupu taust (ei ole kollane!)
+ * - `palette.secondary` — kollane brändiaktsent (mockupi kollane); `color="secondary"` MUI-s
+ * - `background.default` — sama mõte mis Tailwind `canvas`
+ * - `background.paper` — valge pinnad (kaardid)
+ */
 import { createTheme } from '@mui/material/styles';
 
 export const appTheme = createTheme({
   palette: {
     primary: {
-      main: '#000000',
+      main: '#2C2C2C', // tume; kollase CTA jaoks kasuta `color="secondary"` või custom
     },
     secondary: {
-      main: '#f59e0b',
+      main: '#F7D372', // kollane aktsent — ühtib `palette.json` → `primary`
     },
     background: {
-      default: '#f7f4ea',
-      paper: '#fffdf7',
+      default: '#FDF8F3', // ühtib Tailwind `bg-canvas`
+      paper: '#FFFFFF',
     },
     text: {
-      primary: '#1f2937',
+      primary: '#2C2C2C', // ühtib Tailwind `text-ink`
     },
   },
   typography: {
