@@ -1,10 +1,17 @@
 import { Box } from '@/components/Box';
 import { PageTitle } from '@/components/PageTitle';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export default function DashboardPage() {
   return (
     <div>
       <PageTitle>Avaleht</PageTitle>
+      <Box className="mb-2">
+        <CheckCircleIcon
+          fontSize="large"
+          className="text-green-600"
+        ></CheckCircleIcon>
+      </Box>
       <Box title="Daily description - group name">
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard dummy text ever
