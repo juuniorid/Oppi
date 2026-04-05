@@ -13,8 +13,15 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    // Clear localStorage/cookies on client
-    // Server-side session cleanup can be added
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+    } catch {
+      // Clear cookie may still have failed; still leave app
+    }
+    window.location.assign('/login');
   }
 }
 
