@@ -1,15 +1,19 @@
+/**
+ * Ülemine riba: `surface` taust, `divider` alumine joon. Logo kollane = `yellow-strong`
+ * (loetav ikoon); märguande märgis = `primary`; profiiligradiendis mockupi kolm tooni.
+ */
 import Link from 'next/link';
 import { Bell, BookOpen, Search } from 'lucide-react';
 
 export function Header() {
   return (
-    <header className="flex h-14 mb-4 shrink-0 items-center gap-3 border-b border-stone-200/80 bg-[#faf8f5] px-4 md:h-16 md:gap-4 md:px-6">
+    <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-divider bg-surface px-4 md:h-16 md:gap-4 md:px-6">
       <Link
         href="/dashboard"
-        className="flex min-w-0 shrink-0 items-center gap-2 text-gray-800 md:gap-2.5"
+        className="flex min-w-0 shrink-0 items-center gap-2 text-ink md:gap-2.5"
       >
         <BookOpen
-          className="h-8 w-8 shrink-0 text-amber-400 md:h-9 md:w-9"
+          className="h-8 w-8 shrink-0 text-yellow-strong md:h-9 md:w-9"
           strokeWidth={2}
           aria-hidden
         />
@@ -30,7 +34,7 @@ export function Header() {
             type="search"
             name="q"
             placeholder="Otsi"
-            className="w-full rounded-full border-0 bg-stone-200/80 py-3 pl-12 pr-5 text-sm text-gray-900 placeholder:text-gray-500 shadow-inner outline-none ring-0 transition focus:bg-stone-200 focus:ring-2 focus:ring-amber-300/60"
+            className="w-full rounded-full border-0 bg-stone-200/80 py-3 pl-12 pr-5 text-sm text-ink placeholder:text-gray-500 shadow-inner outline-none ring-0 transition focus:bg-stone-200 focus:ring-2 focus:ring-primary/45"
           />
         </div>
       </div>
@@ -42,12 +46,12 @@ export function Header() {
           aria-label="Teavitused, 2 uut"
         >
           <Bell className="h-6 w-6" strokeWidth={2} />
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-400 px-1 text-[11px] font-bold leading-none text-gray-900">
+          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
             2
           </span>
         </button>
         <div
-          className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 ring-2 ring-white shadow-sm"
+          className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal ring-2 ring-white shadow-sm"
           role="img"
           aria-label="Profiil"
         />
