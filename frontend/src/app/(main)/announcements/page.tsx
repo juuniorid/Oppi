@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  MOCK_PERSONAL_TEATED,
+  TeatedFeed,
+  type TeatedItem,
+} from '@/components/TeatedFeed';
 import { useApi } from '@/hooks/useApi';
 
 interface Post {
@@ -15,19 +20,30 @@ export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    // Assume groupId is 1 for demo
-    apiCall<Post[]>('/posts/group/1').then((data) => setPosts(data));
+    let cancelled = false;
+    // Kui backend /posts/group/:id pole veel valmis või server ei käi, jääb voog tööle mock + tühi rühm.
+    apiCall<Post[]>('/posts/group/1', { skipErrorToast: true })
+      .then((data) => {
+        if (!cancelled) setPosts(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setPosts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [apiCall]);
 
-  return (
-    <div>
-      <h1>Announcements</h1>
-      {posts.map((post) => (
-        <div key={post.id} className="border p-4 mb-2">
-          <h2 className="font-semibold">{post.title}</h2>
-          <p>{post.message}</p>
-        </div>
-      ))}
-    </div>
-  );
+  const feedItems = useMemo<TeatedItem[]>(() => {
+    const groupItems: TeatedItem[] = posts.map((post) => ({
+      kind: 'group' as const,
+      id: `g-${post.id}`,
+      title: post.title,
+      body: post.message,
+      at: post.createdAt,
+    }));
+    return [...groupItems, ...MOCK_PERSONAL_TEATED];
+  }, [posts]);
+
+  return <TeatedFeed items={feedItems} />;
 }
