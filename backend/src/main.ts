@@ -16,6 +16,8 @@ async function bootstrap(): Promise<void> {
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     app.useGlobalFilters(new GlobalExceptionFilter());
+    app.setGlobalPrefix('v1');
+
 
     app.enableCors({
       origin: [appConfig.app.frontendUrl, `http://localhost:${appConfig.app.port}`, 'http://localhost:3001'], // Add API origin for Swagger
