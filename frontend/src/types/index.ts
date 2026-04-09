@@ -1,9 +1,11 @@
+import { UserRole } from '@/types/enums';
+
 export interface User {
   id: number;
   email: string;
   firstName?: string | null;
   lastName?: string | null;
-  role: 'ADMIN' | 'TEACHER' | 'PARENT';
+  role: UserRole;
   phone?: string;
 }
 
