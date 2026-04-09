@@ -1,14 +1,13 @@
 import { testDb } from './test-db';
 import { users } from '../../src/database/schema';
 import type { User } from '../../src/database/schema';
-
-type Role = User['role'];
+import type { RoleType } from '../../src/database/schema';
 
 type UserOverrides = Partial<Omit<typeof users.$inferInsert, 'email' | 'role'>>;
 
 export async function createTestUser(
   email: string,
-  role: Role,
+  role: RoleType,
   overrides: UserOverrides = {},
 ): Promise<User> {
   const [user] = await testDb
@@ -26,7 +25,7 @@ export async function createTestUser(
 }
 
 export async function createTestUsers(
-  entries: Array<{ email: string; role: Role } & UserOverrides>,
+  entries: Array<{ email: string; role: RoleType } & UserOverrides>,
 ): Promise<User[]> {
   return testDb
     .insert(users)
