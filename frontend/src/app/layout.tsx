@@ -1,10 +1,17 @@
-import type { Metadata } from "next";
-import { Providers } from "@/components/providers";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { Providers } from '@/components/providers';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Oppi",
-  description: "Kindergarten communication platform",
+  title: 'Oppi',
+  description: 'Kindergarten communication platform',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -15,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="et">
       <body>
-        <Providers>{children}</Providers>
+        <AppRouterCacheProvider>
+          <Providers>{children}</Providers>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

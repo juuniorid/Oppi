@@ -12,6 +12,7 @@ import { MailerModule } from './mail/mailer.module';
 import { InvitesModule } from './invites/invites.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
+import { AbsencesModule } from './absences/absences.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { appConfig } from './config';
     GroupsModule,
     MessagesModule,
     UsersModule,
+    AbsencesModule,
     MailerModule,
     InvitesModule,
   ],

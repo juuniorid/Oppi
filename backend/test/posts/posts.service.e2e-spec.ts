@@ -4,8 +4,9 @@ import { PostsService } from '../../src/posts/posts.service';
 import { createTestUser } from '../helpers/create-users';
 import { createTestGroup } from '../helpers/create-groups';
 import { createTestChild } from '../helpers/create-children';
-import { testDb } from '../helpers/test-db';
-import { userChildren } from 'database/schema';
+import { createTestEnrollment } from '../helpers/create-enrollments';
+import { createTestUserChild } from '../helpers/create-user-children';
+import { ROLE } from 'database/schema';
 
 describe('PostsService (e2e)', () => {
   let service: PostsService;
@@ -21,7 +22,7 @@ describe('PostsService (e2e)', () => {
   describe('create', () => {
     it('should insert and return a post', async () => {
       const group = await createTestGroup('Bumblebees');
-      const user = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', ROLE.Teacher);
 
       const result = await service.create(
         { title: 'Hello', message: 'World', groupId: group.id },
@@ -35,7 +36,7 @@ describe('PostsService (e2e)', () => {
     });
 
     it('should throw NotFoundException when group does not exist', async () => {
-      const user = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com',  ROLE.Teacher);
 
       await expect(
         service.create(
@@ -49,7 +50,7 @@ describe('PostsService (e2e)', () => {
   describe('update', () => {
     it('should update title and content of an existing post', async () => {
       const group = await createTestGroup('Sunflowers');
-      const user = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', ROLE.Teacher);
       const [created] = await service.create(
         { title: 'Original', message: 'Original content', groupId: group.id },
         user.id
@@ -68,7 +69,7 @@ describe('PostsService (e2e)', () => {
 
     it('should update only title when content is omitted', async () => {
       const group = await createTestGroup('Daisies');
-      const user = await createTestUser('teacher@test.com', 'TEACHER');
+      const user = await createTestUser('teacher@test.com', ROLE.Teacher);
       const [created] = await service.create(
         { title: 'Old title', message: 'Keep this', groupId: group.id },
         user.id
@@ -90,7 +91,7 @@ describe('PostsService (e2e)', () => {
   describe('findByGroup', () => {
     it('should return posts ordered by createdAt DESC for a TEACHER', async () => {
       const group = await createTestGroup('Butterflies');
-      const teacher = await createTestUser('teacher@test.com', 'TEACHER');
+      const teacher = await createTestUser('teacher@test.com', ROLE.Teacher);
 
       await service.create(
         { title: 'First', message: 'A', groupId: group.id },
@@ -110,12 +111,11 @@ describe('PostsService (e2e)', () => {
 
     it('should return posts for a PARENT who has a child in the group', async () => {
       const group = await createTestGroup('Tulips');
-      const teacher = await createTestUser('teacher@test.com', 'TEACHER');
-      const parent = await createTestUser('parent@test.com', 'PARENT');
-      const child = await createTestChild('Ada', 'Lovelace', group.id);
-      await testDb
-        .insert(userChildren)
-        .values({ userId: parent.id, childId: child.id });
+      const teacher = await createTestUser('teacher@test.com', ROLE.Teacher);
+      const parent = await createTestUser('parent@test.com', ROLE.Parent);
+      const child = await createTestChild('Ada', 'Lovelace');
+      await createTestUserChild(parent.id, child.id);
+      await createTestEnrollment(child.id, group.id);
 
       await service.create(
         { title: 'Hello parents', message: 'Info', groupId: group.id },
@@ -130,7 +130,7 @@ describe('PostsService (e2e)', () => {
 
     it('should throw ForbiddenException for a PARENT with no child in the group', async () => {
       const group = await createTestGroup('Roses');
-      const parent = await createTestUser('parent@test.com', 'PARENT');
+      const parent = await createTestUser('parent@test.com', ROLE.Parent);
 
       await expect(service.findByGroup(group.id, parent)).rejects.toThrow(
         ForbiddenException
@@ -139,7 +139,7 @@ describe('PostsService (e2e)', () => {
 
     it('should return empty array when group has no posts', async () => {
       const group = await createTestGroup('Empty Group');
-      const teacher = await createTestUser('teacher@test.com', 'TEACHER');
+      const teacher = await createTestUser('teacher@test.com', ROLE.Teacher);
 
       const result = await service.findByGroup(group.id, teacher);
 
@@ -149,7 +149,7 @@ describe('PostsService (e2e)', () => {
     it('should not return posts from other groups', async () => {
       const group1 = await createTestGroup('Group One');
       const group2 = await createTestGroup('Group Two');
-      const teacher = await createTestUser('teacher@test.com', 'TEACHER');
+      const teacher = await createTestUser('teacher@test.com', ROLE.Teacher);
 
       await service.create(
         { title: 'In Group 1', message: 'X', groupId: group1.id },
@@ -162,7 +162,7 @@ describe('PostsService (e2e)', () => {
     });
 
     it('should throw NotFoundException when group does not exist', async () => {
-      const teacher = await createTestUser('teacher@test.com', 'TEACHER');
+      const teacher = await createTestUser('teacher@test.com', ROLE.Teacher);
 
       await expect(service.findByGroup(99999, teacher)).rejects.toThrow(
         NotFoundException
