@@ -46,7 +46,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-const avatarColors = ['#F7D372', '#B2E2E2', '#AED6F1', '#E8F3E8', '#F5B7B1', '#D7BDE2'];
+const avatarColors = ['secondary.main', 'info.light', 'info.main', 'success.light', 'error.light', 'secondary.light'];
 
 export default function ConversationList({ conversations, activeId, onSelect }: ConversationListProps) {
   const [search, setSearch] = useState('');
@@ -82,7 +82,7 @@ export default function ConversationList({ conversations, activeId, onSelect }: 
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: '12px',
-              backgroundColor: '#f5f0e8',
+              backgroundColor: 'background.default',
               '& fieldset': { border: 'none' },
             },
           }}
@@ -105,8 +105,8 @@ export default function ConversationList({ conversations, activeId, onSelect }: 
               borderRadius: '14px',
               mb: 0.5,
               '&.Mui-selected': {
-                backgroundColor: 'rgba(247, 211, 114, 0.3)',
-                '&:hover': { backgroundColor: 'rgba(247, 211, 114, 0.4)' },
+                backgroundColor: (theme) => `${theme.palette.secondary.main}4D`,
+                '&:hover': { backgroundColor: (theme) => `${theme.palette.secondary.main}66` },
               },
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
             }}
@@ -121,7 +121,7 @@ export default function ConversationList({ conversations, activeId, onSelect }: 
                 <Avatar
                   sx={{
                     bgcolor: avatarColors[conv.id % avatarColors.length],
-                    color: '#2C2C2C',
+                    color: 'text.primary',
                     fontWeight: 600,
                     fontSize: '0.85rem',
                   }}

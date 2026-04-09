@@ -64,7 +64,7 @@ function groupMessagesByDate(messages: MockMessage[]): { date: string; messages:
   return groups;
 }
 
-const avatarColors = ['#F7D372', '#B2E2E2', '#AED6F1', '#E8F3E8', '#F5B7B1', '#D7BDE2'];
+const avatarColors = ['secondary.main', 'info.light', 'info.main', 'success.light', 'error.light', 'secondary.light'];
 
 export default function ChatWindow({ conversation, messages, onSendMessage, onBack }: ChatWindowProps) {
   const [input, setInput] = useState('');
@@ -102,7 +102,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
           px: 2,
           py: 1.5,
           borderBottom: '1px solid',
-          borderColor: 'rgba(218, 208, 195, 0.55)',
+          borderColor: 'divider',
           flexShrink: 0,
         }}
       >
@@ -116,7 +116,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
         <Avatar
           sx={{
             bgcolor: avatarColors[conversation.id % avatarColors.length],
-            color: '#2C2C2C',
+            color: 'text.primary',
             fontWeight: 600,
             width: 38,
             height: 38,
@@ -157,7 +157,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
               <Typography
                 variant="caption"
                 sx={{
-                  bgcolor: 'rgba(0,0,0,0.06)',
+                  bgcolor: 'action.hover',
                   borderRadius: '8px',
                   px: 1.5,
                   py: 0.5,
@@ -191,7 +191,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                         height: 28,
                         fontSize: '0.65rem',
                         bgcolor: avatarColors[msg.senderId % avatarColors.length],
-                        color: '#2C2C2C',
+                        color: 'text.primary',
                         fontWeight: 600,
                         flexShrink: 0,
                       }}
@@ -202,7 +202,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                   <Box
                     sx={{
                       maxWidth: '70%',
-                      bgcolor: isMine ? '#F7D372' : '#f5f0e8',
+                      bgcolor: isMine ? 'secondary.main' : 'background.default',
                       borderRadius: isMine
                         ? '16px 16px 4px 16px'
                         : '16px 16px 16px 4px',
@@ -213,18 +213,18 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                     {conversation.isGroup && !isMine && (
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 600, color: '#C49A28', display: 'block', mb: 0.25 }}
+                        sx={{ fontWeight: 600, color: 'secondary.dark', display: 'block', mb: 0.25 }}
                       >
                         {getSenderName(msg.senderId, conversation.participants)}
                       </Typography>
                     )}
-                    <Typography variant="body2" sx={{ color: '#2C2C2C', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                    <Typography variant="body2" sx={{ color: 'text.primary', lineHeight: 1.5, wordBreak: 'break-word' }}>
                       {msg.text}
                     </Typography>
                     <Typography
                       variant="caption"
                       sx={{
-                        color: isMine ? 'rgba(44,44,44,0.6)' : 'text.secondary',
+                        color: 'text.secondary',
                         display: 'block',
                         textAlign: 'right',
                         mt: 0.5,
@@ -248,7 +248,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
           px: 2,
           py: 1.5,
           borderTop: '1px solid',
-          borderColor: 'rgba(218, 208, 195, 0.55)',
+          borderColor: 'divider',
           flexShrink: 0,
         }}
       >
@@ -268,9 +268,9 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                   onClick={handleSend}
                   disabled={!input.trim()}
                   sx={{
-                    bgcolor: input.trim() ? '#F7D372' : 'transparent',
-                    color: '#2C2C2C',
-                    '&:hover': { bgcolor: '#e6c460' },
+                    bgcolor: input.trim() ? 'secondary.main' : 'transparent',
+                    color: 'text.primary',
+                    '&:hover': { bgcolor: 'secondary.dark' },
                     '&.Mui-disabled': { color: 'text.disabled' },
                     width: 34,
                     height: 34,
@@ -284,7 +284,7 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: '14px',
-              backgroundColor: '#f5f0e8',
+              backgroundColor: 'background.default',
               '& fieldset': { border: 'none' },
             },
           }}
