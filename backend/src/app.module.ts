@@ -11,7 +11,6 @@ import { UsersModule } from './users/users.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 import { AbsencesModule } from './absences/absences.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -24,15 +23,12 @@ import { DashboardModule } from './dashboard/dashboard.module';
     }),
     LoggerModule.forRoot({
       pinoHttp: {
-        transport:
-          appConfig.app.nodeEnv !== 'production'
-            ? {
-                target: 'pino-pretty',
-                options: {
-                  singleLine: true,
-                },
-              }
-            : undefined,
+        transport: appConfig.app.nodeEnv !== 'production' ? {
+          target: 'pino-pretty',
+          options: {
+            singleLine: true,
+          },
+        } : undefined,
       },
     }),
     AuthModule,
@@ -42,7 +38,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
     MessagesModule,
     UsersModule,
     AbsencesModule,
-    DashboardModule,
   ],
 })
 export class AppModule {}
