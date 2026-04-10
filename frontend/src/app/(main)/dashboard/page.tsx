@@ -1,16 +1,9 @@
-import {
-  mockAttendanceRecords,
-  mockGroupPosts,
-} from '@/app/(main)/dashboard/dashboard.mocks';
-import { mapDashboardFeedItems } from '@/app/(main)/dashboard/dashboard.utils';
+import { mockDashboardFeedItems } from '@/app/(main)/dashboard/dashboard.mocks';
 import { DashboardFeedCard } from '@/app/(main)/dashboard/DashboardFeedCard';
 import { PageTitle } from '@/components/PageTitle';
 
 export default function DashboardPage() {
-  const feedItems = mapDashboardFeedItems(
-    mockGroupPosts,
-    mockAttendanceRecords
-  );
+  const feedItems = mockDashboardFeedItems;
 
   return (
     <div>
