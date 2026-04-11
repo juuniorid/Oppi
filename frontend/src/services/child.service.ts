@@ -20,7 +20,7 @@ class ChildService {
   }
 
   async getChildrenByGroup(groupId: number): Promise<Child[]> {
-    const response = await fetchWithAuth(apiUrl(`/children/group/${groupId}`));
+    const response = await fetchWithAuth(apiUrl(apiPaths.children.group(groupId)));
     const data = await parseJson(response);
 
     if (!response.ok) {

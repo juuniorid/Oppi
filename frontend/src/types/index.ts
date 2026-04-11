@@ -1,4 +1,4 @@
-import { UserRole } from '@/types/enums';
+import { AttendanceStatus, EventType, UserRole } from '@/types/enums';
 
 export interface User {
   id: number;
@@ -45,3 +45,43 @@ export interface Message {
   createdAt: string;
   updatedAt: string;
 }
+export type UpdateEventPayload = CreateEventPayload;
+
+export type AbsenceEntry = {
+  id: number;
+  childId: number;
+  firstName?: string;
+  lastName?: string;
+  date: string;
+  status: AttendanceStatus;
+  note?: string | null;
+  userId: number;
+};
+
+export type CreateAbsencePayload = {
+  childId: number;
+  from: string;
+  to: string;
+  status: AttendanceStatus;
+  note?: string;
+};
+
+export type EventEntry = {
+  id: number;
+  name: string;
+  time: string;
+  description: string;
+  date: string;
+  type: EventType;
+};
+
+export type CreateEventPayload = {
+  groupId: number;
+  from: string;
+  to: string;
+  timeFrom: string;
+  timeTo: string;
+  name: string;
+  description?: string;
+  type: EventType;
+};

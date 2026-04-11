@@ -17,6 +17,7 @@ interface ChildSelectionContextType {
 
 const ChildSelectionContext = createContext<ChildSelectionContextType | undefined>(undefined);
 
+const USE_DUMMY_CHILDREN_DATA = true;
 export function ChildSelectionProvider({ children }: { children: ReactNode }) {
   const { role, loading: roleLoading } = useUserRole();
   const [availableChildren, setAvailableChildren] = useState<Child[]>([]);
@@ -75,6 +76,13 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
         }
 
         const childrenList = list ?? [];
+
+        if (USE_DUMMY_CHILDREN_DATA) {
+          childrenList.push(
+            { id: 1, firstName: 'Elli' },
+            { id: 2, firstName: 'Matti' },
+          );
+        }
         setAvailableChildren(childrenList);
 
         if (childrenList.length === 0) {

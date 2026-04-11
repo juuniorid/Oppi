@@ -27,6 +27,7 @@ export const apiPaths = {
   },
   children: {
     list: '/children',
+    group: (groupId: number) => `/children/group/${groupId}`,
   },
   posts: {
     create: '/posts',
