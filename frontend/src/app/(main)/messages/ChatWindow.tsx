@@ -21,17 +21,13 @@ interface ChatWindowProps {
   onBack: () => void;
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+function getInitials(firstName: string = '', lastName: string = ''): string {
+  if (!firstName && !lastName) return 'TE';
+  return `${firstName.charAt(0).toUpperCase()}${lastName.charAt(0).toUpperCase()}`;
 }
 
-function getSenderName(senderId: number, participants: MockUser[]): string {
-  return participants.find((p) => p.id === senderId)?.name ?? 'Teadmata';
+function getSender(senderId: number, participants: MockUser[]): MockUser | undefined {
+  return participants.find((p) => p.id === senderId);
 }
 
 function formatMessageTime(date: Date): string {
@@ -39,12 +35,12 @@ function formatMessageTime(date: Date): string {
 }
 
 function formatDateHeader(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const oneDay = 24 * 60 * 60 * 1000;
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) return 'Täna';
 
-  if (diff < oneDay && now.getDate() === date.getDate()) return 'Täna';
-  if (diff < 2 * oneDay) return 'Eile';
+  const yesterday = new Date();
+  if (date.toDateString() === new Date(yesterday.setDate(yesterday.getDate() - 1)).toDateString()) return 'Eile';
+
   return date.toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
@@ -70,9 +66,23 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom strategy:
+  // 1. Unconditionally scroll when chat is opened (competition.id changes)
+  // 2. Scroll if the newest message was sent by the current user
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+  }, [conversation.id]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.senderId === currentUser.id) {
+        // Small timeout ensures the DOM has updated before scrolling
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 50);
+      }
+    }
   }, [messages]);
 
   const handleSend = () => {
@@ -123,7 +133,14 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
             fontSize: '0.8rem',
           }}
         >
-          {conversation.isGroup ? <GroupIcon fontSize="small" /> : getInitials(conversation.name)}
+          {conversation.isGroup ? (
+            <GroupIcon fontSize="small" />
+          ) : (
+            (() => {
+              const otherUser = conversation.participants.find((p) => p.id !== currentUser.id) || conversation.participants[0];
+              return getInitials(otherUser?.firstName, otherUser?.lastName);
+            })()
+          )}
         </Avatar>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -196,7 +213,10 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                         flexShrink: 0,
                       }}
                     >
-                      {getInitials(getSenderName(msg.senderId, conversation.participants))}
+                      {(() => {
+                        const sender = getSender(msg.senderId, conversation.participants);
+                        return getInitials(sender?.firstName, sender?.lastName);
+                      })()}
                     </Avatar>
                   )}
                   <Box
@@ -215,7 +235,10 @@ export default function ChatWindow({ conversation, messages, onSendMessage, onBa
                         variant="caption"
                         sx={{ fontWeight: 600, color: 'secondary.dark', display: 'block', mb: 0.25 }}
                       >
-                        {getSenderName(msg.senderId, conversation.participants)}
+                        {(() => {
+                          const sender = getSender(msg.senderId, conversation.participants);
+                          return sender ? `${sender.firstName} ${sender.lastName}` : 'Teadmata';
+                        })()}
                       </Typography>
                     )}
                     <Typography variant="body2" sx={{ color: 'text.primary', lineHeight: 1.5, wordBreak: 'break-word' }}>

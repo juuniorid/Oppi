@@ -2,11 +2,11 @@
 
 import { Box, Button, Card, CardContent, Typography, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
+import authService from '@/services/auth.service';
 
 export default function LoginPage() {
   const handleGoogleLogin = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
-    window.location.href = `${apiUrl}/auth/google`;
+    window.location.href = authService.getGoogleLoginUrl();
   };
 
   return (

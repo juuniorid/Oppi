@@ -1,6 +1,7 @@
 export interface MockUser {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   avatar?: string;
   role: 'TEACHER' | 'PARENT' | 'ADMIN';
 }
@@ -26,17 +27,18 @@ export interface MockConversation {
 // Current user (mock: the logged-in teacher)
 export const currentUser: MockUser = {
   id: 1,
-  name: 'Mari Tamm',
+  firstName: 'Mari',
+  lastName: 'Tamm',
   role: 'TEACHER',
 };
 
 export const mockUsers: MockUser[] = [
   currentUser,
-  { id: 2, name: 'Kati Kask', role: 'PARENT' },
-  { id: 3, name: 'Jüri Sepp', role: 'PARENT' },
-  { id: 4, name: 'Anna Mets', role: 'TEACHER' },
-  { id: 5, name: 'Peeter Pärn', role: 'PARENT' },
-  { id: 6, name: 'Liina Vaher', role: 'ADMIN' },
+  { id: 2, firstName: 'Kati', lastName: 'Kask', role: 'PARENT' },
+  { id: 3, firstName: 'Jüri', lastName: 'Sepp', role: 'PARENT' },
+  { id: 4, firstName: 'Anna', lastName: 'Mets', role: 'TEACHER' },
+  { id: 5, firstName: 'Peeter', lastName: 'Pärn', role: 'PARENT' },
+  { id: 6, firstName: 'Liina', lastName: 'Vaher', role: 'ADMIN' },
 ];
 
 const today = new Date();

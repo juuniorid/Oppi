@@ -28,7 +28,7 @@ export type MainNavItem = {
 export const mainNav: MainNavItem[] = [
   { href: '/dashboard', label: 'Avaleht', Icon: Home, mobile: 'dock' },
   { href: '/announcements', label: 'Teated', Icon: Bell, mobile: 'dock' },
-  { href: '/absences', label: 'Kalender', Icon: Calendar, mobile: 'dock' },
+  { href: '/calendar', label: 'Kalender', Icon: Calendar, mobile: 'dock' },
   { href: '/messages', label: 'Vestlus', Icon: MessageCircle, mobile: 'overflow' },
   { href: '/gallery', label: 'Galerii', Icon: ImageIcon, mobile: 'overflow' },
   { href: '/settings', label: 'Seaded', Icon: Settings, mobile: 'overflow' },
