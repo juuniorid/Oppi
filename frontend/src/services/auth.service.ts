@@ -1,22 +1,32 @@
 import { User } from '@/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiPaths, apiUrl } from '@/config/api';
+import {
+  extractErrorMessage,
+  fetchWithAuth,
+  parseJson,
+  unwrapData,
+} from '@/services/http.service';
 
 class AuthService {
+  getGoogleLoginUrl(): string {
+    return apiUrl(apiPaths.auth.google);
+  }
+
   async getProfile(): Promise<User> {
-    const response = await fetch(
-      `${API_URL}/auth/me`,
-      { credentials: 'include' },
-    );
-    const data = await response.json();
-    return data;
+    const response = await fetchWithAuth(apiUrl(apiPaths.auth.me));
+    const data = await parseJson(response);
+
+    if (!response.ok) {
+      throw new Error(extractErrorMessage(data, `Failed to load profile (${response.status})`));
+    }
+
+    return unwrapData<User>(data);
   }
 
   async logout(): Promise<void> {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
+      await fetchWithAuth(apiUrl(apiPaths.auth.logout), {
         method: 'GET',
-        credentials: 'include',
       });
     } catch {
       // Clear cookie may still have failed; still leave app
