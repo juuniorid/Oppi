@@ -30,7 +30,7 @@ export const ABSENCE_ENUM: Record<string, AbsenceEnum> = {
   Present: 'PRESENT',
   Absent: 'ABSENT',
 };
-export const messageAudienceEnum = pgEnum('message_audience', [
+export const notificationAudienceEnum = pgEnum('notification_audience', [
   'DIRECT',
   'GROUP',
 ]);
@@ -235,14 +235,14 @@ export const postMedia = pgTable('post_media', {
 export type PostMedia = InferSelectModel<typeof postMedia>;
 export type NewPostMedia = InferInsertModel<typeof postMedia>;
 
-// Shared message envelope for direct and group messages
-export const messages = pgTable('messages', {
+// Shared notification envelope for direct and group notifications
+export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
     .references(() => users.id)
     .notNull(),
   targetGroupId: integer('target_group_id').references(() => groups.id),
-  audience: messageAudienceEnum('audience').default('DIRECT').notNull(),
+  audience: notificationAudienceEnum('audience').default('DIRECT').notNull(),
   subject: text('subject'),
   body: text('body'),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
@@ -254,33 +254,95 @@ export const messages = pgTable('messages', {
     .notNull(),
 });
 
-export type Message = InferSelectModel<typeof messages>;
-export type NewMessage = InferInsertModel<typeof messages>;
+export type Notification = InferSelectModel<typeof notifications>;
+export type NewNotification = InferInsertModel<typeof notifications>;
 
-// Per-recipient delivery and read state for all messages
-export const messageRecipients = pgTable(
-  'message_recipients',
+// Per-recipient delivery and read state for all notifications
+export const notificationRecipients = pgTable(
+  'notification_recipients',
   {
-    messageId: integer('message_id')
-      .references(() => messages.id, { onDelete: 'cascade' })
+    notificationId: integer('notification_id')
+      .references(() => notifications.id, { onDelete: 'cascade' })
       .notNull(),
     userId: integer('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     readAt: timestamp('read_at', { withTimezone: true, mode: 'date' }),
   },
-  (table) => [primaryKey({ columns: [table.messageId, table.userId] })]
+  (table) => [primaryKey({ columns: [table.notificationId, table.userId] })]
 );
 
-export type MessageRecipient = InferSelectModel<typeof messageRecipients>;
-export type NewMessageRecipient = InferInsertModel<typeof messageRecipients>;
+export type NotificationRecipient = InferSelectModel<typeof notificationRecipients>;
+export type NewNotificationRecipient = InferInsertModel<typeof notificationRecipients>;
+
+// Chat Conversations
+export const conversations = pgTable('conversations', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+  isGroup: boolean('is_group').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
+});
+
+export type Conversation = InferSelectModel<typeof conversations>;
+export type NewConversation = InferInsertModel<typeof conversations>;
+
+export const conversationParticipants = pgTable(
+  'conversation_participants',
+  {
+    conversationId: integer('conversation_id')
+      .references(() => conversations.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: integer('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    joinedAt: timestamp('joined_at', { withTimezone: true, mode: 'date' })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.conversationId, table.userId] })]
+);
+
+export type ConversationParticipant = InferSelectModel<typeof conversationParticipants>;
+export type NewConversationParticipant = InferInsertModel<typeof conversationParticipants>;
+
+// Chat Messages
+export const messages = pgTable('messages', {
+  id: serial('id').primaryKey(),
+  conversationId: integer('conversation_id')
+    .references(() => conversations.id, { onDelete: 'cascade' })
+    .notNull(),
+  senderId: integer('sender_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
+});
+
+export type Message = InferSelectModel<typeof messages>;
+export type NewMessage = InferInsertModel<typeof messages>;
+
+
 
 export const usersRelations = relations(users, ({ many }) => ({
   childLinks: many(userChildren),
   groupLinks: many(groupUsers),
   groupPosts: many(posts),
+  sentNotifications: many(notifications, { relationName: 'notification_sender' }),
+  notificationRecipients: many(notificationRecipients),
+  conversationLinks: many(conversationParticipants),
   sentMessages: many(messages, { relationName: 'message_sender' }),
-  messageRecipients: many(messageRecipients),
 }));
 
 export const childrenRelations = relations(children, ({ many }) => ({
@@ -293,7 +355,7 @@ export const groupsRelations = relations(groups, ({ many }) => ({
   userLinks: many(groupUsers),
   enrollments: many(enrollments),
   posts: many(posts),
-  messages: many(messages),
+  notifications: many(notifications),
 }));
 
 export const groupUsersRelations = relations(groupUsers, ({ one }) => ({
@@ -355,29 +417,60 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
   }),
 }));
 
-export const messagesRelations = relations(messages, ({ one, many }) => ({
+export const notificationsRelations = relations(notifications, ({ one, many }) => ({
   sender: one(users, {
-    fields: [messages.userId],
+    fields: [notifications.userId],
     references: [users.id],
-    relationName: 'message_sender',
+    relationName: 'notification_sender',
   }),
   targetGroup: one(groups, {
-    fields: [messages.targetGroupId],
+    fields: [notifications.targetGroupId],
     references: [groups.id],
   }),
-  recipients: many(messageRecipients),
+  recipients: many(notificationRecipients),
 }));
 
-export const messageRecipientsRelations = relations(
-  messageRecipients,
+export const notificationRecipientsRelations = relations(
+  notificationRecipients,
   ({ one }) => ({
-    message: one(messages, {
-      fields: [messageRecipients.messageId],
-      references: [messages.id],
+    notification: one(notifications, {
+      fields: [notificationRecipients.notificationId],
+      references: [notifications.id],
     }),
     user: one(users, {
-      fields: [messageRecipients.userId],
+      fields: [notificationRecipients.userId],
       references: [users.id],
     }),
   })
 );
+
+export const conversationsRelations = relations(conversations, ({ many }) => ({
+  participants: many(conversationParticipants),
+  messages: many(messages),
+}));
+
+export const conversationParticipantsRelations = relations(
+  conversationParticipants,
+  ({ one }) => ({
+    conversation: one(conversations, {
+      fields: [conversationParticipants.conversationId],
+      references: [conversations.id],
+    }),
+    user: one(users, {
+      fields: [conversationParticipants.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+    relationName: 'message_sender',
+  }),
+}));
