@@ -18,9 +18,8 @@ import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
 import calendarService, {
-  type AbsenceEntry,
-  type EventEntry,
 } from '@/services/calendar.service';
+import type { AbsenceEntry, EventEntry } from '@/types';
 import {
   ATTENDANCE_STATUS,
   EVENT_TYPE,
@@ -63,8 +62,8 @@ export default function CalendarPage() {
     
     if (!role) {
       showErrorToast('Unable to determine user role. Please log in again.');
-      setAbsences(buildDummyAbsences({ childId: 1, from })); // Show dummy event to indicate error
-      setEvents(buildDummyEvents({ from })); // Show dummy event to indicate error
+      setAbsences([]); // Show dummy event to indicate error
+      setEvents([]); // Show dummy event to indicate error
       setIsLoading(false);
       return;
     }
