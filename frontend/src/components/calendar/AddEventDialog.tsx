@@ -11,11 +11,8 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
-import calendarService, {
-  type CreateEventPayload,
-  type EventEntry,
-  type UpdateEventPayload,
-} from '@/services/calendar.service';
+import calendarService from '@/services/calendar.service';
+import type { CreateEventPayload, EventEntry, UpdateEventPayload } from '@/types';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
 import { EVENT_TYPE, type EventType } from '@/types/enums';
 
