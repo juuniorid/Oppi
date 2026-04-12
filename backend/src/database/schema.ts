@@ -18,16 +18,37 @@ export const teacherRoleEnum = pgEnum('teacher_role', [
   'GENERAL',
   'ASSISTANT',
 ]);
-export const childPresentEnum = pgEnum('child_present', ['PRESENT', 'ABSENT']);
+export type TeacherRoleType = (typeof teacherRoleEnum.enumValues)[number];
+export const TEACHER_ROLE: Record<string, TeacherRoleType> = {
+  Head: 'HEAD',
+  General: 'GENERAL',
+  Assistant: 'ASSISTANT',
+};
+export const absenceEnum = pgEnum('child_absence', ['PRESENT', 'ABSENT']);
+export type AbsenceEnum = (typeof absenceEnum.enumValues)[number];
+export const ABSENCE_ENUM: Record<string, AbsenceEnum> = {
+  Present: 'PRESENT',
+  Absent: 'ABSENT',
+};
 export const messageAudienceEnum = pgEnum('message_audience', [
   'DIRECT',
   'GROUP',
 ]);
-export const relationshipEnum = pgEnum('relationship', [
-  'MOTHER',
-  'FATHER',
-  'GUARDIAN',
-]);
+export const relationshipEnum = pgEnum('relationshipEnum', ['MOTHER', 'FATHER', 'GUARDIAN']);
+export type RelationshipEnum = (typeof relationshipEnum.enumValues)[number];
+export const RELATIONSHIP_ENUM: Record<string, RelationshipEnum> = {
+  Mother: 'MOTHER',
+  Father: 'FATHER',
+  Guardian: 'GUARDIAN',
+};
+
+export const roleEnum = pgEnum('role', ['ADMIN', 'TEACHER', 'PARENT']);
+export type RoleType = (typeof roleEnum.enumValues)[number];
+export const ROLE: Record<string, RoleType> = {
+  Admin: 'ADMIN',
+  Teacher: 'TEACHER',
+  Parent: 'PARENT',
+};
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -103,16 +124,19 @@ export const groupUsers = pgTable(
 export type GroupUser = InferSelectModel<typeof groupUsers>;
 export type NewGroupUser = InferInsertModel<typeof groupUsers>;
 
-export const attendance = pgTable(
-  'attendance',
+export const absences = pgTable(
+  'absences',
   {
     id: serial('id').primaryKey(),
     childId: integer('child_id')
       .references(() => children.id)
       .notNull(),
     date: date('date', { mode: 'date' }).notNull(),
-    status: childPresentEnum('status').notNull(),
+    status: absenceEnum('status').notNull(),
     note: text('note'),
+    userId: integer('user_id')
+      .references(() => users.id)
+      .notNull(),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
       .defaultNow()
@@ -122,15 +146,15 @@ export const attendance = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex('attendance_child_id_date_unique').on(
+    uniqueIndex('absences_child_id_date_unique').on(
       table.childId,
       table.date
     ),
   ]
 );
 
-export type Attendance = InferSelectModel<typeof attendance>;
-export type NewAttendance = InferInsertModel<typeof attendance>;
+export type Absence = InferSelectModel<typeof absences>;
+export type NewAbsence = InferInsertModel<typeof absences>;
 
 export const userChildren = pgTable(
   'user_children',
@@ -260,7 +284,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const childrenRelations = relations(children, ({ many }) => ({
-  attendance: many(attendance),
+  absences: many(absences),
   userLinks: many(userChildren),
   enrollments: many(enrollments),
 }));
@@ -283,9 +307,9 @@ export const groupUsersRelations = relations(groupUsers, ({ one }) => ({
   }),
 }));
 
-export const attendanceRelations = relations(attendance, ({ one }) => ({
+export const absencesRelations = relations(absences, ({ one }) => ({
   child: one(children, {
-    fields: [attendance.childId],
+    fields: [absences.childId],
     references: [children.id],
   }),
 }));

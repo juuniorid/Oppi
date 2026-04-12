@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../src/auth/auth.controller';
 import { AuthService } from '../../src/auth/auth.service';
-import { User } from 'database/schema';
+import { ROLE, User } from 'database/schema';
 import { Request } from 'express';
 
 describe('AuthController', () => {
@@ -13,7 +13,7 @@ describe('AuthController', () => {
     firstName: 'Test',
     lastName: 'User',
     googleId: 'google_123',
-    role: 'PARENT',
+    role: ROLE.Parent,
     phone: null,
     deletedAt: null,
     createdAt: new Date(),

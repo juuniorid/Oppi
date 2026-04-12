@@ -1,5 +1,12 @@
-import { toast } from 'sonner';
 import { useCallback } from 'react';
+import { apiUrl } from '@/config/api';
+import { showErrorToast } from '@/components/ErrorToast';
+import {
+  extractErrorMessage,
+  fetchWithAuth,
+  parseJson,
+  unwrapData,
+} from '@/services/http.service';
 
 interface RequestOptions extends RequestInit {
   skipErrorToast?: boolean;
@@ -13,21 +20,21 @@ export function useApi() {
     ): Promise<T> => {
       const { skipErrorToast = false, ...fetchOptions } = options || {};
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+      const response = await fetchWithAuth(apiUrl(url), {
         ...fetchOptions,
-        credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await parseJson(response);
 
-      if (!data.success) {
+      if (!response.ok) {
+        const message = extractErrorMessage(data, `Request failed (${response.status})`);
         if (!skipErrorToast) {
-          toast.error(data.message || 'An error occurred');
+          showErrorToast(message);
         }
-        throw new Error(data.message);
+        throw new Error(message);
       }
 
-      return data.data || data;
+      return unwrapData<T>(data);
     },
     [],
   );

@@ -6,23 +6,17 @@ import {
   TeatedFeed,
   type TeatedItem,
 } from '@/components/TeatedFeed';
-import { useApi } from '@/hooks/useApi';
-
-interface Post {
-  id: number;
-  title: string;
-  message: string;
-  createdAt: string;
-}
+import postService from '@/services/post.service';
+import type { Post } from '@/types';
 
 export default function AnnouncementsPage() {
-  const { apiCall } = useApi();
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     // Kui backend /posts/group/:id pole veel valmis või server ei käi, jääb voog tööle mock + tühi rühm.
-    apiCall<Post[]>('/posts/group/1', { skipErrorToast: true })
+    postService
+      .getPostsByGroup(1)
       .then((data) => {
         if (!cancelled) setPosts(Array.isArray(data) ? data : []);
       })
@@ -32,7 +26,7 @@ export default function AnnouncementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [apiCall]);
+  }, []);
 
   const feedItems = useMemo<TeatedItem[]>(() => {
     const groupItems: TeatedItem[] = posts.map((post) => ({

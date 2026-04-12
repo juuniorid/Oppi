@@ -10,6 +10,7 @@ import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
+import { AbsencesModule } from './absences/absences.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { appConfig } from './config';
     GroupsModule,
     MessagesModule,
     UsersModule,
+    AbsencesModule,
   ],
 })
 export class AppModule {}
