@@ -1,39 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
 import postService from '@/services/post.service';
+import type { Post } from '@/types';
 
-interface Post {
-  id: number;
-  title: string;
-  message: string;
-  createdAt: string;
-}
-
+/**
+ * /announcements: loads group posts from the API and maps them into {@link TeatedItem}
+ * for {@link TeatedFeed}. Group id is still a placeholder until the app has a real
+ * current-group context.
+ */
 export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Assume groupId is 1 for demo
+    let cancelled = false;
+    // If the backend is down or the endpoint fails, we silently show an empty feed.
     postService
-      .getPostsByGroupForView(1)
+      .getPostsByGroup(1)
       .then((data) => {
-        setPosts(data);
+        if (!cancelled) setPosts(Array.isArray(data) ? data : []);
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setPosts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  return (
-    <div>
-      <h1>Announcements</h1>
-      {loading ? <p>Loading...</p> : null}
-      {posts.map((post) => (
-        <div key={post.id} className="border p-4 mb-2">
-          <h2 className="font-semibold">{post.title}</h2>
-          <p>{post.message}</p>
-        </div>
-      ))}
-    </div>
-  );
+  // Map backend Post shape into feed rows (today: group posts only).
+  const feedItems = useMemo<TeatedItem[]>(() => {
+    const groupItems: TeatedItem[] = posts.map((post) => ({
+      kind: 'group' as const,
+      id: `g-${post.id}`,
+      title: post.title,
+      body: post.message,
+      at: post.createdAt,
+    }));
+    return groupItems;
+  }, [posts]);
+
+  return <TeatedFeed items={feedItems} />;
 }
