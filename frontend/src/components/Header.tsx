@@ -1,11 +1,23 @@
+'use client';
+
 /**
  * Ülemine riba: `surface` taust, `divider` alumine joon. Logo kollane = `yellow-strong`
  * (loetav ikoon); märguande märgis = `primary`; profiiligradiendis mockupi kolm tooni.
  */
 import Link from 'next/link';
 import { Bell, BookOpen, Search } from 'lucide-react';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { useChildSelection } from '@/context/ChildSelectionContext';
+import { useUserRole } from '@/context/UserRoleContext';
+import { USER_ROLE } from '@/types/enums';
 
 export function Header() {
+  const { children, selectedChildId, setSelectedChildId, loading } = useChildSelection();
+  const { role } = useUserRole();
+
   return (
     <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-divider bg-surface px-4 md:h-16 md:gap-4 md:px-6">
       <Link
@@ -38,6 +50,40 @@ export function Header() {
           />
         </div>
       </div>
+
+      {role === USER_ROLE.PARENT ? (
+      <div className="hidden shrink-0 md:block">
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel id="child-select-label">Muuda laps</InputLabel>
+          <Select
+          labelId="child-select-label"
+          id="child-select"
+          value={selectedChildId != null ? String(selectedChildId) : ''}
+          label="Muuda laps"
+          onChange={(e: SelectChangeEvent) => {
+            const nextId = Number(e.target.value);
+            if (!Number.isNaN(nextId) && nextId > 0) {
+              setSelectedChildId(nextId);
+            }
+          }}
+          disabled={loading || children.length <= 1}
+  
+        >
+          {children.length === 0 ? (
+            <MenuItem value="">Ei leitud lapsi</MenuItem>
+          ) : <MenuItem value="">Vali laps</MenuItem>}
+            <MenuItem key={"1"} value={"Robert"}>
+              {"Robert"}
+            </MenuItem>
+          {children.map((child) => (       
+            <MenuItem key={child.id} value={String(child.id)}>
+              {child.firstName?.trim()}
+            </MenuItem>
+          ))}
+          </Select>
+        </FormControl>
+      </div>
+      ) : null}
 
       <div className="ml-auto flex shrink-0 items-center gap-3 md:gap-4">
         <button

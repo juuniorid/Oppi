@@ -18,6 +18,7 @@ import palette from './palette.json';
 
 export const colors = palette as {
   readonly canvas: string;
+  readonly paper: string;
   readonly surface: string;
   readonly divider: string;
   readonly primary: string;
@@ -28,4 +29,6 @@ export const colors = palette as {
   readonly mediumInk: string;
   readonly lightInk: string;
   readonly yellowStrong: string;
+  readonly success: string;
+  readonly error: string;
 };

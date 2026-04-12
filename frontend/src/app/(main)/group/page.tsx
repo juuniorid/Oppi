@@ -1,22 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useApi } from '@/hooks/useApi';
-
-interface Child {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
+import childService from '@/services/child.service';
+import { Child } from '@/types';
 
 export default function GroupPage() {
-  const { apiCall } = useApi();
   const [children, setChildren] = useState<Child[]>([]);
 
   useEffect(() => {
     // Assume groupId is 1 for demo
-    apiCall<Child[]>('/children/group/1').then((data) => setChildren(data));
-  }, [apiCall]);
+    childService.getChildrenByGroup(1).then((data) => setChildren(data));
+  }, []);
 
   return (
     <div>
