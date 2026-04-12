@@ -1,6 +1,17 @@
 'use client';
 
-import { Building2, Inbox } from 'lucide-react';
+import BusinessIcon from '@mui/icons-material/Business';
+import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import {
+  Avatar,
+  Box,
+  List,
+  ListItem,
+  ListItemAvatar,
+  Paper,
+  Typography,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useMemo } from 'react';
 
 export type TeatedItem =
@@ -25,6 +36,21 @@ function initials(name: string): string {
   if (parts.length === 0) return '?';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+const personalAvatarBg = [
+  'secondary.main',
+  'info.light',
+  'info.main',
+  'success.light',
+  'error.light',
+  'secondary.light',
+] as const;
+
+function avatarColorIndex(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h % personalAvatarBg.length;
 }
 
 export function formatTeatedAt(iso: string): string {
@@ -53,83 +79,191 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
 
   if (sorted.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-divider bg-canvas shadow-sm">
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4 py-12 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/30 text-yellow-strong">
-            <Inbox className="h-8 w-8" strokeWidth={2} aria-hidden />
-          </div>
-          <p className="max-w-sm text-base text-ink/65">
+      <Paper
+        variant="outlined"
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            minHeight: '40vh',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2,
+            px: 2,
+            py: 6,
+            textAlign: 'center',
+          }}
+        >
+          <Avatar
+            sx={(theme) => ({
+              width: 64,
+              height: 64,
+              bgcolor: alpha(theme.palette.secondary.main, 0.35),
+              color: 'warning.main',
+            })}
+            aria-hidden
+          >
+            <InboxOutlinedIcon sx={{ fontSize: 32 }} />
+          </Avatar>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ maxWidth: 280 }}
+          >
             Sul pole veel teateid.
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Paper>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-divider bg-canvas shadow-sm">
-      <ul className="divide-y divide-divider">
-        {sorted.map((item) =>
-          item.kind === 'group' ? (
-            <li key={item.id} className="px-4 py-4 sm:px-5 sm:py-5">
-              <div className="flex gap-3 sm:gap-4">
-                <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-yellow-strong shadow-sm ring-2 ring-white"
+    <Paper
+      variant="outlined"
+      elevation={0}
+      sx={{
+        borderRadius: 2,
+        overflow: 'hidden',
+        bgcolor: 'background.paper',
+      }}
+    >
+      <List disablePadding sx={{ py: 0 }}>
+        {sorted.map((item, index) => (
+          <ListItem
+            key={item.id}
+            alignItems="flex-start"
+            divider={index < sorted.length - 1}
+            sx={{
+              px: { xs: 2, sm: 2.5 },
+              py: 2,
+            }}
+          >
+            <ListItemAvatar sx={{ minWidth: 56 }}>
+              {item.kind === 'group' ? (
+                <Avatar
+                  sx={{
+                    bgcolor: 'secondary.main',
+                    color: 'warning.main',
+                    boxShadow: 1,
+                    border: '2px solid',
+                    borderColor: 'background.paper',
+                  }}
                   aria-hidden
                 >
-                  <Building2 className="h-5 w-5" strokeWidth={2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
-                    Rühm
-                  </p>
-                  <h2 className="text-[15px] font-semibold leading-snug text-ink">
-                    {item.title}
-                  </h2>
-                  <p className="mt-2 border-l-2 border-divider pl-3 text-sm leading-relaxed text-ink/55">
-                    {item.body}
-                  </p>
-                  <time
-                    className="mt-2 block text-xs tabular-nums text-ink/45"
-                    dateTime={item.at}
-                  >
-                    {formatTeatedAt(item.at)}
-                  </time>
-                </div>
-              </div>
-            </li>
-          ) : (
-            <li key={item.id} className="px-4 py-4 sm:px-5 sm:py-5">
-              <div className="flex gap-3 sm:gap-4">
-                <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal text-xs font-bold text-ink shadow-sm ring-2 ring-white"
+                  <BusinessIcon />
+                </Avatar>
+              ) : (
+                <Avatar
+                  sx={{
+                    bgcolor: personalAvatarBg[avatarColorIndex(item.id)],
+                    color: 'text.primary',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    boxShadow: 1,
+                    border: '2px solid',
+                    borderColor: 'background.paper',
+                  }}
                   aria-hidden
                 >
                   {initials(item.senderName)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
-                    Õpetaja
-                  </p>
-                  <p className="text-[15px] font-semibold leading-snug text-ink">
-                    {item.senderName}
-                  </p>
-                  <p className="mt-0.5 text-sm text-ink/70">{item.groupName}</p>
-                  <p className="mt-2 border-l-2 border-divider pl-3 text-sm leading-relaxed text-ink/55">
+                </Avatar>
+              )}
+            </ListItemAvatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              {item.kind === 'group' ? (
+                <>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
+                  >
+                    Rühm
+                  </Typography>
+                  <Typography
+                    component="h2"
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.25, color: 'text.primary' }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 1.5,
+                      pl: 1.5,
+                      borderLeft: 2,
+                      borderColor: 'divider',
+                      lineHeight: 1.6,
+                    }}
+                  >
                     {item.body}
-                  </p>
-                  <time
-                    className="mt-2 block text-xs tabular-nums text-ink/45"
+                  </Typography>
+                  <Typography
+                    component="time"
+                    variant="caption"
+                    color="text.secondary"
                     dateTime={item.at}
+                    sx={{ mt: 1, display: 'block', fontVariantNumeric: 'tabular-nums' }}
                   >
                     {formatTeatedAt(item.at)}
-                  </time>
-                </div>
-              </div>
-            </li>
-          )
-        )}
-      </ul>
-    </div>
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
+                  >
+                    Õpetaja
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.25, color: 'text.primary' }}
+                  >
+                    {item.senderName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                    {item.groupName}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 1.5,
+                      pl: 1.5,
+                      borderLeft: 2,
+                      borderColor: 'divider',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.body}
+                  </Typography>
+                  <Typography
+                    component="time"
+                    variant="caption"
+                    color="text.secondary"
+                    dateTime={item.at}
+                    sx={{ mt: 1, display: 'block', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatTeatedAt(item.at)}
+                  </Typography>
+                </>
+              )}
+            </Box>
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
   );
 }
