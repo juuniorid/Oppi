@@ -5,12 +5,17 @@ import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
 import postService from '@/services/post.service';
 import type { Post } from '@/types';
 
+/**
+ * /announcements: loads group posts from the API and maps them into {@link TeatedItem}
+ * for {@link TeatedFeed}. Group id is still a placeholder until the app has a real
+ * current-group context.
+ */
 export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    // Kui backend /posts/group/:id pole valmis või server ei käi, jääb voog tühjaks.
+    // If the backend is down or the endpoint fails, we silently show an empty feed.
     postService
       .getPostsByGroup(1)
       .then((data) => {
@@ -24,6 +29,7 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
+  // Map backend Post shape into feed rows (today: group posts only).
   const feedItems = useMemo<TeatedItem[]>(() => {
     const groupItems: TeatedItem[] = posts.map((post) => ({
       kind: 'group' as const,

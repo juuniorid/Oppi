@@ -1,3 +1,4 @@
+/** Page chrome for /announcements: title + spacing around the feed. */
 export default function AnnouncementsLayout({
   children,
 }: {

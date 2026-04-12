@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Announcements feed ("Teated" in the app UI). Renders a chronological list of
+ * {@link TeatedItem} rows using Material UI. Supports two row kinds: broadcast
+ * posts to a group and (future) personal messages from a teacher.
+ *
+ * UI copy is Estonian for end users; comments in this file are English for devs.
+ */
 import BusinessIcon from '@mui/icons-material/Business';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import {
@@ -14,6 +21,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { useMemo } from 'react';
 
+/** One row in the announcements feed: either a group post or a personal note. */
 export type TeatedItem =
   | {
       kind: 'group';
@@ -31,6 +39,7 @@ export type TeatedItem =
       at: string;
     };
 
+/** Up to two letters for avatar chips (first + last name when both exist). */
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
@@ -38,6 +47,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+/** MUI palette slots for personal rows; stable per item id via {@link avatarColorIndex}. */
 const personalAvatarBg = [
   'secondary.main',
   'info.light',
@@ -47,12 +57,17 @@ const personalAvatarBg = [
   'secondary.light',
 ] as const;
 
+/** Deterministic palette index so the same row id keeps the same avatar color. */
 function avatarColorIndex(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return h % personalAvatarBg.length;
 }
 
+/**
+ * Formats an ISO timestamp for display. Uses `et-EE` to match the product locale.
+ * On parse failure, returns the raw string so the UI still shows something.
+ */
 export function formatTeatedAt(iso: string): string {
   try {
     return new Intl.DateTimeFormat('et-EE', {
@@ -69,6 +84,7 @@ type TeatedFeedProps = {
 };
 
 export function TeatedFeed({ items }: TeatedFeedProps) {
+  // Newest first so the latest announcement is at the top.
   const sorted = useMemo(
     () =>
       [...items].sort(
@@ -77,6 +93,7 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
     [items]
   );
 
+  // Empty state: no loading/error UI here; parent may pass [] after fetch failure.
   if (sorted.length === 0) {
     return (
       <Paper
