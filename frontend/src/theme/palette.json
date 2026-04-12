@@ -8,8 +8,9 @@
   "accentTeal": "#B2E2E2",
   "accentSky": "#AED6F1",
   "ink": "#2C2C2C",
+  "lightInk": "#6B7280",
+  "mediumInk": "#374151",
   "yellowStrong": "#C49A28",
   "success": "rgb(22, 163, 74)",
   "error": "rgb(220, 38, 38)"
-
 }

@@ -69,8 +69,7 @@ export const appTheme = createTheme({
     },
     info: {
       main: THEME_COLORS.infoMain,
-    }
-
+    },
   },
   typography: {
     fontFamily: '"Instrument Sans", "Helvetica Neue", sans-serif',
@@ -104,7 +103,6 @@ export const appTheme = createTheme({
         today: ({ theme }: { theme: Theme }) => ({
           outline: 'transparent',
           backgroundColor: theme.palette.background.default,
-
         }),
       },
     },
