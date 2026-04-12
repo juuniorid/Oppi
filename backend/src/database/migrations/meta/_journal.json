@@ -22,6 +22,13 @@
       "when": 1775900227096,
       "tag": "0002_huge_exiles",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775980081704,
+      "tag": "0003_handy_kang",
+      "breakpoints": true
     }
   ]
 }

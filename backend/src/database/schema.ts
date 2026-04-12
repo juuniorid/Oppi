@@ -304,6 +304,7 @@ export const conversationParticipants = pgTable(
     joinedAt: timestamp('joined_at', { withTimezone: true, mode: 'date' })
       .defaultNow()
       .notNull(),
+    lastReadAt: timestamp('last_read_at', { withTimezone: true, mode: 'date' }),
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.userId] })]
 );
