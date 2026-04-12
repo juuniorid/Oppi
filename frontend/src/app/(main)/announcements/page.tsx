@@ -1,11 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  MOCK_PERSONAL_TEATED,
-  TeatedFeed,
-  type TeatedItem,
-} from '@/components/TeatedFeed';
+import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
 import postService from '@/services/post.service';
 import type { Post } from '@/types';
 
@@ -14,7 +10,7 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    // Kui backend /posts/group/:id pole veel valmis või server ei käi, jääb voog tööle mock + tühi rühm.
+    // Kui backend /posts/group/:id pole valmis või server ei käi, jääb voog tühjaks.
     postService
       .getPostsByGroup(1)
       .then((data) => {
@@ -36,7 +32,7 @@ export default function AnnouncementsPage() {
       body: post.message,
       at: post.createdAt,
     }));
-    return [...groupItems, ...MOCK_PERSONAL_TEATED];
+    return groupItems;
   }, [posts]);
 
   return <TeatedFeed items={feedItems} />;

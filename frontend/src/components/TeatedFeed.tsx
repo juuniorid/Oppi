@@ -20,35 +20,6 @@ export type TeatedItem =
       at: string;
     };
 
-/** Ajutine: isiklikud read kuni API ühtset voogu pakub. */
-export const MOCK_PERSONAL_TEATED: Extract<TeatedItem, { kind: 'personal' }>[] =
-  [
-    {
-      kind: 'personal',
-      id: 'p1',
-      senderName: 'Rain Müürisepp',
-      groupName: 'Päevalill Rühm — Rühm B',
-      body: 'Kate jäi täna pärastlõunase uinaku ajal veidi teistest eemale, aga oli siiski rõõmus.',
-      at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    },
-    {
-      kind: 'personal',
-      id: 'p2',
-      senderName: 'Rain Müürisepp',
-      groupName: 'Päevalill Rühm — Rühm A',
-      body: 'Hommikune jalutuskäik jäi lühemaks, sest sadas hetkeks vihma; jätkame homme samal ajal.',
-      at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    },
-    {
-      kind: 'personal',
-      id: 'p3',
-      senderName: 'Kadri Kask',
-      groupName: 'Päevalill Rühm — Rühm A',
-      body: 'Täname kõiki, kes tõid täna maiustusi — jagasime need pärast lõunat.',
-      at: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(),
-    },
-  ];
-
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
