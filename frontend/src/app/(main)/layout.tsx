@@ -1,6 +1,7 @@
 /**
  * Sisselogitud põhivaade: header + külgriba + keritav `main` + fikseeritud mobiilne nav.
- * Taust: `bg-canvas` (kreemjas); sisu kaart on `bg-white`. Mobiilis reserveerib alumine
+ * Taust: `bg-canvas` (kreemjas); põhisisu plokk on `bg-surface` (beež, nagu header ja külgriba).
+ * Mobiilis reserveerib alumine
  * padding ruumi `BottomNav`-ile (fixed, ei võta voogu).
  */
 import { BottomNav } from '@/components/BottomNav';
@@ -17,7 +18,7 @@ export default function MainLayout({
       <Header />
       <div className="flex min-h-0 flex-1 gap-2 px-2 pt-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:gap-3 sm:px-3 md:gap-3 md:pb-3">
         <Sidebar />
-        <main className="min-h-0 flex-1 overflow-auto rounded-2xl bg-white p-4 shadow-sm sm:p-5 md:rounded-3xl md:p-6 md:pb-6">
+        <main className="min-h-0 flex-1 overflow-auto rounded-2xl bg-surface p-4 shadow-sm sm:p-5 md:rounded-3xl md:p-6 md:pb-6">
           {children}
         </main>
       </div>

@@ -1,33 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useApi } from '@/hooks/useApi';
+import { useEffect, useMemo, useState } from 'react';
+import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
+import postService from '@/services/post.service';
+import type { Post } from '@/types';
 
-interface Post {
-  id: number;
-  title: string;
-  message: string;
-  createdAt: string;
-}
-
+/**
+ * /announcements: loads group posts from the API and maps them into {@link TeatedItem}
+ * for {@link TeatedFeed}. Group id is still a placeholder until the app has a real
+ * current-group context.
+ */
 export default function AnnouncementsPage() {
-  const { apiCall } = useApi();
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    // Assume groupId is 1 for demo
-    apiCall<Post[]>('/posts/group/1').then((data) => setPosts(data));
-  }, [apiCall]);
+    let cancelled = false;
+    // If the backend is down or the endpoint fails, we silently show an empty feed.
+    postService
+      .getPostsByGroup(1)
+      .then((data) => {
+        if (!cancelled) setPosts(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setPosts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  return (
-    <div>
-      <h1>Announcements</h1>
-      {posts.map((post) => (
-        <div key={post.id} className="border p-4 mb-2">
-          <h2 className="font-semibold">{post.title}</h2>
-          <p>{post.message}</p>
-        </div>
-      ))}
-    </div>
-  );
+  // Map backend Post shape into feed rows (today: group posts only).
+  const feedItems = useMemo<TeatedItem[]>(() => {
+    const groupItems: TeatedItem[] = posts.map((post) => ({
+      kind: 'group' as const,
+      id: `g-${post.id}`,
+      title: post.title,
+      body: post.message,
+      at: post.createdAt,
+    }));
+    return groupItems;
+  }, [posts]);
+
+  return <TeatedFeed items={feedItems} />;
 }
