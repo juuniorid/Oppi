@@ -6,7 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { ChildrenModule } from './children/children.module';
 import { GroupsModule } from './groups/groups.module';
-import { MessagesModule } from './messages/messages.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ChatModule } from './chat/chat.module';
 import { UsersModule } from './users/users.module';
 import { MailerModule } from './mail/mailer.module';
 import { InvitesModule } from './invites/invites.module';
@@ -37,7 +38,8 @@ import { AbsencesModule } from './absences/absences.module';
     PostsModule,
     ChildrenModule,
     GroupsModule,
-    MessagesModule,
+    NotificationsModule,
+    ChatModule,
     UsersModule,
     AbsencesModule,
     MailerModule,
