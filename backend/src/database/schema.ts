@@ -9,6 +9,7 @@ import {
   boolean,
   primaryKey,
   uniqueIndex,
+  index,
 } from 'drizzle-orm/pg-core';
 import { relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
@@ -196,6 +197,36 @@ export const enrollments = pgTable('enrollments', {
 export type Enrollment = InferSelectModel<typeof enrollments>;
 export type NewEnrollment = InferInsertModel<typeof enrollments>;
 
+export const events = pgTable(
+  'events',
+  {
+    id: serial('id').primaryKey(),
+    groupId: integer('group_id')
+      .references(() => groups.id)
+      .notNull(),
+    userId: integer('user_id')
+      .references(() => users.id)
+      .notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    startAt: timestamp('start_at', { withTimezone: true, mode: 'date' })
+      .notNull(),
+    endAt: timestamp('end_at', { withTimezone: true, mode: 'date' })
+      .notNull(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index('events_group_id_start_at_idx').on(table.groupId, table.startAt)]
+);
+
+export type Event = InferSelectModel<typeof events>;
+export type NewEvent = InferInsertModel<typeof events>;
+
 // Announcements / posts for a group
 export const posts = pgTable('group_posts', {
   id: serial('id').primaryKey(),
@@ -339,6 +370,7 @@ export type NewMessage = InferInsertModel<typeof messages>;
 export const usersRelations = relations(users, ({ many }) => ({
   childLinks: many(userChildren),
   groupLinks: many(groupUsers),
+  events: many(events),
   groupPosts: many(posts),
   sentNotifications: many(notifications, { relationName: 'notification_sender' }),
   notificationRecipients: many(notificationRecipients),
@@ -355,6 +387,7 @@ export const childrenRelations = relations(children, ({ many }) => ({
 export const groupsRelations = relations(groups, ({ many }) => ({
   userLinks: many(groupUsers),
   enrollments: many(enrollments),
+  events: many(events),
   posts: many(posts),
   notifications: many(notifications),
 }));
@@ -396,6 +429,17 @@ export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
   group: one(groups, {
     fields: [enrollments.groupId],
     references: [groups.id],
+  }),
+}));
+
+export const eventsRelations = relations(events, ({ one }) => ({
+  group: one(groups, {
+    fields: [events.groupId],
+    references: [groups.id],
+  }),
+  author: one(users, {
+    fields: [events.userId],
+    references: [users.id],
   }),
 }));
 
