@@ -8,17 +8,20 @@ import clsx from 'clsx';
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { isMainNavActive, mainNav } from '@/config/main-nav';
+import { isMainNavActive, mainNavVisibleItems } from '@/config/main-nav';
 import authService from '@/services/auth.service';
+import { useUserRole } from '@/context/UserRoleContext';
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { role } = useUserRole();
+  const items = mainNavVisibleItems(role);
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col rounded-3xl bg-surface p-3 shadow-sm md:flex">
       <nav className="flex-1">
         <ul className="space-y-1">
-          {mainNav.map(({ href, label, Icon }) => {
+          {items.map(({ href, label, Icon }) => {
             const active = isMainNavActive(pathname, href);
             return (
               <li key={href}>
