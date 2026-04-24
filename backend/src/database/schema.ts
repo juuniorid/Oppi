@@ -35,7 +35,11 @@ export const notificationAudienceEnum = pgEnum('notification_audience', [
   'DIRECT',
   'GROUP',
 ]);
-export const relationshipEnum = pgEnum('relationshipEnum', ['MOTHER', 'FATHER', 'GUARDIAN']);
+export const relationshipEnum = pgEnum('relationshipEnum', [
+  'MOTHER',
+  'FATHER',
+  'GUARDIAN',
+]);
 export type RelationshipEnum = (typeof relationshipEnum.enumValues)[number];
 export const RELATIONSHIP_ENUM: Record<string, RelationshipEnum> = {
   Mother: 'MOTHER',
@@ -147,10 +151,7 @@ export const absences = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex('absences_child_id_date_unique').on(
-      table.childId,
-      table.date
-    ),
+    uniqueIndex('absences_child_id_date_unique').on(table.childId, table.date),
   ]
 );
 
@@ -209,10 +210,11 @@ export const events = pgTable(
       .notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    startAt: timestamp('start_at', { withTimezone: true, mode: 'date' })
-      .notNull(),
-    endAt: timestamp('end_at', { withTimezone: true, mode: 'date' })
-      .notNull(),
+    startAt: timestamp('start_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).notNull(),
+    endAt: timestamp('end_at', { withTimezone: true, mode: 'date' }).notNull(),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
       .defaultNow()
@@ -221,7 +223,9 @@ export const events = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [index('events_group_id_start_at_idx').on(table.groupId, table.startAt)]
+  (table) => [
+    index('events_group_id_start_at_idx').on(table.groupId, table.startAt),
+  ]
 );
 
 export type Event = InferSelectModel<typeof events>;
@@ -303,8 +307,12 @@ export const notificationRecipients = pgTable(
   (table) => [primaryKey({ columns: [table.notificationId, table.userId] })]
 );
 
-export type NotificationRecipient = InferSelectModel<typeof notificationRecipients>;
-export type NewNotificationRecipient = InferInsertModel<typeof notificationRecipients>;
+export type NotificationRecipient = InferSelectModel<
+  typeof notificationRecipients
+>;
+export type NewNotificationRecipient = InferInsertModel<
+  typeof notificationRecipients
+>;
 
 // Chat Conversations
 export const conversations = pgTable('conversations', {
@@ -340,8 +348,12 @@ export const conversationParticipants = pgTable(
   (table) => [primaryKey({ columns: [table.conversationId, table.userId] })]
 );
 
-export type ConversationParticipant = InferSelectModel<typeof conversationParticipants>;
-export type NewConversationParticipant = InferInsertModel<typeof conversationParticipants>;
+export type ConversationParticipant = InferSelectModel<
+  typeof conversationParticipants
+>;
+export type NewConversationParticipant = InferInsertModel<
+  typeof conversationParticipants
+>;
 
 // Chat Messages
 export const messages = pgTable('messages', {
@@ -365,14 +377,14 @@ export const messages = pgTable('messages', {
 export type Message = InferSelectModel<typeof messages>;
 export type NewMessage = InferInsertModel<typeof messages>;
 
-
-
 export const usersRelations = relations(users, ({ many }) => ({
   childLinks: many(userChildren),
   groupLinks: many(groupUsers),
   events: many(events),
   groupPosts: many(posts),
-  sentNotifications: many(notifications, { relationName: 'notification_sender' }),
+  sentNotifications: many(notifications, {
+    relationName: 'notification_sender',
+  }),
   notificationRecipients: many(notificationRecipients),
   conversationLinks: many(conversationParticipants),
   sentMessages: many(messages, { relationName: 'message_sender' }),
@@ -462,18 +474,21 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
   }),
 }));
 
-export const notificationsRelations = relations(notifications, ({ one, many }) => ({
-  sender: one(users, {
-    fields: [notifications.userId],
-    references: [users.id],
-    relationName: 'notification_sender',
-  }),
-  targetGroup: one(groups, {
-    fields: [notifications.targetGroupId],
-    references: [groups.id],
-  }),
-  recipients: many(notificationRecipients),
-}));
+export const notificationsRelations = relations(
+  notifications,
+  ({ one, many }) => ({
+    sender: one(users, {
+      fields: [notifications.userId],
+      references: [users.id],
+      relationName: 'notification_sender',
+    }),
+    targetGroup: one(groups, {
+      fields: [notifications.targetGroupId],
+      references: [groups.id],
+    }),
+    recipients: many(notificationRecipients),
+  })
+);
 
 export const notificationRecipientsRelations = relations(
   notificationRecipients,
