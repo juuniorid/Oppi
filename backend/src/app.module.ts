@@ -9,6 +9,8 @@ import { GroupsModule } from './groups/groups.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ChatModule } from './chat/chat.module';
 import { UsersModule } from './users/users.module';
+import { MailerModule } from './mail/mailer.module';
+import { InvitesModule } from './invites/invites.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 import { AbsencesModule } from './absences/absences.module';
@@ -40,6 +42,9 @@ import { AbsencesModule } from './absences/absences.module';
     ChatModule,
     UsersModule,
     AbsencesModule,
+    MailerModule,
+    InvitesModule,
   ],
 })
 export class AppModule {}
+

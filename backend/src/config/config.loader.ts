@@ -22,6 +22,13 @@ export interface AppConfig {
   database: {
     url: string;
   };
+  mail: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+  };
 }
 
 function loadConfig(): AppConfig {
@@ -47,6 +54,13 @@ function loadConfig(): AppConfig {
     },
     database: {
       url: databaseUrl,
+    },
+    mail: {
+      host: process.env.SMTP_HOST ?? 'localhost',
+      port: parseInt(process.env.SMTP_PORT ?? '587', 10),
+      user: process.env.SMTP_USER ?? '',
+      pass: process.env.SMTP_PASS ?? '',
+      from: process.env.SMTP_FROM ?? 'noreply@oppi.app',
     },
   };
 }
