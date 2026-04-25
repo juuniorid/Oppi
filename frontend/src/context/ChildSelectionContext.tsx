@@ -1,6 +1,14 @@
 'use client';
 
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Child } from '@/types';
 import childService from '@/services/child.service';
 import { useUserRole } from '@/context/UserRoleContext';
@@ -11,18 +19,29 @@ const SELECTED_CHILD_ID_KEY = 'selectedChildId';
 interface ChildSelectionContextType {
   children: Child[];
   selectedChildId: number | null;
+  selectedGroupId: number | null;
   setSelectedChildId: (id: number) => void;
   loading: boolean;
 }
 
-const ChildSelectionContext = createContext<ChildSelectionContextType | undefined>(undefined);
+const ChildSelectionContext = createContext<
+  ChildSelectionContextType | undefined
+>(undefined);
 
 const USE_DUMMY_CHILDREN_DATA = true;
 export function ChildSelectionProvider({ children }: { children: ReactNode }) {
   const { role, loading: roleLoading } = useUserRole();
   const [availableChildren, setAvailableChildren] = useState<Child[]>([]);
-  const [selectedChildId, setSelectedChildIdState] = useState<number | null>(null);
+  const [selectedChildId, setSelectedChildIdState] = useState<number | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
+  const selectedGroupId = useMemo(
+    () =>
+      availableChildren.find((child) => child.id === selectedChildId)
+        ?.groupId ?? null,
+    [availableChildren, selectedChildId]
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || roleLoading) {
@@ -43,16 +62,19 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
     }
   }, [role, roleLoading]);
 
-  const setSelectedChildId = useCallback((id: number) => {
-    if (role !== USER_ROLE.PARENT) {
-      return;
-    }
+  const setSelectedChildId = useCallback(
+    (id: number) => {
+      if (role !== USER_ROLE.PARENT) {
+        return;
+      }
 
-    setSelectedChildIdState(id);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(SELECTED_CHILD_ID_KEY, String(id));
-    }
-  }, [role]);
+      setSelectedChildIdState(id);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(SELECTED_CHILD_ID_KEY, String(id));
+      }
+    },
+    [role]
+  );
 
   useEffect(() => {
     if (roleLoading) {
@@ -79,8 +101,8 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
 
         if (USE_DUMMY_CHILDREN_DATA) {
           childrenList.push(
-            { id: 1, firstName: 'Elli' },
-            { id: 2, firstName: 'Matti' },
+            { id: 1, firstName: 'Elli', groupId: 1 },
+            { id: 2, firstName: 'Matti', groupId: 2 }
           );
         }
         setAvailableChildren(childrenList);
@@ -94,14 +116,18 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
         }
 
         setSelectedChildIdState((prev) => {
-          const stillExists = prev != null && childrenList.some((child) => child.id === prev);
+          const stillExists =
+            prev != null && childrenList.some((child) => child.id === prev);
           if (stillExists) {
             return prev;
           }
 
           const fallbackId = childrenList[0].id;
           if (typeof window !== 'undefined') {
-            window.localStorage.setItem(SELECTED_CHILD_ID_KEY, String(fallbackId));
+            window.localStorage.setItem(
+              SELECTED_CHILD_ID_KEY,
+              String(fallbackId)
+            );
           }
           return fallbackId;
         });
@@ -128,19 +154,32 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
     () => ({
       children: availableChildren,
       selectedChildId,
+      selectedGroupId,
       setSelectedChildId,
       loading,
     }),
-    [availableChildren, loading, selectedChildId, setSelectedChildId],
+    [
+      availableChildren,
+      loading,
+      selectedChildId,
+      selectedGroupId,
+      setSelectedChildId,
+    ]
   );
 
-  return <ChildSelectionContext.Provider value={value}>{children}</ChildSelectionContext.Provider>;
+  return (
+    <ChildSelectionContext.Provider value={value}>
+      {children}
+    </ChildSelectionContext.Provider>
+  );
 }
 
 export function useChildSelection() {
   const context = useContext(ChildSelectionContext);
   if (!context) {
-    throw new Error('useChildSelection must be used within ChildSelectionProvider');
+    throw new Error(
+      'useChildSelection must be used within ChildSelectionProvider'
+    );
   }
   return context;
 }

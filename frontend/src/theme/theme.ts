@@ -268,6 +268,8 @@ export const appTheme = createTheme({
             transform: 'translateY(-1px)',
           },
           '&.MuiCard-outlined': {
+            borderRadius: 28,
+            overflow: 'hidden',
             borderColor: alpha(theme.palette.text.primary, 0.12),
           },
         }),
