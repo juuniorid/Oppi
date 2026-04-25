@@ -25,7 +25,7 @@ export class MailerService {
   async sendInvitationEmail(to: string, role: string): Promise<void> {
     const loginUrl = `${appConfig.app.frontendUrl}/login`;
 
-    const templatePath = path.join(__dirname, 'templates', 'invitation.html');
+    const templatePath = path.join(process.cwd(), 'src', 'mail', 'templates', 'invitation.html');
     let html = fs.readFileSync(templatePath, 'utf-8');
     html = html.replace(/{{role}}/g, role);
     html = html.replace(/{{loginUrl}}/g, loginUrl);
