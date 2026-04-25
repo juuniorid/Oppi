@@ -1,55 +1,139 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DashboardFeedCard } from '@/app/(main)/dashboard/DashboardFeedCard';
 import { PageTitle } from '@/components/PageTitle';
 import { showErrorToast } from '@/components/ErrorToast';
+import authService from '@/services/auth.service';
 import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
 import calendarService from '@/services/calendar.service';
-import type { AbsenceEntry } from '@/types';
+import groupService from '@/services/group.service';
+import postService from '@/services/post.service';
+import type { AbsenceEntry, Group, Post } from '@/types';
 import { ATTENDANCE_STATUS, USER_ROLE } from '@/types/enums';
 import dayjs from 'dayjs';
 
 import type { DashboardFeedItem } from './dashboard.types';
 
+function mapAbsencesToDashboardItems(
+  absences: AbsenceEntry[],
+  groupName?: string | null
+): DashboardFeedItem[] {
+  return [...absences]
+    .sort(
+      (left, right) => dayjs(right.date).valueOf() - dayjs(left.date).valueOf()
+    )
+    .slice(0, 5)
+    .map((entry) => {
+      const name = [entry.firstName, entry.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: entry.id,
+        date: entry.date,
+        title: `Summary - ${name || 'Attendance'}`,
+        description:
+          entry.note?.trim() ||
+          (entry.status === ATTENDANCE_STATUS.ABSENT
+            ? 'Puudumise märge puudub.'
+            : 'Kohaloleku märge puudub.'),
+        groupName: groupName ?? 'Bumblebees',
+        childId: entry.childId,
+        status: entry.status,
+      };
+    });
+}
+
+function mapPostsToDashboardItems(
+  posts: Post[],
+  groupById: Record<number, Group>
+): DashboardFeedItem[] {
+  return [...posts]
+    .sort(
+      (left, right) =>
+        dayjs(right.createdAt).valueOf() - dayjs(left.createdAt).valueOf()
+    )
+    .slice(0, 5)
+    .map((post) => ({
+      id: post.id,
+      date: post.createdAt,
+      title: post.title,
+      description: post.message,
+      groupName: groupById[post.groupId]?.name ?? 'Bumblebees',
+    }));
+}
+
 export default function DashboardPage() {
-  const { role, loading: roleLoading } = useUserRole();
-  const {
-    selectedChildId,
-    selectedGroupId,
-    loading: childLoading,
-  } = useChildSelection();
-  const [absences, setAbsences] = useState<AbsenceEntry[]>([]);
+  // const { role, loading: roleLoading } = useUserRole();
+  // const { selectedChildId, selectedGroupId, loading: childLoading } = useChildSelection();
+  const { loading: roleLoading } = useUserRole(); // Used only for demo
+  const { loading: childLoading } = useChildSelection(); // Used only for demo
+  const role = USER_ROLE.PARENT; // Used only for demo
+  const selectedChildId = 1; // Used only for demo
+  const selectedGroupId = 1; // Used only for demo
+  const [dashboardFeedItems, setDashboardFeedItems] = useState<
+    DashboardFeedItem[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     if (!role) {
-      setAbsences([]);
+      setDashboardFeedItems([]);
       return;
     }
 
     const from = dayjs().startOf('month').format('YYYY-MM-DD');
     const to = dayjs().endOf('month').format('YYYY-MM-DD');
-    const groupId = selectedGroupId ?? 1;
 
     setIsLoading(true);
 
     try {
-      const absenceEntries =
-        role === USER_ROLE.PARENT
-          ? selectedChildId
-            ? await calendarService.getAbsencesByChild({
-                childId: selectedChildId,
-                from,
-                to,
-              })
-            : []
-          : await calendarService.getAbsencesByGroup({ groupId, from, to });
+      const groups = await groupService.getGroups();
+      const groupById = Object.fromEntries(
+        groups.map((group) => [group.id, group])
+      ) as Record<number, Group>;
 
-      setAbsences(Array.isArray(absenceEntries) ? absenceEntries : []);
+      if (role === USER_ROLE.PARENT) {
+        const absenceEntries = selectedChildId
+          ? await calendarService.getAbsencesByChild({
+              childId: selectedChildId,
+              from,
+              to,
+            })
+          : [];
+
+        setDashboardFeedItems(
+          mapAbsencesToDashboardItems(
+            Array.isArray(absenceEntries) ? absenceEntries : [],
+            groupById[selectedGroupId]?.name
+          )
+        );
+        return;
+      }
+
+      if (role === USER_ROLE.TEACHER) {
+        const profile = await authService.getProfile();
+        // const teacherGroupId = profile.groupIds?.[0] ?? null;
+        const teacherGroupId = 1;
+
+        if (!teacherGroupId) {
+          setDashboardFeedItems([]);
+          return;
+        }
+
+        const posts = await postService.getPostsByGroup(teacherGroupId);
+        setDashboardFeedItems(
+          mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], groupById)
+        );
+        return;
+      }
+
+      setDashboardFeedItems([]);
     } catch {
-      setAbsences([]);
+      setDashboardFeedItems([]);
       showErrorToast('Avalehe andmete laadimine ebaõnnestus.');
     } finally {
       setIsLoading(false);
@@ -73,34 +157,6 @@ export default function DashboardPage() {
       window.clearTimeout(timerId);
     };
   }, [childLoading, loadDashboardData, role, roleLoading]);
-
-  const dashboardFeedItems = useMemo<DashboardFeedItem[]>(() => {
-    return [...absences]
-      .sort(
-        (left, right) =>
-          dayjs(right.date).valueOf() - dayjs(left.date).valueOf()
-      )
-      .slice(0, 5)
-      .map((entry) => {
-        const name = [entry.firstName, entry.lastName]
-          .filter(Boolean)
-          .join(' ')
-          .trim();
-
-        return {
-          id: entry.id,
-          date: entry.date,
-          title: `Summary - ${name || 'Attendance'}`,
-          description:
-            entry.note?.trim() ||
-            (entry.status === ATTENDANCE_STATUS.ABSENT
-              ? 'Puudumise märge puudub.'
-              : 'Kohaloleku märge puudub.'),
-          childId: entry.childId,
-          status: entry.status,
-        };
-      });
-  }, [absences]);
 
   return (
     <div className="space-y-8">

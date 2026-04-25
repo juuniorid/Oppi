@@ -29,6 +29,12 @@ function formatDashboardCardDate(value: string): string {
 function splitDashboardCardTitle(title: string): {
   heading: string;
 } {
+  if (!title.includes(' - ')) {
+    return {
+      heading: title,
+    };
+  }
+
   const [, ...rest] = title.split(' - ');
   const groupName = rest.join(' - ').trim();
 
@@ -38,6 +44,7 @@ function splitDashboardCardTitle(title: string): {
 }
 
 export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
+  const hasStatus = item.status != null;
   const isPresent = item.status === 'PRESENT';
   const { heading } = splitDashboardCardTitle(item.title);
 
@@ -55,31 +62,35 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
             {formatDashboardCardDate(item.date)}
           </Typography>
 
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              {isPresent ? (
-                <CheckCircleIcon className="text-green-600" />
-              ) : (
-                <CancelIcon className="text-red-500" />
-              )}
+          {hasStatus ? (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                {isPresent ? (
+                  <CheckCircleIcon className="text-green-600" />
+                ) : (
+                  <CancelIcon className="text-red-500" />
+                )}
 
-              <Typography
-                variant="body2"
-                className={clsx(isPresent ? 'text-green-600' : 'text-red-500')}
-                sx={{ fontWeight: 600 }}
-              >
-                {isPresent ? 'Present' : 'Absent'}
-              </Typography>
+                <Typography
+                  variant="body2"
+                  className={clsx(
+                    isPresent ? 'text-green-600' : 'text-red-500'
+                  )}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {isPresent ? 'Present' : 'Absent'}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
+          ) : null}
 
-          <Divider sx={{ my: 1.5 }} />
+          {hasStatus ? <Divider sx={{ my: 1.5 }} /> : null}
 
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography
@@ -90,6 +101,15 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
             >
               {heading}
             </Typography>
+            {item.groupName ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 1.5, fontWeight: 500 }}
+              >
+                {item.groupName}
+              </Typography>
+            ) : null}
             <Typography
               variant="body2"
               color="text.secondary"

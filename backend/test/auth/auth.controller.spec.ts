@@ -20,21 +20,30 @@ describe('AuthController', () => {
     updatedAt: new Date(),
   };
 
+  const mockAuthProfile = {
+    ...mockUser,
+    groupIds: [1, 2],
+  };
+
+  const authServiceMock = {
+    login: jest.fn().mockResolvedValue('mocked_jwt_token'),
+    validateOAuthLogin: jest.fn(),
+    getProfile: jest.fn().mockResolvedValue(mockAuthProfile),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         {
           provide: AuthService,
-          useValue: {
-            login: jest.fn().mockResolvedValue('mocked_jwt_token'),
-            validateOAuthLogin: jest.fn(),
-          },
+          useValue: authServiceMock,
         },
       ],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -42,12 +51,13 @@ describe('AuthController', () => {
   });
 
   describe('getProfile', () => {
-    it('should return user from request', async () => {
+    it('should return auth profile from auth service', async () => {
       const mockRequest = { user: mockUser } as unknown as Request;
 
       const result = await controller.getProfile(mockRequest);
 
-      expect(result).toEqual(mockUser);
+      expect(authServiceMock.getProfile).toHaveBeenCalledWith(mockUser);
+      expect(result).toEqual(mockAuthProfile);
     });
   });
 });
