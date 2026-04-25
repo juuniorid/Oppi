@@ -33,7 +33,7 @@ function splitDashboardCardTitle(title: string): {
   const groupName = rest.join(' - ').trim();
 
   return {
-    heading: groupName ? `PÄEVAKOKKUVÕTE - ${groupName}` : 'PÄEVAKOKKUVÕTE',
+    heading: groupName ? `Päevakokkuvõte - ${groupName}` : 'Päevakokkuvõte',
   };
 }
 
@@ -42,15 +42,7 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
   const { heading } = splitDashboardCardTitle(item.title);
 
   return (
-    <Card
-      variant="outlined"
-      elevation={0}
-      sx={{
-        borderRadius: 2,
-        overflow: 'hidden',
-        bgcolor: 'background.paper',
-      }}
-    >
+    <Card variant="outlined" elevation={0} sx={{ bgcolor: 'background.paper' }}>
       <CardContent>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
