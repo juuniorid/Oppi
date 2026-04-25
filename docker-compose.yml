@@ -30,6 +30,11 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3001/v1/auth/google/callback}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - SMTP_HOST=${SMTP_HOST:-localhost}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@oppi.app}
       - DB_HOST=db
       - DB_PORT=5432
       - NODE_ENV=production
