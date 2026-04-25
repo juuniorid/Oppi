@@ -12,7 +12,7 @@ jest.mock('path');
 
 describe('MailerService (unit)', () => {
   let service: MailerService;
-  let mockTransporter: any;
+  let mockTransporter: Partial<NodeJS.EventEmitter> & { sendMail: jest.Mock };
   let mockSendMail: jest.Mock;
 
   beforeEach(async () => {
