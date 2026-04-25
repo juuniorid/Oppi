@@ -5,6 +5,8 @@ import * as nodemailer from 'nodemailer';
 import { MailerService } from '../../src/mail/mailer.service';
 import { appConfig } from '../../src/config';
 
+jest.mock('nodemailer');
+
 interface SentEmail {
   from: string;
   to: string;
@@ -21,34 +23,34 @@ type MockTransporter = {
 describe('MailerService (e2e)', () => {
   let service: MailerService;
   let sentEmails: SentEmail[] = [];
+  let mockTransporter: MockTransporter;
+  let mockSendMail: jest.Mock;
 
-  beforeAll(async () => {
-    // For this e2e test, we'll use a mock transporter that captures sent emails
-    // No need for ethereal setup as we're mocking the transporter
-  });
-
-  beforeEach(() => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
     sentEmails = [];
+
+    // Setup mock transporter
+    mockSendMail = jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
+      sentEmails.push(mailOptions);
+      return { messageId: 'test-message-id' };
+    });
+
+    mockTransporter = {
+      sendMail: mockSendMail,
+    };
+
+    (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [MailerService],
+    }).compile();
+
+    service = module.get<MailerService>(MailerService);
   });
 
   describe('sendInvitationEmail', () => {
     it('should successfully send an invitation email with all content', async () => {
-      // Mock the transporter to capture emails
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const recipientEmail = 'parent@kindergarten.local';
       const role = 'Parent';
 
@@ -62,21 +64,6 @@ describe('MailerService (e2e)', () => {
     });
 
     it('should include proper HTML template rendering with role and login URL', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const role = 'Teacher';
       await service.sendInvitationEmail('teacher@kindergarten.local', role);
 
@@ -87,21 +74,6 @@ describe('MailerService (e2e)', () => {
     });
 
     it('should include proper plain text version of invitation', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const role = 'Admin';
       await service.sendInvitationEmail('admin@kindergarten.local', role);
 
@@ -113,21 +85,6 @@ describe('MailerService (e2e)', () => {
     });
 
     it('should handle multiple consecutive invitations', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const recipients = [
         { email: 'user1@example.com', role: 'Parent' },
         { email: 'user2@example.com', role: 'Teacher' },
@@ -146,21 +103,6 @@ describe('MailerService (e2e)', () => {
     });
 
     it('should read template from correct file location', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const templatePath = path.join(__dirname, '../../src/mail/templates', 'invitation.html');
       const templateExists = fs.existsSync(templatePath);
       expect(templateExists).toBe(true);
@@ -173,17 +115,7 @@ describe('MailerService (e2e)', () => {
 
     it('should handle email send failures gracefully', async () => {
       const sendError = new Error('SMTP connection refused');
-      const mockTransporter: MockTransporter = {
-        sendMail: jest.fn().mockRejectedValue(sendError),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
+      mockSendMail.mockRejectedValueOnce(sendError);
 
       await expect(
         service.sendInvitationEmail('test@example.com', 'Parent')
@@ -191,21 +123,6 @@ describe('MailerService (e2e)', () => {
     });
 
     it('should preserve email address format with special characters', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const emailAddresses = [
         'first.last@example.com',
         'user+tag@example.com',
@@ -215,27 +132,13 @@ describe('MailerService (e2e)', () => {
 
       for (const email of emailAddresses) {
         sentEmails = [];
+        mockSendMail.mockClear();
         await service.sendInvitationEmail(email, 'Parent');
         expect(sentEmails[0].to).toBe(email);
       }
     });
 
     it('should send consistent emails for same inputs', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       const testEmail = 'consistent@example.com';
       const testRole = 'Parent';
 
@@ -243,6 +146,7 @@ describe('MailerService (e2e)', () => {
       const firstSend = sentEmails[0];
 
       sentEmails = [];
+      mockSendMail.mockClear();
 
       await service.sendInvitationEmail(testEmail, testRole);
       const secondSend = sentEmails[0];
@@ -256,42 +160,12 @@ describe('MailerService (e2e)', () => {
 
   describe('Integration with mail config', () => {
     it('should use correct from address from config', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       await service.sendInvitationEmail('test@example.com', 'Parent');
 
       expect(sentEmails[0].from).toBe(appConfig.mail.from);
     });
 
     it('should use correct frontend URL from config', async () => {
-      const mockTransporter = {
-        sendMail: jest.fn().mockImplementation(async (mailOptions: SentEmail) => {
-          sentEmails.push(mailOptions);
-          return { messageId: 'test-message-id' };
-        }),
-      };
-
-      jest.spyOn(nodemailer, 'createTransport').mockReturnValue(mockTransporter as unknown as ReturnType<typeof nodemailer.createTransport>);
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [MailerService],
-      }).compile();
-
-      service = module.get<MailerService>(MailerService);
-
       await service.sendInvitationEmail('test@example.com', 'Parent');
 
       const email = sentEmails[0];
