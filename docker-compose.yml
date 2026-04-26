@@ -42,7 +42,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./backend:/app:Z
       - /app/node_modules
 
   web:

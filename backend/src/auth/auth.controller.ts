@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import {
@@ -11,6 +11,7 @@ import { AuthProfile, AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -75,5 +76,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: Request): Promise<AuthProfile> {
     return this.authService.getProfile(req.user as User);
+  }
+
+  @ApiOperation({ summary: 'Updates current authenticated user profile' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: 'User profile updated' })
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Req() req: Request,
+    @Body() payload: UpdateProfileDto
+  ): Promise<AuthProfile> {
+    return this.authService.updateProfile(req.user as User, payload);
   }
 }

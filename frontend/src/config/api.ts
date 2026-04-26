@@ -24,6 +24,7 @@ export const apiPaths = {
   auth: {
     google: '/auth/google',
     me: '/auth/me',
+    updateMe: '/auth/me',
     logout: '/auth/logout',
   },
   children: {

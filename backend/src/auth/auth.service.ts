@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { db } from 'database/db';
 import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
+import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
 
 export type AuthProfile = User & {
   groupIds: number[];
@@ -113,5 +114,23 @@ export class AuthService {
       ...user,
       groupIds: groupLinks.map((link) => link.groupId),
     };
+  }
+
+  async updateProfile(
+    user: User,
+    payload: UpdateProfileDto
+  ): Promise<AuthProfile> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        firstName: payload.firstName?.trim() ?? null,
+        lastName: payload.lastName?.trim() ?? null,
+        phone: payload.phone?.trim() ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    return this.getProfile(updatedUser);
   }
 }
