@@ -163,27 +163,50 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
       }}
     >
       <List disablePadding sx={{ py: 0 }}>
-        {sorted.map((item, index) => (
+        {sorted.map((item, index) => {
+          // Notification rows are interactive (mark-as-read), others are static.
+          // Add button-like semantics so keyboard users can activate them too.
+          const isNotificationInteractive =
+            item.kind === 'notification' && Boolean(onNotificationOpen);
+
+          return (
           <ListItem
             key={item.id}
             alignItems="flex-start"
             divider={index < sorted.length - 1}
+            role={isNotificationInteractive ? 'button' : undefined}
+            tabIndex={isNotificationInteractive ? 0 : undefined}
             onClick={
-              item.kind === 'notification' && onNotificationOpen
-                ? () => onNotificationOpen(item.notificationId)
+              isNotificationInteractive
+                ? () => onNotificationOpen?.(item.notificationId)
+                : undefined
+            }
+            onKeyDown={
+              isNotificationInteractive
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onNotificationOpen?.(item.notificationId);
+                    }
+                  }
                 : undefined
             }
             sx={{
               px: { xs: 2, sm: 2.5 },
               py: 2,
-              cursor:
-                item.kind === 'notification' && onNotificationOpen
-                  ? 'pointer'
-                  : 'default',
+              cursor: isNotificationInteractive ? 'pointer' : 'default',
+              bgcolor:
+                item.kind === 'notification' && item.readAt == null
+                  ? 'action.selected'
+                  : undefined,
               transition: 'background-color 150ms ease',
               '&:hover':
-                item.kind === 'notification' && onNotificationOpen
+                isNotificationInteractive
                   ? { bgcolor: 'action.hover' }
+                  : undefined,
+              '&:focus-visible':
+                isNotificationInteractive
+                  ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }
                   : undefined,
             }}
           >
@@ -364,7 +387,8 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
               )}
             </Box>
           </ListItem>
-        ))}
+          );
+        })}
       </List>
     </Paper>
   );
