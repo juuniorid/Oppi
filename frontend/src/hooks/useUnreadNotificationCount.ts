@@ -60,6 +60,7 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     }
   }, [apiCall, loadUnreadCount]);
 
+  /*
   useEffect(() => {
     void loadUnreadCount();
 
@@ -102,6 +103,7 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
       );
     };
   }, [loadUnreadCount, pollIntervalMs]);
+*/
 
   return {
     unreadCount,

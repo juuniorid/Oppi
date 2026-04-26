@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { Providers } from '@/components/providers';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import './globals.css';
 
 export const metadata: Metadata = {
