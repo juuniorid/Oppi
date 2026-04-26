@@ -9,6 +9,7 @@ export const NOTIFICATIONS_CHANGED_EVENT = 'oppi:notifications-changed';
 
 export type NotificationsChangedDetail = {
   countDelta?: number;
+  forceCount?: number;
 };
 
 export function dispatchNotificationsChanged(

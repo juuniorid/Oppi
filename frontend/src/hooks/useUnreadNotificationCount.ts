@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiPaths } from '@/config/api';
 import { useApi } from '@/hooks/useApi';
-import { NOTIFICATIONS_CHANGED_EVENT } from '@/lib/notification-events';
+import {
+  dispatchNotificationsChanged,
+  NOTIFICATIONS_CHANGED_EVENT,
+  type NotificationsChangedDetail,
+} from '@/lib/notification-events';
 
 const DEFAULT_POLL_INTERVAL_MS = 30_000;
 
@@ -47,6 +51,7 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
         skipErrorToast: true,
       });
       setUnreadCount(0);
+      dispatchNotificationsChanged({ forceCount: 0 });
       void loadUnreadCount();
       return true;
     } catch {
@@ -73,7 +78,12 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     const handleNotificationsChanged = (
       event: Event
     ) => {
-      const customEvent = event as CustomEvent<{ countDelta?: number }>;
+      const customEvent = event as CustomEvent<NotificationsChangedDetail>;
+      const forceCount = customEvent.detail?.forceCount;
+      if (typeof forceCount === 'number' && Number.isFinite(forceCount)) {
+        setUnreadCount(Math.max(0, Math.floor(forceCount)));
+      }
+
       const countDelta = customEvent.detail?.countDelta;
       if (typeof countDelta === 'number' && Number.isFinite(countDelta)) {
         setUnreadCount((current) => Math.max(0, current + countDelta));
