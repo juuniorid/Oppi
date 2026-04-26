@@ -50,6 +50,7 @@ export const apiPaths = {
   },
   notifications: {
     list: (limit?: number) => withQuery('/notifications', { limit }),
+    read: (notificationId: number) => `/notifications/${notificationId}/read`,
     unreadCount: '/notifications/unread-count',
     readAll: '/notifications/read-all',
   },

@@ -41,6 +41,28 @@ class NotificationService {
 
     return Array.isArray(payload.notifications) ? payload.notifications : [];
   }
+
+  async markAsRead(notificationId: number): Promise<boolean> {
+    const response = await fetchWithAuth(
+      apiUrl(apiPaths.notifications.read(notificationId)),
+      {
+        method: 'PATCH',
+      }
+    );
+    const data = await parseJson(response);
+
+    if (!response.ok) {
+      throw new Error(
+        extractErrorMessage(
+          data,
+          `Failed to mark notification as read (${response.status})`
+        )
+      );
+    }
+
+    const payload = unwrapData<{ updated: boolean }>(data, { updated: false });
+    return Boolean(payload.updated);
+  }
 }
 
 const notificationService = new NotificationService();

@@ -2,6 +2,7 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
   Patch,
   Query,
@@ -80,5 +81,20 @@ export class NotificationsController {
     );
 
     return { updatedCount };
+  }
+
+  @Patch(':id/read')
+  @ApiOperation({ summary: 'Mark one notification as read for current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification read state was updated.',
+  })
+  async markAsRead(
+    @Req() req: Request & { user?: User },
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<{ updated: boolean }> {
+    const updated = await this.notificationsService.markAsRead(id, req.user!.id);
+
+    return { updated };
   }
 }

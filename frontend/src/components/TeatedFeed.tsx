@@ -42,9 +42,11 @@ export type TeatedItem =
   | {
       kind: 'notification';
       id: string;
+      notificationId: number;
       title: string;
       body: string;
       at: string;
+      readAt: string | null;
     };
 
 /** Up to two letters for avatar chips (first + last name when both exist). */
@@ -89,9 +91,10 @@ export function formatTeatedAt(iso: string): string {
 
 type TeatedFeedProps = {
   items: TeatedItem[];
+  onNotificationOpen?: (notificationId: number) => void;
 };
 
-export function TeatedFeed({ items }: TeatedFeedProps) {
+export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
   // Newest first so the latest announcement is at the top.
   const sorted = useMemo(
     () =>
@@ -165,9 +168,23 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
             key={item.id}
             alignItems="flex-start"
             divider={index < sorted.length - 1}
+            onClick={
+              item.kind === 'notification' && onNotificationOpen
+                ? () => onNotificationOpen(item.notificationId)
+                : undefined
+            }
             sx={{
               px: { xs: 2, sm: 2.5 },
               py: 2,
+              cursor:
+                item.kind === 'notification' && onNotificationOpen
+                  ? 'pointer'
+                  : 'default',
+              transition: 'background-color 150ms ease',
+              '&:hover':
+                item.kind === 'notification' && onNotificationOpen
+                  ? { bgcolor: 'action.hover' }
+                  : undefined,
             }}
           >
             <ListItemAvatar sx={{ minWidth: 56 }}>
@@ -284,6 +301,13 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
                     }}
                   >
                     {item.body}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 0.5, display: 'block' }}
+                  >
+                    {item.readAt ? 'Loetud' : 'Lugemata'}
                   </Typography>
                   <Typography
                     component="time"

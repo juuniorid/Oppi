@@ -47,12 +47,35 @@ export default function AnnouncementsPage() {
     const notificationItems: TeatedItem[] = notifications.map((n) => ({
       kind: 'notification' as const,
       id: `n-${n.id}`,
+      notificationId: n.id,
       title: (n.subject ?? '').trim() || 'Teavitus',
       body: n.body ?? '',
       at: n.createdAt,
+      readAt: n.readAt,
     }));
     return [...groupItems, ...notificationItems];
   }, [posts, notifications]);
 
-  return <TeatedFeed items={feedItems} />;
+  const handleNotificationOpen = async (notificationId: number) => {
+    try {
+      const updated = await notificationService.markAsRead(notificationId);
+      if (!updated) return;
+      setNotifications((current) =>
+        current.map((item) =>
+          item.id === notificationId
+            ? { ...item, readAt: new Date().toISOString() }
+            : item
+        )
+      );
+    } catch {
+      // Keep local state as is; unread count hook will eventually re-sync.
+    }
+  };
+
+  return (
+    <TeatedFeed
+      items={feedItems}
+      onNotificationOpen={handleNotificationOpen}
+    />
+  );
 }

@@ -56,6 +56,28 @@ export class NotificationsService {
   }
 
   /**
+   * Marks one notification as read for the current user.
+   *
+   * Returns true when a row was updated, false when the row was already read
+   * or did not belong to this user.
+   */
+  async markAsRead(notificationId: number, userId: number): Promise<boolean> {
+    const updatedRows = await db
+      .update(notificationRecipients)
+      .set({ readAt: new Date() })
+      .where(
+        and(
+          eq(notificationRecipients.notificationId, notificationId),
+          eq(notificationRecipients.userId, userId),
+          isNull(notificationRecipients.readAt)
+        )
+      )
+      .returning({ notificationId: notificationRecipients.notificationId });
+
+    return updatedRows.length > 0;
+  }
+
+  /**
    * Lists notifications delivered to this user (via recipient rows), newest first.
    *
    * Soft-deleted notification envelopes are excluded. Limit is capped server-side.
