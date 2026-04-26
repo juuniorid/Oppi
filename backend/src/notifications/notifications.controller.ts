@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from 'database/schema';
@@ -35,5 +35,23 @@ export class NotificationsController {
     );
 
     return { unreadCount };
+  }
+
+  @Patch('read-all')
+  @ApiOperation({
+    summary: 'Mark all unread notifications as read for current user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Unread notifications were marked as read.',
+  })
+  async markAllAsRead(
+    @Req() req: Request & { user?: User }
+  ): Promise<{ updatedCount: number }> {
+    const updatedCount = await this.notificationsService.markAllAsRead(
+      req.user!.id
+    );
+
+    return { updatedCount };
   }
 }

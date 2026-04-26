@@ -50,6 +50,7 @@ export const apiPaths = {
   },
   notifications: {
     unreadCount: '/notifications/unread-count',
+    readAll: '/notifications/read-all',
   },
 };
 

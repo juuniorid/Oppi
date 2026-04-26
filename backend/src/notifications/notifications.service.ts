@@ -24,4 +24,24 @@ export class NotificationsService {
 
     return Number(result?.count ?? 0);
   }
+
+  /**
+   * Marks all currently unread notifications as read for one user.
+   *
+   * Returns how many recipient rows were updated in this operation.
+   */
+  async markAllAsRead(userId: number): Promise<number> {
+    const updatedRows = await db
+      .update(notificationRecipients)
+      .set({ readAt: new Date() })
+      .where(
+        and(
+          eq(notificationRecipients.userId, userId),
+          isNull(notificationRecipients.readAt)
+        )
+      )
+      .returning({ notificationId: notificationRecipients.notificationId });
+
+    return updatedRows.length;
+  }
 }
