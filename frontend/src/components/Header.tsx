@@ -109,10 +109,16 @@ export function Header() {
           type="button"
           onClick={handleNotificationsClick}
           disabled={isNotificationsNavigating}
-          className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
+          className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80 disabled:cursor-wait disabled:opacity-80"
           aria-label={notificationsAriaLabel}
         >
-          <Bell className="h-6 w-6" strokeWidth={2} />
+          <Bell
+            className={`h-6 w-6 ${unreadLoading ? 'animate-pulse opacity-70' : ''}`}
+            strokeWidth={2}
+          />
+          {unreadLoading ? (
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-stone-400/80" />
+          ) : null}
           {showBadge ? (
             <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
               {badgeCountText}
