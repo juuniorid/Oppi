@@ -297,13 +297,28 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
                 </>
               ) : item.kind === 'notification' ? (
                 <>
-                  <Typography
-                    variant="overline"
-                    color="text.secondary"
-                    sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
-                  >
-                    Teavitus
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography
+                      variant="overline"
+                      color="text.secondary"
+                      sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
+                    >
+                      Teavitus
+                    </Typography>
+                    {item.readAt == null ? (
+                      <Box
+                        component="span"
+                        aria-label="Lugemata teavitus"
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '9999px',
+                          bgcolor: 'primary.main',
+                          display: 'inline-block',
+                        }}
+                      />
+                    ) : null}
+                  </Box>
                   <Typography
                     component="h2"
                     variant="subtitle1"
@@ -324,13 +339,6 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
                     }}
                   >
                     {item.body}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 0.5, display: 'block' }}
-                  >
-                    {item.readAt ? 'Loetud' : 'Lugemata'}
                   </Typography>
                   <Typography
                     component="time"
