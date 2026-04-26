@@ -34,8 +34,11 @@ export function extractErrorMessage(payload: unknown, fallback: string): string 
 }
 
 export async function fetchWithAuth(url: string, init?: RequestInit): Promise<Response> {
+  const { cache = 'no-store', ...rest } = init ?? {};
+
   return fetch(url, {
     credentials: 'include',
-    ...init,
+    cache,
+    ...rest,
   });
 }
