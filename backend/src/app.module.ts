@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as path from 'path';
 
@@ -14,6 +14,7 @@ import { InvitesModule } from './invites/invites.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 import { AbsencesModule } from './absences/absences.module';
+import { CorsMiddleware } from './common/middleware/cors.middleware';
 
 @Module({
   imports: [
@@ -46,5 +47,9 @@ import { AbsencesModule } from './absences/absences.module';
     InvitesModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorsMiddleware).forRoutes('*');
+  }
+}
 

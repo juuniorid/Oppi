@@ -7,7 +7,7 @@ import {
   ApiResponse,
   ApiCookieAuth,
 } from '@nestjs/swagger'; // New imports
-import { AuthService } from './auth.service';
+import { AuthProfile, AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -63,7 +63,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User profile returned' })
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Req() req: Request): Promise<User> {
-    return req.user as User;
+  async getProfile(@Req() req: Request): Promise<AuthProfile> {
+    return this.authService.getProfile(req.user as User);
   }
 }

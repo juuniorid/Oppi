@@ -10,6 +10,7 @@ import {
   mainNavDockItems,
   mainNavOverflowItems,
 } from '@/config/main-nav';
+import { useUserRole } from '@/context/UserRoleContext';
 
 /**
  * Mobiilne alumine nav (md peidetud). `fixed` — lehelõigu padding on `(main)/layout.tsx`-is.
@@ -18,8 +19,9 @@ import {
  */
 export function BottomNav() {
   const pathname = usePathname();
-  const dock = mainNavDockItems();
-  const overflow = mainNavOverflowItems();
+  const { role } = useUserRole();
+  const dock = mainNavDockItems(role);
+  const overflow = mainNavOverflowItems(role);
   const [moreOpen, setMoreOpen] = useState(false);
 
   const overflowActive = overflow.some((i) => isMainNavActive(pathname, i.href));
