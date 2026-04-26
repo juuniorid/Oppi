@@ -92,9 +92,14 @@ export function formatTeatedAt(iso: string): string {
 type TeatedFeedProps = {
   items: TeatedItem[];
   onNotificationOpen?: (notificationId: number, readAt: string | null) => void;
+  isNotificationPending?: (notificationId: number) => boolean;
 };
 
-export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
+export function TeatedFeed({
+  items,
+  onNotificationOpen,
+  isNotificationPending,
+}: TeatedFeedProps) {
   // Newest first so the latest announcement is at the top.
   const sorted = useMemo(
     () =>
@@ -168,21 +173,27 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
           // Add button-like semantics so keyboard users can activate them too.
           const isNotificationInteractive =
             item.kind === 'notification' && Boolean(onNotificationOpen);
+          const notificationPending =
+            item.kind === 'notification' && isNotificationPending
+              ? isNotificationPending(item.notificationId)
+              : false;
+          const canActivateNotification =
+            isNotificationInteractive && !notificationPending;
 
           return (
           <ListItem
             key={item.id}
             alignItems="flex-start"
             divider={index < sorted.length - 1}
-            role={isNotificationInteractive ? 'button' : undefined}
-            tabIndex={isNotificationInteractive ? 0 : undefined}
+            role={canActivateNotification ? 'button' : undefined}
+            tabIndex={canActivateNotification ? 0 : undefined}
             onClick={
-              isNotificationInteractive
+              canActivateNotification
                 ? () => onNotificationOpen?.(item.notificationId, item.readAt)
                 : undefined
             }
             onKeyDown={
-              isNotificationInteractive
+              canActivateNotification
                 ? (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
@@ -194,18 +205,20 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
             sx={{
               px: { xs: 2, sm: 2.5 },
               py: 2,
-              cursor: isNotificationInteractive ? 'pointer' : 'default',
+              cursor: canActivateNotification ? 'pointer' : 'default',
+              opacity:
+                item.kind === 'notification' && notificationPending ? 0.7 : 1,
               bgcolor:
                 item.kind === 'notification' && item.readAt == null
                   ? 'action.selected'
                   : undefined,
               transition: 'background-color 150ms ease',
               '&:hover':
-                isNotificationInteractive
+                canActivateNotification
                   ? { bgcolor: 'action.hover' }
                   : undefined,
               '&:focus-visible':
-                isNotificationInteractive
+                canActivateNotification
                   ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }
                   : undefined,
             }}

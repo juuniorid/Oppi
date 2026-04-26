@@ -20,6 +20,9 @@ import type { Post } from '@/types';
 export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
+  const [pendingNotificationIds, setPendingNotificationIds] = useState<number[]>(
+    []
+  );
 
   const loadAnnouncements = useCallback(async (): Promise<{
     posts: Post[];
@@ -93,6 +96,9 @@ export default function AnnouncementsPage() {
     readAt: string | null
   ) => {
     if (readAt != null) return;
+    if (pendingNotificationIds.includes(notificationId)) return;
+
+    setPendingNotificationIds((current) => [...current, notificationId]);
 
     try {
       const updated = await notificationService.markAsRead(notificationId);
@@ -107,6 +113,10 @@ export default function AnnouncementsPage() {
       dispatchNotificationsChanged({ countDelta: -1 });
     } catch {
       // Keep local state as is; unread count hook will eventually re-sync.
+    } finally {
+      setPendingNotificationIds((current) =>
+        current.filter((id) => id !== notificationId)
+      );
     }
   };
 
@@ -114,6 +124,9 @@ export default function AnnouncementsPage() {
     <TeatedFeed
       items={feedItems}
       onNotificationOpen={handleNotificationOpen}
+      isNotificationPending={(notificationId) =>
+        pendingNotificationIds.includes(notificationId)
+      }
     />
   );
 }
