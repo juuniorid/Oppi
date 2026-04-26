@@ -6,7 +6,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiCookieAuth,
-} from '@nestjs/swagger'; // New imports
+} from '@nestjs/swagger';
 import { AuthProfile, AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';

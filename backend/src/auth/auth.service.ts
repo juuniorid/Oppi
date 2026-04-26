@@ -72,7 +72,7 @@ export class AuthService {
       );
     }
 
-    // Optional sync
+    // Keep name fields in sync with Google profile on subsequent logins.
     if (
       existingUser.firstName !== user.firstName ||
       existingUser.lastName !== user.lastName
@@ -120,6 +120,7 @@ export class AuthService {
     user: User,
     payload: UpdateProfileDto
   ): Promise<AuthProfile> {
+    // Empty string values are normalized to null so DB values stay consistent.
     const [updatedUser] = await db
       .update(users)
       .set({

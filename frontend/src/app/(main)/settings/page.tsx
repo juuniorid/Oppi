@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    // Pre-fill form fields from the latest authenticated profile.
     if (!user) {
       return;
     }
@@ -53,6 +54,7 @@ export default function SettingsPage() {
   }, [user]);
 
   useEffect(() => {
+    // Temporary client-side avatar persistence until backend file storage is added.
     const saved = window.localStorage.getItem(PROFILE_PICTURE_STORAGE_KEY);
     if (saved) {
       setAvatarPreview(saved);
@@ -88,6 +90,7 @@ export default function SettingsPage() {
         return;
       }
       setAvatarPreview(result);
+      // Store avatar preview locally so it survives refresh on this device.
       window.localStorage.setItem(PROFILE_PICTURE_STORAGE_KEY, result);
       showSuccessToast('Profiilipilt uuendatud.');
     };
@@ -104,6 +107,7 @@ export default function SettingsPage() {
         lastName,
         phone,
       });
+      // Keep auth context in sync with saved profile values.
       await refetchUser();
       showSuccessToast('Seaded salvestatud.');
     } catch (error) {

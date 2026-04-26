@@ -1,8 +1,9 @@
 'use client';
 
 /**
- * Juurproviderid: MUI teema (`theme/theme.ts`) kehtib MUI komponentidele; lehe koor on
- * peamiselt Tailwind + `palette.json`. CssBaseline ühtlustab brauseri vaikimisi marginaale.
+ * App-level providers:
+ * - MUI ThemeProvider/CssBaseline for component theming and baseline styles
+ * - Auth/UserRole/ChildSelection contexts for authenticated app state
  */
 import { appTheme } from '@/theme/theme';
 import { AuthProvider } from '@/context/AuthContext';
