@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
+import {
+  dispatchNotificationsChanged,
+  NOTIFICATIONS_CHANGED_EVENT,
+} from '@/lib/notification-events';
 import notificationService, {
   type ApiNotification,
 } from '@/services/notification.service';
 import postService from '@/services/post.service';
 import type { Post } from '@/types';
-import { dispatchNotificationsChanged } from '@/lib/notification-events';
 
 /**
  * /announcements: loads group posts and user notifications from the API, maps them
@@ -18,23 +21,51 @@ export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadAnnouncements = useCallback(async (): Promise<{
+    posts: Post[];
+    notifications: ApiNotification[];
+  }> => {
     // If the backend is down or an endpoint fails, we silently show an empty slice.
-    Promise.all([
+    const [postData, notificationData] = await Promise.all([
       postService.getPostsByGroup(1).catch(() => [] as Post[]),
       notificationService.list(50).catch(() => [] as ApiNotification[]),
-    ]).then(([postData, notificationData]) => {
-      if (cancelled) return;
-      setPosts(Array.isArray(postData) ? postData : []);
-      setNotifications(
-        Array.isArray(notificationData) ? notificationData : []
-      );
-    });
-    return () => {
-      cancelled = true;
+    ]);
+    return {
+      posts: Array.isArray(postData) ? postData : [],
+      notifications: Array.isArray(notificationData) ? notificationData : [],
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const syncAnnouncements = async () => {
+      const next = await loadAnnouncements();
+      if (cancelled) return;
+      setPosts(next.posts);
+      setNotifications(next.notifications);
+    };
+
+    void syncAnnouncements();
+
+    const handleNotificationsChanged = () => {
+      if (cancelled) return;
+      void syncAnnouncements();
+    };
+
+    window.addEventListener(
+      NOTIFICATIONS_CHANGED_EVENT,
+      handleNotificationsChanged
+    );
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        NOTIFICATIONS_CHANGED_EVENT,
+        handleNotificationsChanged
+      );
+    };
+  }, [loadAnnouncements]);
 
   // Map backend Post shape into feed rows (today: group posts only).
   const feedItems = useMemo<TeatedItem[]>(() => {
