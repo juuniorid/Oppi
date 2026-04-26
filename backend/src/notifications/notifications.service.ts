@@ -5,6 +5,12 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 
 @Injectable()
 export class NotificationsService {
+  /**
+   * Returns how many notifications are still unread for a user.
+   *
+   * The count is calculated from per-recipient delivery rows where `readAt`
+   * is null, which matches the unread badge behavior in the frontend header.
+   */
   async getUnreadCount(userId: number): Promise<number> {
     const [result] = await db
       .select({ count: sql<number>`count(*)` })

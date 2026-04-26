@@ -5,6 +5,12 @@ import { User } from 'database/schema';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { NotificationsService } from './notifications.service';
 
+/**
+ * Notifications HTTP API.
+ *
+ * Exposes authenticated endpoints used by the UI to keep the header
+ * notification bell aligned with server-side unread state.
+ */
 @ApiTags('notifications')
 @ApiCookieAuth('jwt')
 @Controller('notifications')
@@ -18,6 +24,9 @@ export class NotificationsController {
     status: 200,
     description: 'Unread notifications count returned successfully.',
   })
+  /**
+   * Returns unread badge value for the currently authenticated user.
+   */
   async getUnreadCount(
     @Req() req: Request & { user?: User }
   ): Promise<{ unreadCount: number }> {
