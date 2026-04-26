@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
 import {
   dispatchNotificationsChanged,
@@ -20,9 +20,10 @@ import type { Post } from '@/types';
 export default function AnnouncementsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
-  const [pendingNotificationIds, setPendingNotificationIds] = useState<number[]>(
-    []
+  const [pendingNotificationIds, setPendingNotificationIds] = useState<Set<number>>(
+    () => new Set()
   );
+  const pendingNotificationIdsRef = useRef<Set<number>>(new Set());
 
   const loadAnnouncements = useCallback(async (): Promise<{
     posts: Post[];
@@ -96,9 +97,14 @@ export default function AnnouncementsPage() {
     readAt: string | null
   ) => {
     if (readAt != null) return;
-    if (pendingNotificationIds.includes(notificationId)) return;
+    if (pendingNotificationIdsRef.current.has(notificationId)) return;
 
-    setPendingNotificationIds((current) => [...current, notificationId]);
+    pendingNotificationIdsRef.current.add(notificationId);
+    setPendingNotificationIds((current) => {
+      const next = new Set(current);
+      next.add(notificationId);
+      return next;
+    });
 
     try {
       const updated = await notificationService.markAsRead(notificationId);
@@ -114,9 +120,12 @@ export default function AnnouncementsPage() {
     } catch {
       // Keep local state as is; unread count hook will eventually re-sync.
     } finally {
-      setPendingNotificationIds((current) =>
-        current.filter((id) => id !== notificationId)
-      );
+      pendingNotificationIdsRef.current.delete(notificationId);
+      setPendingNotificationIds((current) => {
+        const next = new Set(current);
+        next.delete(notificationId);
+        return next;
+      });
     }
   };
 
@@ -125,7 +134,7 @@ export default function AnnouncementsPage() {
       items={feedItems}
       onNotificationOpen={handleNotificationOpen}
       isNotificationPending={(notificationId) =>
-        pendingNotificationIds.includes(notificationId)
+        pendingNotificationIds.has(notificationId)
       }
     />
   );

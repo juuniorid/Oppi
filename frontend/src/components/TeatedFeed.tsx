@@ -187,6 +187,11 @@ export function TeatedFeed({
             divider={index < sorted.length - 1}
             role={canActivateNotification ? 'button' : undefined}
             tabIndex={canActivateNotification ? 0 : undefined}
+            aria-disabled={
+              item.kind === 'notification' && notificationPending
+                ? true
+                : undefined
+            }
             onClick={
               canActivateNotification
                 ? () => onNotificationOpen?.(item.notificationId, item.readAt)
