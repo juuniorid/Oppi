@@ -4,11 +4,6 @@ import { useMemo, useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
-  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -16,6 +11,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { GalleryImageCard } from '@/components/GalleryImageCard';
 
 type StaffPhoto = {
   id: string;
@@ -140,44 +136,13 @@ export default function GalleryPage() {
               }}
             >
               {photos.map((photo) => (
-                <Card
+                <GalleryImageCard
                   key={photo.id}
-                  variant="outlined"
-                  sx={{ p: 0, overflow: 'hidden' }}
-                >
-                  <CardActionArea onClick={() => setSelectedPhoto(photo)}>
-                    <CardMedia
-                      component="img"
-                      image={photo.imageUrl}
-                      alt={photo.title}
-                      sx={{ height: 200, objectFit: 'cover' }}
-                    />
-                    <CardContent>
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        {photo.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {photo.uploadedBy}
-                      </Typography>
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        alignItems="center"
-                        sx={{ mt: 1.25 }}
-                      >
-                        <Chip
-                          label={photo.uploadedRole}
-                          size="small"
-                          color="secondary"
-                          variant="filled"
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {formatUploadDate(photo.uploadedAt)}
-                        </Typography>
-                      </Stack>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
+                  title={photo.title}
+                  imageUrl={photo.imageUrl}
+                  uploadedAtLabel={formatUploadDate(photo.uploadedAt)}
+                  onClick={() => setSelectedPhoto(photo)}
+                />
               ))}
             </Box>
           </Box>
@@ -215,10 +180,6 @@ export default function GalleryPage() {
                   bgcolor: 'background.default',
                 }}
               />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-                {selectedPhoto.uploadedBy} ({selectedPhoto.uploadedRole}) -{' '}
-                {formatUploadDate(selectedPhoto.uploadedAt)}
-              </Typography>
             </DialogContent>
           </>
         ) : null}
