@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -19,21 +19,6 @@ import authService from '@/services/auth.service';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
 
 const PROFILE_PICTURE_STORAGE_KEY = 'oppi.profile_picture';
-
-function fullNameFromParts(firstName?: string | null, lastName?: string | null) {
-  return [firstName, lastName].filter(Boolean).join(' ').trim();
-}
-
-function initialsFromName(name: string) {
-  if (!name) {
-    return 'U';
-  }
-  const parts = name.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 1).toUpperCase();
-  }
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
 
 export default function SettingsPage() {
   const { user, loading: authLoading, refetchUser } = useAuth();
@@ -60,11 +45,6 @@ export default function SettingsPage() {
       setAvatarPreview(saved);
     }
   }, []);
-
-  const displayName = useMemo(
-    () => fullNameFromParts(firstName, lastName) || user?.email || '',
-    [firstName, lastName, user?.email]
-  );
 
   const onAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -151,7 +131,11 @@ export default function SettingsPage() {
             >
               <Avatar
                 src={avatarPreview ?? undefined}
-                alt={displayName || 'User profile'}
+                alt={
+                  [firstName, lastName].filter(Boolean).join(' ').trim() ||
+                  user?.email ||
+                  'User profile'
+                }
                 sx={{
                   width: 84,
                   height: 84,
@@ -160,7 +144,10 @@ export default function SettingsPage() {
                   fontWeight: 700,
                 }}
               >
-                {initialsFromName(displayName)}
+                {(
+                  `${firstName?.trim().charAt(0) ?? ''}${lastName?.trim().charAt(0) ?? ''}`
+                    .toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'
+                )}
               </Avatar>
 
               <Stack spacing={1}>

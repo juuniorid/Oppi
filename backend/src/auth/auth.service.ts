@@ -132,6 +132,7 @@ export class AuthService {
       .where(eq(users.id, user.id))
       .returning();
 
+    this.logger.log(`Profile updated for user id=${user.id}`);
     return this.getProfile(updatedUser);
   }
 }

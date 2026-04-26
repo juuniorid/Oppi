@@ -42,6 +42,7 @@ services:
       db:
         condition: service_healthy
     volumes:
+      # Required on Fedora/SELinux hosts so container can access bind-mounted files.
       - ./backend:/app:Z
       - /app/node_modules
 
