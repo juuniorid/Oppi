@@ -24,6 +24,7 @@ export function Header() {
   const { unreadCount, loading: unreadLoading, markAllAsRead } = useUnreadNotificationCount();
   const [isNotificationsNavigating, setIsNotificationsNavigating] = useState(false);
   const showBadge = !unreadLoading && unreadCount > 0;
+  const badgeCountText = unreadCount > 99 ? '99+' : String(unreadCount);
   const notificationsAriaLabel = unreadLoading
     ? 'Notifications, loading'
     : unreadCount > 0
@@ -114,7 +115,7 @@ export function Header() {
           <Bell className="h-6 w-6" strokeWidth={2} />
           {showBadge ? (
             <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
-              {unreadCount}
+              {badgeCountText}
             </span>
           ) : null}
         </button>
