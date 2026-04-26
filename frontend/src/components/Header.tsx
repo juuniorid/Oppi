@@ -53,7 +53,7 @@ export function Header() {
         </span>
       </Link>
 
-      {/* Mobiilis otsing peidetud (mockup); töölaual pill-otsing */}
+      {/* Search is hidden on mobile (per mockup) and shown as a pill input on desktop. */}
       <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex md:px-4">
         <div className="relative w-full max-w-2xl">
           <Search
