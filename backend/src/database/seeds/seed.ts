@@ -1,5 +1,14 @@
 import { db, client } from '../db';
-import { users, groups, children, userChildren, ROLE } from '../schema';
+import {
+  users,
+  groups,
+  children,
+  userChildren,
+  notifications,
+  notificationRecipients,
+  ROLE,
+} from '../schema';
+import { and, eq } from 'drizzle-orm';
 
 async function seed(): Promise<void> {
   try {
@@ -109,6 +118,63 @@ async function seed(): Promise<void> {
         ])
         .onConflictDoNothing();
       console.warn('✅ Linked parents to children');
+    }
+
+    // 5. Seed example notifications for admin so bell/feed behavior is visible.
+    const adminUser = allUsers.find(
+      (u) => u.email.toLowerCase() === 'vikationu@gmail.com'
+    );
+
+    if (adminUser) {
+      const existingAdminSeedNotification = await db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, adminUser.id),
+            eq(
+              notifications.subject,
+              'System test: unread notification for admin'
+            )
+          )
+        )
+        .limit(1);
+
+      if (existingAdminSeedNotification.length === 0) {
+        const createdNotifications = await db
+          .insert(notifications)
+          .values([
+            {
+              userId: adminUser.id,
+              audience: 'DIRECT',
+              subject: 'System test: unread notification for admin',
+              body: 'This seeded unread notification helps verify the header bell badge.',
+            },
+            {
+              userId: adminUser.id,
+              audience: 'DIRECT',
+              subject: 'System test: read notification for admin',
+              body: 'This seeded read notification helps verify read/unread UI states.',
+            },
+          ])
+          .returning();
+
+        if (createdNotifications.length > 0) {
+          await db.insert(notificationRecipients).values(
+            createdNotifications.map((item, index) => ({
+              notificationId: item.id,
+              userId: adminUser.id,
+              readAt: index === 0 ? null : new Date(),
+            }))
+          );
+        }
+
+        console.warn('✅ Seeded admin test notifications');
+      } else {
+        console.warn('ℹ️ Admin test notifications already exist, skipping insert');
+      }
+    } else {
+      console.warn('ℹ️ Admin user not found, skipping admin notification seed');
     }
 
     console.warn('🌱 Seed process finished!');
