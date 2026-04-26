@@ -1,33 +1,84 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
+import {
+  dispatchNotificationsChanged,
+  NOTIFICATIONS_CHANGED_EVENT,
+} from '@/lib/notification-events';
+import notificationService, {
+  type ApiNotification,
+} from '@/services/notification.service';
 import postService from '@/services/post.service';
 import type { Post } from '@/types';
 
 /**
- * /announcements: loads group posts from the API and maps them into {@link TeatedItem}
- * for {@link TeatedFeed}. Group id is still a placeholder until the app has a real
- * current-group context.
+ * /announcements: loads group posts and user notifications from the API, maps them
+ * into {@link TeatedItem} for {@link TeatedFeed}. Group id is still a placeholder
+ * until the app has a real current-group context.
  */
 export default function AnnouncementsPage() {
+  const { markAllAsRead } = useUnreadNotificationCount();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
+  const [pendingNotificationIds, setPendingNotificationIds] = useState<Set<number>>(
+    () => new Set()
+  );
+  const pendingNotificationIdsRef = useRef<Set<number>>(new Set());
+
+  const loadAnnouncements = useCallback(async (): Promise<{
+    posts: Post[];
+    notifications: ApiNotification[];
+  }> => {
+    // If the backend is down or an endpoint fails, we silently show an empty slice.
+    const [postData, notificationData] = await Promise.all([
+      postService.getPostsByGroup(1).catch(() => [] as Post[]),
+      notificationService.list(50).catch(() => [] as ApiNotification[]),
+    ]);
+    return {
+      posts: Array.isArray(postData) ? postData : [],
+      notifications: Array.isArray(notificationData) ? notificationData : [],
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    // If the backend is down or the endpoint fails, we silently show an empty feed.
-    postService
-      .getPostsByGroup(1)
-      .then((data) => {
-        if (!cancelled) setPosts(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (!cancelled) setPosts([]);
-      });
+
+    const syncAnnouncements = async () => {
+      const next = await loadAnnouncements();
+      if (cancelled) return;
+      setPosts(next.posts);
+      setNotifications(next.notifications);
+    };
+
+    const initializeAnnouncements = async () => {
+      await syncAnnouncements();
+      const didMarkAllRead = await markAllAsRead();
+      if (!didMarkAllRead || cancelled) return;
+      await syncAnnouncements();
+    };
+
+    void initializeAnnouncements();
+
+    const handleNotificationsChanged = () => {
+      if (cancelled) return;
+      void syncAnnouncements();
+    };
+
+    window.addEventListener(
+      NOTIFICATIONS_CHANGED_EVENT,
+      handleNotificationsChanged
+    );
+
     return () => {
       cancelled = true;
+      window.removeEventListener(
+        NOTIFICATIONS_CHANGED_EVENT,
+        handleNotificationsChanged
+      );
     };
-  }, []);
+  }, [loadAnnouncements, markAllAsRead]);
 
   // Map backend Post shape into feed rows (today: group posts only).
   const feedItems = useMemo<TeatedItem[]>(() => {
@@ -38,8 +89,62 @@ export default function AnnouncementsPage() {
       body: post.message,
       at: post.createdAt,
     }));
-    return groupItems;
-  }, [posts]);
+    const notificationItems: TeatedItem[] = notifications.map((n) => ({
+      kind: 'notification' as const,
+      id: `n-${n.id}`,
+      notificationId: n.id,
+      title: (n.subject ?? '').trim() || 'Teavitus',
+      body: n.body ?? '',
+      at: n.createdAt,
+      readAt: n.readAt,
+    }));
+    return [...groupItems, ...notificationItems];
+  }, [posts, notifications]);
 
-  return <TeatedFeed items={feedItems} />;
+  const handleNotificationOpen = async (
+    notificationId: number,
+    readAt: string | null
+  ) => {
+    if (readAt != null) return;
+    if (pendingNotificationIdsRef.current.has(notificationId)) return;
+
+    pendingNotificationIdsRef.current.add(notificationId);
+    setPendingNotificationIds((current) => {
+      const next = new Set(current);
+      next.add(notificationId);
+      return next;
+    });
+
+    try {
+      const updated = await notificationService.markAsRead(notificationId);
+      if (!updated) return;
+      setNotifications((current) =>
+        current.map((item) =>
+          item.id === notificationId
+            ? { ...item, readAt: new Date().toISOString() }
+            : item
+        )
+      );
+      dispatchNotificationsChanged({ countDelta: -1 });
+    } catch {
+      // Keep local state as is; unread count hook will eventually re-sync.
+    } finally {
+      pendingNotificationIdsRef.current.delete(notificationId);
+      setPendingNotificationIds((current) => {
+        const next = new Set(current);
+        next.delete(notificationId);
+        return next;
+      });
+    }
+  };
+
+  return (
+    <TeatedFeed
+      items={feedItems}
+      onNotificationOpen={handleNotificationOpen}
+      isNotificationPending={(notificationId) =>
+        pendingNotificationIds.has(notificationId)
+      }
+    />
+  );
 }

@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * Ülemine riba: `surface` taust, `divider` alumine joon. Logo kollane = `yellow-strong`
- * (loetav ikoon); märguande märgis = `primary`; profiiligradiendis mockupi kolm tooni.
+ * Main application header with branding, search, role-specific controls,
+ * and notification bell badge synchronized with unread server state.
  */
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Bell, BookOpen, Search } from 'lucide-react';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -12,11 +13,24 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import { USER_ROLE } from '@/types/enums';
 
 export function Header() {
+  const router = useRouter();
   const { children, selectedChildId, setSelectedChildId, loading } = useChildSelection();
   const { role } = useUserRole();
+  const { unreadCount, loading: unreadLoading } = useUnreadNotificationCount();
+  const showBadge = !unreadLoading && unreadCount > 0;
+  const badgeCountText = unreadCount > 99 ? '99+' : String(unreadCount);
+  const notificationsAriaLabel = unreadLoading
+    ? 'Notifications, loading'
+    : unreadCount > 0
+      ? `Notifications, ${unreadCount} unread`
+      : 'Notifications, none unread';
+  const handleNotificationsClick = () => {
+    router.push('/announcements');
+  };
 
   return (
     <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-divider bg-surface px-4 md:h-16 md:gap-4 md:px-6">
@@ -34,7 +48,7 @@ export function Header() {
         </span>
       </Link>
 
-      {/* Mobiilis otsing peidetud (mockup); töölaual pill-otsing */}
+      {/* Search is hidden on mobile (per mockup) and shown as a pill input on desktop. */}
       <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex md:px-4">
         <div className="relative w-full max-w-2xl">
           <Search
@@ -88,13 +102,22 @@ export function Header() {
       <div className="ml-auto flex shrink-0 items-center gap-3 md:gap-4">
         <button
           type="button"
+          onClick={handleNotificationsClick}
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
-          aria-label="Teavitused, 2 uut"
+          aria-label={notificationsAriaLabel}
         >
-          <Bell className="h-6 w-6" strokeWidth={2} />
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
-            2
-          </span>
+          <Bell
+            className={`h-6 w-6 ${unreadLoading ? 'animate-pulse opacity-70' : ''}`}
+            strokeWidth={2}
+          />
+          {unreadLoading ? (
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-stone-400/80" />
+          ) : null}
+          {showBadge ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
+              {badgeCountText}
+            </span>
+          ) : null}
         </button>
         <div
           className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal ring-2 ring-white shadow-sm"

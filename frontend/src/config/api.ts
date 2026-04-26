@@ -73,6 +73,12 @@ export const apiPaths = {
     update: (eventId: number) => `/events/${eventId}`,
     remove: (eventId: number) => `/events/${eventId}`,
   },
+  notifications: {
+    list: (limit?: number) => withQuery('/notifications', { limit }),
+    read: (notificationId: number) => `/notifications/${notificationId}/read`,
+    unreadCount: '/notifications/unread-count',
+    readAll: '/notifications/read-all',
+  },
   invites: {
     create: '/invites',
   },

@@ -9,6 +9,7 @@
  */
 import BusinessIcon from '@mui/icons-material/Business';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import {
   Avatar,
   Box,
@@ -37,6 +38,15 @@ export type TeatedItem =
       groupName: string;
       body: string;
       at: string;
+    }
+  | {
+      kind: 'notification';
+      id: string;
+      notificationId: number;
+      title: string;
+      body: string;
+      at: string;
+      readAt: string | null;
     };
 
 /** Up to two letters for avatar chips (first + last name when both exist). */
@@ -81,9 +91,15 @@ export function formatTeatedAt(iso: string): string {
 
 type TeatedFeedProps = {
   items: TeatedItem[];
+  onNotificationOpen?: (notificationId: number, readAt: string | null) => void;
+  isNotificationPending?: (notificationId: number) => boolean;
 };
 
-export function TeatedFeed({ items }: TeatedFeedProps) {
+export function TeatedFeed({
+  items,
+  onNotificationOpen,
+  isNotificationPending,
+}: TeatedFeedProps) {
   // Newest first so the latest announcement is at the top.
   const sorted = useMemo(
     () =>
@@ -152,14 +168,64 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
       }}
     >
       <List disablePadding sx={{ py: 0 }}>
-        {sorted.map((item, index) => (
+        {sorted.map((item, index) => {
+          // Notification rows are interactive (mark-as-read), others are static.
+          // Add button-like semantics so keyboard users can activate them too.
+          const isNotificationInteractive =
+            item.kind === 'notification' && Boolean(onNotificationOpen);
+          const notificationPending =
+            item.kind === 'notification' && isNotificationPending
+              ? isNotificationPending(item.notificationId)
+              : false;
+          const canActivateNotification =
+            isNotificationInteractive && !notificationPending;
+
+          return (
           <ListItem
             key={item.id}
             alignItems="flex-start"
             divider={index < sorted.length - 1}
+            role={canActivateNotification ? 'button' : undefined}
+            tabIndex={canActivateNotification ? 0 : undefined}
+            aria-disabled={
+              item.kind === 'notification' && notificationPending
+                ? true
+                : undefined
+            }
+            onClick={
+              canActivateNotification
+                ? () => onNotificationOpen?.(item.notificationId, item.readAt)
+                : undefined
+            }
+            onKeyDown={
+              canActivateNotification
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onNotificationOpen?.(item.notificationId, item.readAt);
+                    }
+                  }
+                : undefined
+            }
             sx={{
               px: { xs: 2, sm: 2.5 },
               py: 2,
+              cursor: canActivateNotification ? 'pointer' : 'default',
+              opacity:
+                item.kind === 'notification' && notificationPending ? 0.7 : 1,
+              bgcolor:
+                item.kind === 'notification' && item.readAt == null
+                  ? 'action.selected'
+                  : undefined,
+              transition: 'background-color 150ms ease',
+              '&:hover':
+                canActivateNotification
+                  ? { bgcolor: 'action.hover' }
+                  : undefined,
+              '&:focus-visible':
+                canActivateNotification
+                  ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 }
+                  : undefined,
             }}
           >
             <ListItemAvatar sx={{ minWidth: 56 }}>
@@ -175,6 +241,19 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
                   aria-hidden
                 >
                   <BusinessIcon />
+                </Avatar>
+              ) : item.kind === 'notification' ? (
+                <Avatar
+                  sx={{
+                    bgcolor: 'info.light',
+                    color: 'info.dark',
+                    boxShadow: 1,
+                    border: '2px solid',
+                    borderColor: 'background.paper',
+                  }}
+                  aria-hidden
+                >
+                  <NotificationsIcon />
                 </Avatar>
               ) : (
                 <Avatar
@@ -203,6 +282,61 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
                   >
                     Rühm
                   </Typography>
+                  <Typography
+                    component="h2"
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.25, color: 'text.primary' }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 1.5,
+                      pl: 1.5,
+                      borderLeft: 2,
+                      borderColor: 'divider',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.body}
+                  </Typography>
+                  <Typography
+                    component="time"
+                    variant="caption"
+                    color="text.secondary"
+                    dateTime={item.at}
+                    sx={{ mt: 1, display: 'block', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatTeatedAt(item.at)}
+                  </Typography>
+                </>
+              ) : item.kind === 'notification' ? (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography
+                      variant="overline"
+                      color="text.secondary"
+                      sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
+                    >
+                      Teavitus
+                    </Typography>
+                    {item.readAt == null ? (
+                      <Box
+                        component="span"
+                        aria-label="Lugemata teavitus"
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '9999px',
+                          bgcolor: 'primary.main',
+                          display: 'inline-block',
+                        }}
+                      />
+                    ) : null}
+                  </Box>
                   <Typography
                     component="h2"
                     variant="subtitle1"
@@ -279,7 +413,8 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
               )}
             </Box>
           </ListItem>
-        ))}
+          );
+        })}
       </List>
     </Paper>
   );
