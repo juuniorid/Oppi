@@ -91,7 +91,7 @@ export function formatTeatedAt(iso: string): string {
 
 type TeatedFeedProps = {
   items: TeatedItem[];
-  onNotificationOpen?: (notificationId: number) => void;
+  onNotificationOpen?: (notificationId: number, readAt: string | null) => void;
 };
 
 export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
@@ -178,7 +178,7 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
             tabIndex={isNotificationInteractive ? 0 : undefined}
             onClick={
               isNotificationInteractive
-                ? () => onNotificationOpen?.(item.notificationId)
+                ? () => onNotificationOpen?.(item.notificationId, item.readAt)
                 : undefined
             }
             onKeyDown={
@@ -186,7 +186,7 @@ export function TeatedFeed({ items, onNotificationOpen }: TeatedFeedProps) {
                 ? (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      onNotificationOpen?.(item.notificationId);
+                      onNotificationOpen?.(item.notificationId, item.readAt);
                     }
                   }
                 : undefined

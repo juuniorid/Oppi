@@ -88,7 +88,12 @@ export default function AnnouncementsPage() {
     return [...groupItems, ...notificationItems];
   }, [posts, notifications]);
 
-  const handleNotificationOpen = async (notificationId: number) => {
+  const handleNotificationOpen = async (
+    notificationId: number,
+    readAt: string | null
+  ) => {
+    if (readAt != null) return;
+
     try {
       const updated = await notificationService.markAsRead(notificationId);
       if (!updated) return;
