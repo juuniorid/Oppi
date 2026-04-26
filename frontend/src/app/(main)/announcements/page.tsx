@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TeatedFeed, type TeatedItem } from '@/components/TeatedFeed';
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import {
   dispatchNotificationsChanged,
   NOTIFICATIONS_CHANGED_EVENT,
@@ -18,6 +19,7 @@ import type { Post } from '@/types';
  * until the app has a real current-group context.
  */
 export default function AnnouncementsPage() {
+  const { markAllAsRead } = useUnreadNotificationCount();
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
   const [pendingNotificationIds, setPendingNotificationIds] = useState<Set<number>>(
@@ -50,7 +52,14 @@ export default function AnnouncementsPage() {
       setNotifications(next.notifications);
     };
 
-    void syncAnnouncements();
+    const initializeAnnouncements = async () => {
+      await syncAnnouncements();
+      const didMarkAllRead = await markAllAsRead();
+      if (!didMarkAllRead || cancelled) return;
+      await syncAnnouncements();
+    };
+
+    void initializeAnnouncements();
 
     const handleNotificationsChanged = () => {
       if (cancelled) return;
@@ -69,7 +78,7 @@ export default function AnnouncementsPage() {
         handleNotificationsChanged
       );
     };
-  }, [loadAnnouncements]);
+  }, [loadAnnouncements, markAllAsRead]);
 
   // Map backend Post shape into feed rows (today: group posts only).
   const feedItems = useMemo<TeatedItem[]>(() => {
