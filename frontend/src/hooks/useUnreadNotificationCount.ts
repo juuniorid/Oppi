@@ -63,9 +63,9 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
   useEffect(() => {
     void loadUnreadCount();
 
-    const intervalId = window.setInterval(() => {
+    /*const intervalId = window.setInterval(() => {
       void loadUnreadCount();
-    }, pollIntervalMs);
+    }, pollIntervalMs);*/
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -94,7 +94,7 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged);
 
     return () => {
-      window.clearInterval(intervalId);
+      //window.clearInterval(intervalId);
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener(
         NOTIFICATIONS_CHANGED_EVENT,
