@@ -6,6 +6,7 @@ import {
   Image as ImageIcon,
   MessageCircle,
   Settings,
+  UserPlus,
 } from 'lucide-react';
 
 /** Mobiil: alumisel ribal täpselt 3 kirjet + 4. koht on „Rohkem“ (ülejäänud lingid). */
@@ -23,6 +24,8 @@ export type MainNavItem = {
   label: string;
   Icon: LucideIcon;
   mobile: 'dock' | 'overflow';
+  /** If set, only users with one of these roles will see this item. */
+  roles?: string[];
 };
 
 export const mainNav: MainNavItem[] = [
@@ -32,6 +35,7 @@ export const mainNav: MainNavItem[] = [
   { href: '/messages', label: 'Vestlus', Icon: MessageCircle, mobile: 'overflow' },
   { href: '/gallery', label: 'Galerii', Icon: ImageIcon, mobile: 'overflow' },
   { href: '/settings', label: 'Seaded', Icon: Settings, mobile: 'overflow' },
+  { href: '/admin', label: 'Kutsu kasutaja', Icon: UserPlus, mobile: 'overflow', roles: ['ADMIN'] },
 ];
 
 if (process.env.NODE_ENV === 'development') {
@@ -50,10 +54,21 @@ export function isMainNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function mainNavDockItems(): MainNavItem[] {
-  return mainNav.filter((i) => i.mobile === 'dock');
+/** Filter nav items visible for the given role. Items without `roles` are always visible. */
+function visibleFor(items: MainNavItem[], role?: string | null): MainNavItem[] {
+  if (!role) return items.filter((i) => !i.roles);
+  return items.filter((i) => !i.roles || i.roles.includes(role));
 }
 
-export function mainNavOverflowItems(): MainNavItem[] {
-  return mainNav.filter((i) => i.mobile === 'overflow');
+export function mainNavDockItems(role?: string | null): MainNavItem[] {
+  return visibleFor(mainNav.filter((i) => i.mobile === 'dock'), role);
+}
+
+export function mainNavOverflowItems(role?: string | null): MainNavItem[] {
+  return visibleFor(mainNav.filter((i) => i.mobile === 'overflow'), role);
+}
+
+/** All visible items for the given role. Used by the desktop sidebar. */
+export function mainNavVisibleItems(role?: string | null): MainNavItem[] {
+  return visibleFor(mainNav, role);
 }

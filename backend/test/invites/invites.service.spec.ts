@@ -131,7 +131,7 @@ describe('InvitesService', () => {
       expect(mailerService.sendInvitationEmail).toHaveBeenCalledTimes(2);
     });
 
-    it('should throw after all email retries are exhausted', async () => {
+    it('should succeed even after all email retries are exhausted (email failure is non-fatal)', async () => {
       __mocks.mockLimit.mockResolvedValueOnce([]);
       __mocks.mockReturning.mockResolvedValueOnce([mockCreatedUser]);
 
@@ -141,7 +141,8 @@ describe('InvitesService', () => {
 
       const dto = { email: 'teacher@example.com', role: 'TEACHER' as const };
 
-      await expect(service.createInvite(dto)).rejects.toThrow('SMTP connection refused');
+      const result = await service.createInvite(dto);
+      expect(result).toEqual(mockCreatedUser);
       expect(mailerService.sendInvitationEmail).toHaveBeenCalledTimes(3);
     });
   });

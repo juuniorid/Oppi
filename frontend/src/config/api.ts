@@ -48,6 +48,9 @@ export const apiPaths = {
     update: (eventId: number) => `/events/${eventId}`,
     remove: (eventId: number) => `/events/${eventId}`,
   },
+  invites: {
+    create: '/invites',
+  },
 };
 
 export function apiUrl(path: string): string {
