@@ -2,8 +2,12 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
 import { db } from 'database/db';
-import { users, User } from 'database/schema';
+import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
+
+export type AuthProfile = User & {
+  groupIds: number[];
+};
 
 interface OAuthUser {
   email: string;
@@ -97,5 +101,17 @@ export class AuthService {
       role: user.role,
     };
     return this.jwtService.sign(payload);
+  }
+
+  async getProfile(user: User): Promise<AuthProfile> {
+    const groupLinks = await db
+      .select({ groupId: groupUsers.groupId })
+      .from(groupUsers)
+      .where(eq(groupUsers.userId, user.id));
+
+    return {
+      ...user,
+      groupIds: groupLinks.map((link) => link.groupId),
+    };
   }
 }

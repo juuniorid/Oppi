@@ -1,4 +1,5 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/v1';
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/v1';
 
 type QueryValue = string | number | boolean | null | undefined;
 
@@ -29,21 +30,45 @@ export const apiPaths = {
     list: '/children',
     group: (groupId: number) => `/children/group/${groupId}`,
   },
+  groups: {
+    list: '/groups',
+  },
   posts: {
     create: '/posts',
     group: (groupId: number) => `/posts/group/${groupId}`,
   },
   absences: {
-    childByRange: ({childId, from, to}: {childId: number, from: string, to: string}) =>
-      withQuery(`/absences/child/${childId}`, { from, to }),
-    groupByRange: ({groupId, from, to}: {groupId: number, from: string, to: string}) =>
-      withQuery(`/absences/group/${groupId}`, { from, to }),
+    childByRange: ({
+      childId,
+      from,
+      to,
+    }: {
+      childId: number;
+      from: string;
+      to: string;
+    }) => withQuery(`/absences/child/${childId}`, { from, to }),
+    groupByRange: ({
+      groupId,
+      from,
+      to,
+    }: {
+      groupId: number;
+      from: string;
+      to: string;
+    }) => withQuery(`/absences/group/${groupId}`, { from, to }),
   },
   events: {
-    listByRange: ({ from, to}: {from: string, to: string}) =>
+    listByRange: ({ from, to }: { from: string; to: string }) =>
       withQuery('/events', { from, to }),
-    childByRange: ({childId, from, to}: {childId: number, from: string, to: string}) =>
-      withQuery(`/events/child/${childId}`, { from, to }),
+    childByRange: ({
+      childId,
+      from,
+      to,
+    }: {
+      childId: number;
+      from: string;
+      to: string;
+    }) => withQuery(`/events/child/${childId}`, { from, to }),
     create: '/events',
     update: (eventId: number) => `/events/${eventId}`,
     remove: (eventId: number) => `/events/${eventId}`,

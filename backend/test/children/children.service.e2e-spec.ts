@@ -50,4 +50,29 @@ describe('ChildrenService (e2e)', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('findForParent', () => {
+    it('should return parent children with group ids', async () => {
+      const group = await createTestGroup('Foxes');
+      const parent = await createTestUser('parent@test.com', 'PARENT');
+      const child = await createTestChild('Mia', 'Doe');
+      await createTestEnrollment(child.id, group.id);
+
+      const { db } = await import('../../src/database/db');
+      const { userChildren } = await import('../../src/database/schema');
+
+      await db
+        .insert(userChildren)
+        .values({ userId: parent.id, childId: child.id });
+
+      const result = await service.findForParent(parent.id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: child.id,
+        firstName: 'Mia',
+        groupId: group.id,
+      });
+    });
+  });
 });
