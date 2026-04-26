@@ -39,11 +39,17 @@ export class AuthController {
     const user = req.user as User;
     const token = await this.authService.login(user);
 
+    const isProduction = appConfig.app.nodeEnv === 'production';
+    const cookieDomain = isProduction
+      ? `.${new URL(appConfig.app.frontendUrl).hostname}`
+      : undefined;
+
     res.cookie('jwt', token, {
       httpOnly: true,
-      secure: appConfig.app.nodeEnv === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      ...(cookieDomain && { domain: cookieDomain }),
     });
 
     res.redirect(`${appConfig.app.frontendUrl}/dashboard`);
@@ -53,8 +59,12 @@ export class AuthController {
   @ApiCookieAuth()
   @Get('logout')
   async logout(@Res() res: Response): Promise<void> {
-    res.clearCookie('jwt');
-    // Change redirect to JSON message
+    const isProduction = appConfig.app.nodeEnv === 'production';
+    const cookieDomain = isProduction
+      ? `.${new URL(appConfig.app.frontendUrl).hostname}`
+      : undefined;
+
+    res.clearCookie('jwt', { ...(cookieDomain && { domain: cookieDomain }) });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   }
 
