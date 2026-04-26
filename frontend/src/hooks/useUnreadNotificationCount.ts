@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiPaths } from '@/config/api';
 import { useApi } from '@/hooks/useApi';
+import { NOTIFICATIONS_CHANGED_EVENT } from '@/lib/notification-events';
 
 const DEFAULT_POLL_INTERVAL_MS = 30_000;
 
@@ -46,10 +47,11 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
         skipErrorToast: true,
       });
       setUnreadCount(0);
+      void loadUnreadCount();
     } catch {
       // Keep existing count when mark-as-read request fails.
     }
-  }, [apiCall]);
+  }, [apiCall, loadUnreadCount]);
 
   useEffect(() => {
     void loadUnreadCount();
@@ -66,9 +68,19 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
+    const handleNotificationsChanged = () => {
+      void loadUnreadCount();
+    };
+
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, handleNotificationsChanged);
+
     return () => {
       window.clearInterval(intervalId);
       window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener(
+        NOTIFICATIONS_CHANGED_EVENT,
+        handleNotificationsChanged
+      );
     };
   }, [loadUnreadCount, pollIntervalMs]);
 

@@ -7,6 +7,7 @@ import notificationService, {
 } from '@/services/notification.service';
 import postService from '@/services/post.service';
 import type { Post } from '@/types';
+import { dispatchNotificationsChanged } from '@/lib/notification-events';
 
 /**
  * /announcements: loads group posts and user notifications from the API, maps them
@@ -67,6 +68,7 @@ export default function AnnouncementsPage() {
             : item
         )
       );
+      dispatchNotificationsChanged();
     } catch {
       // Keep local state as is; unread count hook will eventually re-sync.
     }
