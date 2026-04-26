@@ -1,3 +1,22 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
+  Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material';
+
 type StaffPhoto = {
   id: string;
   title: string;
@@ -83,48 +102,127 @@ function groupPhotosByMonth(photos: StaffPhoto[]): Array<[string, StaffPhoto[]]>
 }
 
 export default function GalleryPage() {
-  const groupedPhotos = groupPhotosByMonth(demoStaffPhotos);
+  const groupedPhotos = useMemo(
+    () => groupPhotosByMonth(demoStaffPhotos),
+    []
+  );
+  const [selectedPhoto, setSelectedPhoto] = useState<StaffPhoto | null>(null);
 
   return (
-    <section className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-gray-900">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box>
+        <Typography variant="h5" fontWeight={700}>
           Kasvatajate ja personali pildid
-        </h1>
-        <p className="text-gray-600">Üleslaetud pildid on märgistatud kuude lõikes.</p>
-      </header>
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+          Uleslaetud pildid on margistatud kuude loikes.
+        </Typography>
+      </Box>
 
-      <div className="space-y-8">
+      <Stack spacing={4}>
         {groupedPhotos.map(([, photos]) => (
-          <section key={photos[0].id} className="space-y-3">
-            <h2 className="text-lg font-semibold capitalize text-gray-900">
+          <Box key={photos[0].id}>
+            <Typography
+              variant="h6"
+              sx={{ textTransform: 'capitalize', mb: 1.5, fontWeight: 700 }}
+            >
               {formatMonthLabel(photos[0].uploadedAt)}
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  xl: 'repeat(3, minmax(0, 1fr))',
+                },
+                gap: 2,
+              }}
+            >
               {photos.map((photo) => (
-                <article
+                <Card
                   key={photo.id}
-                  className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                  variant="outlined"
+                  sx={{ p: 0, overflow: 'hidden' }}
                 >
-                  <img
-                    src={photo.imageUrl}
-                    alt={photo.title}
-                    className="h-48 w-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="space-y-1 p-4">
-                    <h3 className="font-medium text-gray-900">{photo.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      {photo.uploadedBy} ({photo.uploadedRole})
-                    </p>
-                    <p className="text-sm text-gray-500">{formatUploadDate(photo.uploadedAt)}</p>
-                  </div>
-                </article>
+                  <CardActionArea onClick={() => setSelectedPhoto(photo)}>
+                    <CardMedia
+                      component="img"
+                      image={photo.imageUrl}
+                      alt={photo.title}
+                      sx={{ height: 200, objectFit: 'cover' }}
+                    />
+                    <CardContent>
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        {photo.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {photo.uploadedBy}
+                      </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        sx={{ mt: 1.25 }}
+                      >
+                        <Chip
+                          label={photo.uploadedRole}
+                          size="small"
+                          color="secondary"
+                          variant="filled"
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatUploadDate(photo.uploadedAt)}
+                        </Typography>
+                      </Stack>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
               ))}
-            </div>
-          </section>
+            </Box>
+          </Box>
         ))}
-      </div>
-    </section>
+      </Stack>
+
+      <Dialog
+        open={selectedPhoto !== null}
+        onClose={() => setSelectedPhoto(null)}
+        maxWidth="lg"
+        fullWidth
+      >
+        {selectedPhoto ? (
+          <>
+            <DialogTitle sx={{ pr: 6 }}>
+              {selectedPhoto.title}
+              <IconButton
+                aria-label="Sulge"
+                onClick={() => setSelectedPhoto(null)}
+                sx={{ position: 'absolute', right: 8, top: 8 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <Box
+                component="img"
+                src={selectedPhoto.imageUrl}
+                alt={selectedPhoto.title}
+                sx={{
+                  width: '100%',
+                  maxHeight: '75vh',
+                  objectFit: 'contain',
+                  borderRadius: 1,
+                  bgcolor: 'background.default',
+                }}
+              />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                {selectedPhoto.uploadedBy} ({selectedPhoto.uploadedRole}) -{' '}
+                {formatUploadDate(selectedPhoto.uploadedAt)}
+              </Typography>
+            </DialogContent>
+          </>
+        ) : null}
+      </Dialog>
+    </Box>
   );
 }
