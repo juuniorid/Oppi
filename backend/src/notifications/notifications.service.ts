@@ -1,7 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'database/db';
-import { notificationRecipients } from 'database/schema';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { notificationRecipients, notifications } from 'database/schema';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+
+/** One row returned by {@link NotificationsService.listForUser}. */
+export type UserNotificationRow = {
+  id: number;
+  subject: string | null;
+  body: string | null;
+  readAt: Date | null;
+  createdAt: Date;
+  audience: string;
+};
 
 @Injectable()
 export class NotificationsService {
@@ -43,5 +53,37 @@ export class NotificationsService {
       .returning({ notificationId: notificationRecipients.notificationId });
 
     return updatedRows.length;
+  }
+
+  /**
+   * Lists notifications delivered to this user (via recipient rows), newest first.
+   *
+   * Soft-deleted notification envelopes are excluded. Limit is capped server-side.
+   */
+  async listForUser(userId: number, limit: number): Promise<UserNotificationRow[]> {
+    const capped = Math.min(Math.max(limit, 1), 100);
+
+    return db
+      .select({
+        id: notifications.id,
+        subject: notifications.subject,
+        body: notifications.body,
+        readAt: notificationRecipients.readAt,
+        createdAt: notifications.createdAt,
+        audience: notifications.audience,
+      })
+      .from(notificationRecipients)
+      .innerJoin(
+        notifications,
+        eq(notificationRecipients.notificationId, notifications.id)
+      )
+      .where(
+        and(
+          eq(notificationRecipients.userId, userId),
+          isNull(notifications.deletedAt)
+        )
+      )
+      .orderBy(desc(notifications.createdAt))
+      .limit(capped);
   }
 }

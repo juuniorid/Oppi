@@ -9,6 +9,7 @@
  */
 import BusinessIcon from '@mui/icons-material/Business';
 import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import {
   Avatar,
   Box,
@@ -35,6 +36,13 @@ export type TeatedItem =
       id: string;
       senderName: string;
       groupName: string;
+      body: string;
+      at: string;
+    }
+  | {
+      kind: 'notification';
+      id: string;
+      title: string;
       body: string;
       at: string;
     };
@@ -176,6 +184,19 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
                 >
                   <BusinessIcon />
                 </Avatar>
+              ) : item.kind === 'notification' ? (
+                <Avatar
+                  sx={{
+                    bgcolor: 'info.light',
+                    color: 'info.dark',
+                    boxShadow: 1,
+                    border: '2px solid',
+                    borderColor: 'background.paper',
+                  }}
+                  aria-hidden
+                >
+                  <NotificationsIcon />
+                </Avatar>
               ) : (
                 <Avatar
                   sx={{
@@ -202,6 +223,46 @@ export function TeatedFeed({ items }: TeatedFeedProps) {
                     sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
                   >
                     Rühm
+                  </Typography>
+                  <Typography
+                    component="h2"
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.25, color: 'text.primary' }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 1.5,
+                      pl: 1.5,
+                      borderLeft: 2,
+                      borderColor: 'divider',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.body}
+                  </Typography>
+                  <Typography
+                    component="time"
+                    variant="caption"
+                    color="text.secondary"
+                    dateTime={item.at}
+                    sx={{ mt: 1, display: 'block', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatTeatedAt(item.at)}
+                  </Typography>
+                </>
+              ) : item.kind === 'notification' ? (
+                <>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.2, letterSpacing: '0.08em' }}
+                  >
+                    Teavitus
                   </Typography>
                   <Typography
                     component="h2"

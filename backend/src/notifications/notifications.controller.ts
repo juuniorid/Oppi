@@ -1,9 +1,18 @@
-import { Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  ParseIntPipe,
+  Patch,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from 'database/schema';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { NotificationsService } from './notifications.service';
+import { NotificationsService, UserNotificationRow } from './notifications.service';
 
 /**
  * Notifications HTTP API.
@@ -17,6 +26,24 @@ import { NotificationsService } from './notifications.service';
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List notifications for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications returned successfully (newest first).',
+  })
+  async list(
+    @Req() req: Request & { user?: User },
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number
+  ): Promise<{ notifications: UserNotificationRow[] }> {
+    const notificationsList = await this.notificationsService.listForUser(
+      req.user!.id,
+      limit
+    );
+
+    return { notifications: notificationsList };
+  }
 
   @Get('unread-count')
   @ApiOperation({ summary: 'Get unread notifications count for current user' })

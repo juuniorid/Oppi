@@ -49,6 +49,7 @@ export const apiPaths = {
     remove: (eventId: number) => `/events/${eventId}`,
   },
   notifications: {
+    list: (limit?: number) => withQuery('/notifications', { limit }),
     unreadCount: '/notifications/unread-count',
     readAll: '/notifications/read-all',
   },
