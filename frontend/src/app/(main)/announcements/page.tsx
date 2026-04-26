@@ -104,7 +104,7 @@ export default function AnnouncementsPage() {
             : item
         )
       );
-      dispatchNotificationsChanged();
+      dispatchNotificationsChanged({ countDelta: -1 });
     } catch {
       // Keep local state as is; unread count hook will eventually re-sync.
     }

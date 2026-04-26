@@ -7,7 +7,17 @@
  */
 export const NOTIFICATIONS_CHANGED_EVENT = 'oppi:notifications-changed';
 
-export function dispatchNotificationsChanged(): void {
+export type NotificationsChangedDetail = {
+  countDelta?: number;
+};
+
+export function dispatchNotificationsChanged(
+  detail?: NotificationsChangedDetail
+): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_CHANGED_EVENT));
+  window.dispatchEvent(
+    new CustomEvent<NotificationsChangedDetail>(NOTIFICATIONS_CHANGED_EVENT, {
+      detail,
+    })
+  );
 }

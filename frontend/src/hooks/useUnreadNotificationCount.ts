@@ -70,7 +70,14 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
-    const handleNotificationsChanged = () => {
+    const handleNotificationsChanged = (
+      event: Event
+    ) => {
+      const customEvent = event as CustomEvent<{ countDelta?: number }>;
+      const countDelta = customEvent.detail?.countDelta;
+      if (typeof countDelta === 'number' && Number.isFinite(countDelta)) {
+        setUnreadCount((current) => Math.max(0, current + countDelta));
+      }
       void loadUnreadCount();
     };
 
