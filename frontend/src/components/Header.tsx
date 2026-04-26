@@ -12,11 +12,19 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import { USER_ROLE } from '@/types/enums';
 
 export function Header() {
   const { children, selectedChildId, setSelectedChildId, loading } = useChildSelection();
   const { role } = useUserRole();
+  const { unreadCount, loading: unreadLoading } = useUnreadNotificationCount();
+  const showBadge = !unreadLoading && unreadCount > 0;
+  const notificationsAriaLabel = unreadLoading
+    ? 'Notifications, loading'
+    : unreadCount > 0
+      ? `Notifications, ${unreadCount} unread`
+      : 'Notifications, none unread';
 
   return (
     <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-divider bg-surface px-4 md:h-16 md:gap-4 md:px-6">
@@ -89,12 +97,14 @@ export function Header() {
         <button
           type="button"
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
-          aria-label="Teavitused, 2 uut"
+          aria-label={notificationsAriaLabel}
         >
           <Bell className="h-6 w-6" strokeWidth={2} />
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
-            2
-          </span>
+          {showBadge ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-ink">
+              {unreadCount}
+            </span>
+          ) : null}
         </button>
         <div
           className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal ring-2 ring-white shadow-sm"

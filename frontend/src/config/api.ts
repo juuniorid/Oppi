@@ -48,6 +48,9 @@ export const apiPaths = {
     update: (eventId: number) => `/events/${eventId}`,
     remove: (eventId: number) => `/events/${eventId}`,
   },
+  notifications: {
+    unreadCount: '/notifications/unread-count',
+  },
 };
 
 export function apiUrl(path: string): string {
