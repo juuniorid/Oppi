@@ -40,7 +40,7 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     }
   }, [apiCall]);
 
-  const markAllAsRead = useCallback(async () => {
+  const markAllAsRead = useCallback(async (): Promise<boolean> => {
     try {
       await apiCall<MarkAllReadResponse>(apiPaths.notifications.readAll, {
         method: 'PATCH',
@@ -48,8 +48,10 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
       });
       setUnreadCount(0);
       void loadUnreadCount();
+      return true;
     } catch {
       // Keep existing count when mark-as-read request fails.
+      return false;
     }
   }, [apiCall, loadUnreadCount]);
 

@@ -15,20 +15,24 @@ import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
 import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import { USER_ROLE } from '@/types/enums';
+import { useState } from 'react';
 
 export function Header() {
   const router = useRouter();
   const { children, selectedChildId, setSelectedChildId, loading } = useChildSelection();
   const { role } = useUserRole();
   const { unreadCount, loading: unreadLoading, markAllAsRead } = useUnreadNotificationCount();
+  const [isNotificationsNavigating, setIsNotificationsNavigating] = useState(false);
   const showBadge = !unreadLoading && unreadCount > 0;
   const notificationsAriaLabel = unreadLoading
     ? 'Notifications, loading'
     : unreadCount > 0
       ? `Notifications, ${unreadCount} unread`
       : 'Notifications, none unread';
-  const handleNotificationsClick = () => {
-    void markAllAsRead();
+  const handleNotificationsClick = async () => {
+    if (isNotificationsNavigating) return;
+    setIsNotificationsNavigating(true);
+    await markAllAsRead();
     router.push('/announcements');
   };
 
@@ -103,6 +107,7 @@ export function Header() {
         <button
           type="button"
           onClick={handleNotificationsClick}
+          disabled={isNotificationsNavigating}
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
           aria-label={notificationsAriaLabel}
         >
