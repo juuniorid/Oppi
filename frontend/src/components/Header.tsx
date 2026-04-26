@@ -5,6 +5,7 @@
  * and notification bell badge synchronized with unread server state.
  */
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Bell, BookOpen, Search } from 'lucide-react';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -16,15 +17,20 @@ import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import { USER_ROLE } from '@/types/enums';
 
 export function Header() {
+  const router = useRouter();
   const { children, selectedChildId, setSelectedChildId, loading } = useChildSelection();
   const { role } = useUserRole();
-  const { unreadCount, loading: unreadLoading } = useUnreadNotificationCount();
+  const { unreadCount, loading: unreadLoading, markAllAsRead } = useUnreadNotificationCount();
   const showBadge = !unreadLoading && unreadCount > 0;
   const notificationsAriaLabel = unreadLoading
     ? 'Notifications, loading'
     : unreadCount > 0
       ? `Notifications, ${unreadCount} unread`
       : 'Notifications, none unread';
+  const handleNotificationsClick = () => {
+    void markAllAsRead();
+    router.push('/announcements');
+  };
 
   return (
     <header className="mb-4 flex h-14 shrink-0 items-center gap-3 border-b border-divider bg-surface px-4 md:h-16 md:gap-4 md:px-6">
@@ -94,8 +100,9 @@ export function Header() {
       ) : null}
 
       <div className="ml-auto flex shrink-0 items-center gap-3 md:gap-4">
-        <Link
-          href="/announcements"
+        <button
+          type="button"
+          onClick={handleNotificationsClick}
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
           aria-label={notificationsAriaLabel}
         >
@@ -105,7 +112,7 @@ export function Header() {
               {unreadCount}
             </span>
           ) : null}
-        </Link>
+        </button>
         <div
           className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal ring-2 ring-white shadow-sm"
           role="img"

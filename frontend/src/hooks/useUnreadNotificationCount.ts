@@ -10,6 +10,10 @@ type UnreadCountResponse = {
   unreadCount: number;
 };
 
+type MarkAllReadResponse = {
+  updatedCount: number;
+};
+
 /**
  * Keeps unread notifications count synchronized with backend state.
  *
@@ -35,6 +39,18 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     }
   }, [apiCall]);
 
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await apiCall<MarkAllReadResponse>(apiPaths.notifications.readAll, {
+        method: 'PATCH',
+        skipErrorToast: true,
+      });
+      setUnreadCount(0);
+    } catch {
+      // Keep existing count when mark-as-read request fails.
+    }
+  }, [apiCall]);
+
   useEffect(() => {
     void loadUnreadCount();
 
@@ -56,5 +72,10 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
     };
   }, [loadUnreadCount, pollIntervalMs]);
 
-  return { unreadCount, loading, refreshUnreadCount: loadUnreadCount };
+  return {
+    unreadCount,
+    loading,
+    refreshUnreadCount: loadUnreadCount,
+    markAllAsRead,
+  };
 }
