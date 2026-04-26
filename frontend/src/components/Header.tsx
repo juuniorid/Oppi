@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Ülemine riba: `surface` taust, `divider` alumine joon. Logo kollane = `yellow-strong`
- * (loetav ikoon); märguande märgis = `primary`; profiiligradiendis mockupi kolm tooni.
+ * Main application header with branding, search, role-specific controls,
+ * and notification bell badge synchronized with unread server state.
  */
 import Link from 'next/link';
 import { Bell, BookOpen, Search } from 'lucide-react';
@@ -94,8 +94,8 @@ export function Header() {
       ) : null}
 
       <div className="ml-auto flex shrink-0 items-center gap-3 md:gap-4">
-        <button
-          type="button"
+        <Link
+          href="/announcements"
           className="relative rounded-full p-1 text-slate-900 transition hover:bg-stone-200/80"
           aria-label={notificationsAriaLabel}
         >
@@ -105,7 +105,7 @@ export function Header() {
               {unreadCount}
             </span>
           ) : null}
-        </button>
+        </Link>
         <div
           className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary via-secondary to-accent-teal ring-2 ring-white shadow-sm"
           role="img"

@@ -42,8 +42,17 @@ export function useUnreadNotificationCount(pollIntervalMs = DEFAULT_POLL_INTERVA
       void loadUnreadCount();
     }, pollIntervalMs);
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void loadUnreadCount();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       window.clearInterval(intervalId);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [loadUnreadCount, pollIntervalMs]);
 
