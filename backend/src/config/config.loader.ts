@@ -9,6 +9,7 @@ export interface AppConfig {
     port: number;
     nodeEnv: string;
     frontendUrl: string;
+    cookieDomain?: string;
   };
   jwt: {
     secret: string;
@@ -42,6 +43,7 @@ function loadConfig(): AppConfig {
       port: parseInt(process.env.PORT ?? '3001', 10),
       nodeEnv: process.env.NODE_ENV ?? 'development',
       frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      cookieDomain: process.env.COOKIE_DOMAIN ?? '',
     },
     jwt: {
       secret: process.env.JWT_SECRET ?? 'dev-secret',

@@ -12,6 +12,20 @@ import { User } from 'database/schema';
 import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+function resolveCookieDomain(): string | undefined {
+  if (appConfig.app.nodeEnv === 'production' && appConfig.app.cookieDomain) {
+    const normalized = appConfig.app.cookieDomain.trim();
+    return normalized.startsWith('.') ? normalized : `.${normalized}`;
+  }
+
+  if (appConfig.app.nodeEnv !== 'production') {
+    return undefined;
+  }
+
+  const hostname = new URL(appConfig.app.frontendUrl).hostname;
+  return `.${hostname}`;
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -40,14 +54,19 @@ export class AuthController {
     const token = await this.authService.login(user);
 
     const isProduction = appConfig.app.nodeEnv === 'production';
-    const cookieDomain = isProduction
-      ? `.${new URL(appConfig.app.frontendUrl).hostname}`
-      : undefined;
+    const cookieDomain = resolveCookieDomain();
+
+    // Clear legacy variants first so duplicate jwt cookies do not conflict.
+    res.clearCookie('jwt', { path: '/' });
+    if (cookieDomain) {
+      res.clearCookie('jwt', { domain: cookieDomain, path: '/' });
+    }
 
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       ...(cookieDomain && { domain: cookieDomain }),
     });
@@ -59,12 +78,12 @@ export class AuthController {
   @ApiCookieAuth()
   @Get('logout')
   async logout(@Res() res: Response): Promise<void> {
-    const isProduction = appConfig.app.nodeEnv === 'production';
-    const cookieDomain = isProduction
-      ? `.${new URL(appConfig.app.frontendUrl).hostname}`
-      : undefined;
+    const cookieDomain = resolveCookieDomain();
 
-    res.clearCookie('jwt', { ...(cookieDomain && { domain: cookieDomain }) });
+    res.clearCookie('jwt', { path: '/' });
+    if (cookieDomain) {
+      res.clearCookie('jwt', { domain: cookieDomain, path: '/' });
+    }
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   }
 
