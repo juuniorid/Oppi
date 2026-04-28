@@ -9,7 +9,13 @@ done
 
 echo "✅ Database is ready"
 
-echo "🔍 Checking if database is newly created..."
+echo "🔄 Generating migrations..."
+pnpm run db:generate
+
+echo "🔄 Running migrations..."
+pnpm run db:migrate
+
+echo "🔍 Checking if database already has data..."
 SHOULD_SEED=$(node - <<'NODE'
 const postgres = require('postgres');
 
@@ -22,12 +28,12 @@ async function main() {
 
   const sql = postgres(url, { max: 1, connect_timeout: 5, onnotice: () => {} });
   try {
-    const rows = await sql`select to_regclass('public.__drizzle_migrations') as table_name`;
-    const migrationsTableExists = rows?.[0]?.table_name !== null;
-    console.log(migrationsTableExists ? 'false' : 'true');
+    const rows = await sql`select count(*) as cnt from users`;
+    const hasData = parseInt(rows?.[0]?.cnt ?? '0', 10) > 0;
+    console.log(hasData ? 'false' : 'true');
   } catch {
-    // If this check fails, skip seeding rather than risking duplicate seeds.
-    console.log('false');
+    // Table doesn't exist yet or query failed — safe to seed.
+    console.log('true');
   } finally {
     await sql.end();
   }
@@ -36,12 +42,6 @@ async function main() {
 main();
 NODE
 )
-
-echo "🔄 Generating migrations..."
-pnpm run db:generate
-
-echo "🔄 Running migrations..."
-pnpm run db:migrate
 
 if [ "$SHOULD_SEED" = "true" ]; then
   echo "🌱 Seeding database (new database detected)..."
