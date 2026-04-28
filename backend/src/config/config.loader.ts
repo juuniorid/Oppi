@@ -9,6 +9,7 @@ export interface AppConfig {
     port: number;
     nodeEnv: string;
     frontendUrl: string;
+    corsOrigins: string[];
     cookieDomain?: string;
   };
   jwt: {
@@ -38,16 +39,23 @@ function loadConfig(): AppConfig {
     throw new Error('DATABASE_URL is required');
   }
 
+  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+  const corsOrigins = (process.env.CORS_ORIGINS ?? frontendUrl)
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   return {
     app: {
       port: parseInt(process.env.PORT ?? '3001', 10),
       nodeEnv: process.env.NODE_ENV ?? 'development',
-      frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      frontendUrl,
+      corsOrigins,
       cookieDomain: process.env.COOKIE_DOMAIN ?? '',
     },
     jwt: {
       secret: process.env.JWT_SECRET ?? 'dev-secret',
-      expiresIn: process.env.JWT_EXPIRES_IN ?? '60m',
+      expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
     },
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? '',

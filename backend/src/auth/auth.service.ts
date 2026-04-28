@@ -1,9 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from 'database/db';
 import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
+import { appConfig } from 'src/config';
 
 export type AuthProfile = User & {
   groupIds: number[];
@@ -101,6 +102,37 @@ export class AuthService {
       role: user.role,
     };
     return this.jwtService.sign(payload);
+  }
+
+  async validateRefreshToken(token: string): Promise<User> {
+    try {
+      const payload = this.jwtService.verify<JwtPayload & { exp?: number }>(token, {
+        secret: appConfig.jwt.secret,
+        ignoreExpiration: true,
+      });
+
+      if (payload.exp) {
+        const maxStalenessSeconds = 7 * 24 * 60 * 60;
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        if (nowSeconds - payload.exp > maxStalenessSeconds) {
+          throw new UnauthorizedException('Refresh token expired');
+        }
+      }
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, payload.sub), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return user;
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   async getProfile(user: User): Promise<AuthProfile> {

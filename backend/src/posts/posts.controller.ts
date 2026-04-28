@@ -14,7 +14,7 @@ import { Roles } from '../auth/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreatePostDto } from '../common/dto/create-post.dto';
 import { UpdatePostDto } from '../common/dto/update-post.dto';
-import { Post as PostEntity, User } from 'database/schema';
+import { Post as PostEntity, ROLE, User } from 'database/schema';
 
 @ApiTags('posts')
 @ApiCookieAuth('jwt')
@@ -24,7 +24,7 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @Roles('TEACHER')
+  @Roles(ROLE.Teacher)
   @ApiOperation({ summary: 'Create a new announcement (TEACHER only)' })
   @ApiBody({ type: CreatePostDto })
   @ApiResponse({ status: 201, description: 'Post created successfully.' })
@@ -36,7 +36,7 @@ export class PostsController {
   }
 
   @Patch(':id')
-  @Roles('TEACHER', 'ADMIN')
+  @Roles(ROLE.Teacher, ROLE.Admin)
   @ApiOperation({ summary: 'Update an existing post (TEACHER/ADMIN only)' })
   @ApiParam({ name: 'id', type: Number, description: 'Post ID' })
   @ApiBody({ type: UpdatePostDto })

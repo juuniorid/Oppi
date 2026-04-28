@@ -12,8 +12,31 @@ class AuthService {
     return apiUrl(apiPaths.auth.google);
   }
 
+  private async tryRefreshSession(): Promise<boolean> {
+    try {
+      const response = await fetchWithAuth(apiUrl(apiPaths.auth.refresh), {
+        method: 'GET',
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  private async requestProfile(): Promise<Response> {
+    return fetchWithAuth(apiUrl(apiPaths.auth.me));
+  }
+
   async getProfile(): Promise<User> {
-    const response = await fetchWithAuth(apiUrl(apiPaths.auth.me));
+    let response = await this.requestProfile();
+
+    if (response.status === 401) {
+      const refreshed = await this.tryRefreshSession();
+      if (refreshed) {
+        response = await this.requestProfile();
+      }
+    }
+
     const data = await parseJson(response);
 
     if (!response.ok) {

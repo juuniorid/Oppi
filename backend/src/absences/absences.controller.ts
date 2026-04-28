@@ -18,7 +18,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { type Absence, type User } from 'database/schema';
+import { ROLE, type Absence, type User } from 'database/schema';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -33,7 +33,7 @@ export class AbsencesController {
   constructor(private readonly absencesService: AbsencesService) {}
 
   @Post()
-  @Roles('PARENT', 'TEACHER')
+  @Roles(ROLE.Parent, ROLE.Teacher)
   @ApiOperation({
     summary: 'Report child absence with from-to date range (PARENT/TEACHER)',
   })
@@ -49,7 +49,7 @@ export class AbsencesController {
   }
 
   @Get('group/:id')
-  @Roles('TEACHER', 'ADMIN')
+  @Roles(ROLE.Teacher, ROLE.Admin)
   @ApiOperation({ summary: 'Get absences for a group within a date range (teacher view)' })
   @ApiParam({ name: 'id', type: Number, description: 'Group id' })
   @ApiQuery({ name: 'from', type: String, required: true, description: 'Start date in YYYY-MM-DD format' })
@@ -66,7 +66,7 @@ export class AbsencesController {
   }
 
   @Get('child/:id')
-  @Roles('TEACHER', 'PARENT')
+  @Roles(ROLE.Teacher, ROLE.Parent)
   @ApiOperation({ summary: 'Get absences for a child within a date range' })
   @ApiParam({ name: 'id', type: Number, description: 'Child id' })
   @ApiQuery({ name: 'from', type: String, required: true, description: 'Start date in YYYY-MM-DD format' })

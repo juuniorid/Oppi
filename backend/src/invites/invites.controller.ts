@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { CreateInviteDto } from '../common/dto/create-invite.dto';
-import { User } from 'database/schema';
+import { ROLE, User } from 'database/schema';
 
 @ApiTags('invites')
 @Controller('invites')
@@ -14,7 +14,7 @@ export class InvitesController {
   constructor(private readonly invitesService: InvitesService) {}
 
   @Post()
-  @Roles('ADMIN')
+  @Roles(ROLE.Admin)
   @HttpCode(HttpStatus.CREATED)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Invite a user to the platform (Admin only)' })
