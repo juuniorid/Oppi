@@ -17,6 +17,7 @@ import { AttendanceBadge } from '../../../components/calendar/AttendanceBadge';
 import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
+import authService from '@/services/auth.service';
 import calendarService, {
 } from '@/services/calendar.service';
 import type { AbsenceEntry, EventEntry } from '@/types';
@@ -36,10 +37,10 @@ const initialValue = dayjs();
 type CalendarDialogState = 'none' | 'absence' | 'event-create' | 'event-edit';
 
 export default function CalendarPage() {
-  const { selectedChildId } = useChildSelection();
+  const { selectedChildId, selectedGroupId } = useChildSelection();
   const { role, loading: roleLoading } = useUserRole();
   const childId = selectedChildId != null ? selectedChildId : null;
-  const groupId = 1; //  TODO Assume groupId is 1 for demo, add group context
+  const [groupId, setGroupId] = useState<number | null>(null);
 
   const requestAbortController = useRef<AbortController | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(initialValue);
@@ -51,6 +52,38 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<EventEntry | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
   const canManageEvents = role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN;
+
+  useEffect(() => {
+    if (roleLoading || !role) {
+      return;
+    }
+
+    if (role === USER_ROLE.PARENT) {
+      setGroupId(selectedGroupId ?? null);
+      return;
+    }
+
+    let isActive = true;
+    const loadGroupId = async () => {
+      try {
+        const profile = await authService.getProfile();
+        if (!isActive) {
+          return;
+        }
+        setGroupId(profile.groupIds?.[0] ?? null);
+      } catch {
+        if (isActive) {
+          setGroupId(null);
+        }
+      }
+    };
+
+    void loadGroupId();
+
+    return () => {
+      isActive = false;
+    };
+  }, [role, roleLoading, selectedGroupId]);
 
   const fetchHighlightedDays = useCallback(async (date: Dayjs) => {
     const controller = new AbortController();
@@ -74,11 +107,13 @@ export default function CalendarPage() {
     }
 
     try {
-      const absenceEntries = role === USER_ROLE.PARENT
+        const absenceEntries = role === USER_ROLE.PARENT
         ? (childId
-            ? await calendarService.getAbsencesByChild({ childId, from, to })
-            : [])
-        : await calendarService.getAbsencesByGroup({ groupId, from, to });
+          ? await calendarService.getAbsencesByChild({ childId, from, to })
+          : [])
+        : (groupId
+          ? await calendarService.getAbsencesByGroup({ groupId, from, to })
+          : []);
       setAbsences(absenceEntries);
 
       const eventEntries = role === USER_ROLE.PARENT && childId
@@ -275,7 +310,10 @@ export default function CalendarPage() {
             Lisa puudumine
           </Button>
           {canManageEvents ? (
-            <Button variant="info" onClick={openCreateEventModal}>
+            <Button
+              variant="info"
+              onClick={openCreateEventModal}
+            >
               Lisa sündmus
             </Button>
           ) : null}
@@ -442,7 +480,6 @@ export default function CalendarPage() {
       <AddEventDialog
         open={dialogState === 'event-create' || dialogState === 'event-edit'}
         mode={dialogState === 'event-edit' ? 'edit' : 'create'}
-        groupId={groupId}
         initialDate={selectedDate?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD')}
         event={editingEvent}
         onClose={closeDialog}
@@ -450,150 +487,4 @@ export default function CalendarPage() {
       />
     </Box>
   );
-}
-
-
-function buildDummyAbsences({ childId, from }: { childId: number; from: string }): AbsenceEntry[] {
-  const month = from.slice(0, 7);
-  const rows: AbsenceEntry[] = [
-    {
-      id: 1001,
-      childId,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-03`,
-      status: 'PRESENT',
-      note: 'On time',
-      userId: 1,
-    },
-    {
-      id: 1002,
-      childId,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-08`,
-      status: 'ABSENT',
-      note: 'Sick leave',
-      userId: 1,
-    },
-    {
-      id: 1003,
-      childId,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-15`,
-      status: 'PRESENT',
-      note: null,
-      userId: 1,
-    },
-    {
-      id: 1004,
-      childId,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-22`,
-      status: 'ABSENT',
-      note: 'Family trip',
-      userId: 1,
-    },
-  ];
-
-  if (dayjs().format('YYYY-MM') === month) {
-    rows.push({
-      id: 1099,
-      childId,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: dayjs().format('YYYY-MM-DD'),
-      status: 'ABSENT',
-      note: 'Kogu perega gripis',
-      userId: 1,
-    });
-  }
-
-  return rows;
-}
-
-function buildDummyGroupAbsences({ from }: { from: string }): AbsenceEntry[] {
-  const month = from.slice(0, 7);
-  const rows: AbsenceEntry[] = [
-    {
-      id: 2001,
-      childId: 1,
-      date: `${month}-04`,
-      status: 'ABSENT',
-      note: 'Flu',
-      userId: 1,
-      firstName: 'Maia',
-      lastName: 'Saia',
-    },
-    {
-      id: 2002,
-      childId: 2,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-04`,
-      status: 'PRESENT',
-      note: null,
-      userId: 1,
-    },
-    {
-      id: 2003,
-      childId: 1,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-11`,
-      status: 'PRESENT',
-      note: null,
-      userId: 1,
-    },
-    {
-      id: 2004,
-      childId: 2,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: `${month}-19`,
-      status: 'ABSENT',
-      note: 'Doctor appointment',
-      userId: 1,
-    },
-  ];
-
-  if (dayjs().format('YYYY-MM') === month) {
-    rows.push({
-      id: 2099,
-      childId: 1,
-      firstName: 'Maia',
-      lastName: 'Saia',
-      date: dayjs().format('YYYY-MM-DD'),
-      status: 'PRESENT',
-      note: 'Kogu perega gripis',
-      userId: 1,
-    });
-  }
-
-  return rows;
-}
-
-function buildDummyEvents({ from }: { from: string }): EventEntry[] {
-  const month = from.slice(0, 7);
-  const rows: EventEntry[] = [
-    { id: 3001, name: 'Jõuluvana ja päkapikud', time: '16:00', description: 'Laste jõulupidu. Palun tooge kingitsed hommikul', date: `${month}-05`, type: 'GROUP' },
-    { id: 3002, name: 'Kevade kuulutamine', time: '10:00', description: 'Kevade kuulutamise pidulik sündmus', date: `${month}-12`, type: 'KINDERGARTEN' },
-    { id: 3003, name: 'Spordipäev järve ääres', time: '14:00', description: 'Let´s meet up in the garden to celebrate the start of the spring', date: `${month}-18`, type: 'GROUP' },
-    { id: 3004, name: 'Tsirkus ja saiad', time: '09:00', description: 'Teatrietendus tuleb lasteada. Tsirkus, saiakesed ja klounid. pange ennast valmis.', date: `${month}-25`, type: 'KINDERGARTEN' },
-  ];
-
-  if (dayjs().format('YYYY-MM') === month) {
-    rows.push({
-      id: 3099,
-      name: 'Today\'s test event',
-      time: '11:00',
-      description: 'Dummy event for current selected date visibility',
-      date: dayjs().format('YYYY-MM-DD'),
-      type: 'GROUP',
-    });
-  }
-
-  return rows;
 }
