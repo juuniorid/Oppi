@@ -136,14 +136,26 @@ export class AuthService {
   }
 
   async getProfile(user: User): Promise<AuthProfile> {
-    const groupLinks = await db
-      .select({ groupId: groupUsers.groupId })
-      .from(groupUsers)
-      .where(eq(groupUsers.userId, user.id));
+    try {
+      const groupLinks = await db
+        .select({ groupId: groupUsers.groupId })
+        .from(groupUsers)
+        .where(eq(groupUsers.userId, user.id));
 
-    return {
-      ...user,
-      groupIds: groupLinks.map((link) => link.groupId),
-    };
+      return {
+        ...user,
+        groupIds: groupLinks.map((link) => link.groupId),
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to load group links for user id=${user.id}. Returning empty groupIds.`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      return {
+        ...user,
+        groupIds: [],
+      };
+    }
   }
 }

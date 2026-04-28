@@ -203,8 +203,7 @@ export const events = pgTable(
   {
     id: serial('id').primaryKey(),
     groupId: integer('group_id')
-      .references(() => groups.id)
-      .notNull(),
+      .references(() => groups.id),
     userId: integer('user_id')
       .references(() => users.id)
       .notNull(),

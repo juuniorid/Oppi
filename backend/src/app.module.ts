@@ -14,6 +14,7 @@ import { InvitesModule } from './invites/invites.module';
 import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 import { AbsencesModule } from './absences/absences.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AbsencesModule } from './absences/absences.module';
     ChatModule,
     UsersModule,
     AbsencesModule,
+    EventsModule,
     MailerModule,
     InvitesModule,
   ],

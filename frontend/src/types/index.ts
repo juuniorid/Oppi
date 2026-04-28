@@ -109,7 +109,7 @@ export type EventEntry = {
 };
 
 export type CreateEventPayload = {
-  groupId: number;
+  groupId?: number;
   from: string;
   to: string;
   timeFrom: string;
