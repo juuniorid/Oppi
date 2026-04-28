@@ -37,6 +37,9 @@ export const apiPaths = {
   },
   groups: {
     list: '/groups',
+    teachers: '/groups/teachers',
+    create: '/groups',
+    update: (groupId: number) => `/groups/${groupId}`,
   },
   posts: {
     create: '/posts',

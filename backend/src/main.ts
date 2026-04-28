@@ -11,6 +11,19 @@ async function bootstrap(): Promise<void> {
   try {
     const app = await NestFactory.create(AppModule, { logger: false });
     app.useLogger(app.get(Logger));
+    app.enableCors({
+      origin: (origin, callback) => {
+        if (!origin || appConfig.app.corsOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`Origin ${origin} is not allowed by CORS`), false);
+      },
+      credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      optionsSuccessStatus: 204,
+    });
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     app.useGlobalFilters(new GlobalExceptionFilter());
