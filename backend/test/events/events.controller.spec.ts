@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Request } from 'express';
+import { User, ROLE } from '../../src/database/schema';
 import { EventsController } from '../../src/events/events.controller';
 import { EventsService } from '../../src/events/events.service';
 
@@ -52,7 +54,9 @@ describe('EventsController', () => {
       type: 'GROUP',
     };
 
-    const req = { user: { id: 10, role: 'ADMIN' } } as any;
+    const req = {
+      user: { id: 10, role: ROLE.Admin } as User,
+    } as Request & { user?: User };
     const result = await controller.create(dto, req);
 
     expect(service.createEvent).toHaveBeenCalledWith(dto, req.user);
