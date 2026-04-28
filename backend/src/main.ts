@@ -10,8 +10,6 @@ import { appConfig } from './config';
 async function bootstrap(): Promise<void> {
   try {
     const app = await NestFactory.create(AppModule, { logger: false });
-    
-    
     app.useLogger(app.get(Logger));
     app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

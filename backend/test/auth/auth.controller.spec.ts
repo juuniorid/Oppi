@@ -28,6 +28,7 @@ describe('AuthController', () => {
   const authServiceMock = {
     login: jest.fn().mockResolvedValue('mocked_jwt_token'),
     validateOAuthLogin: jest.fn(),
+    validateRefreshToken: jest.fn().mockResolvedValue(mockUser),
     getProfile: jest.fn().mockResolvedValue(mockAuthProfile),
   };
 
@@ -53,11 +54,33 @@ describe('AuthController', () => {
   describe('getProfile', () => {
     it('should return auth profile from auth service', async () => {
       const mockRequest = { user: mockUser } as unknown as Request;
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        cookie: jest.fn(),
+      } as any;
 
-      const result = await controller.getProfile(mockRequest);
+      const result = await controller.getProfile(mockRequest, mockResponse);
 
+      expect(authServiceMock.login).toHaveBeenCalledWith(mockUser);
       expect(authServiceMock.getProfile).toHaveBeenCalledWith(mockUser);
       expect(result).toEqual(mockAuthProfile);
+    });
+  });
+
+  describe('refresh', () => {
+    it('should rotate jwt cookie using existing token', async () => {
+      const mockRequest = { cookies: { jwt: 'current_token' } } as unknown as Request;
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        cookie: jest.fn(),
+      } as any;
+
+      const result = await controller.refresh(mockRequest, mockResponse);
+
+      expect(authServiceMock.validateRefreshToken).toHaveBeenCalledWith('current_token');
+      expect(authServiceMock.login).toHaveBeenCalledWith(mockUser);
+      expect(mockResponse.cookie).toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
   });
 });

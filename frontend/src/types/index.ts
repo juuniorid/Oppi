@@ -29,6 +29,16 @@ export interface Child {
   notes?: string | null;
 }
 
+export type CreateChildPayload = {
+  firstName: string;
+  lastName: string;
+  groupId?: number;
+  dateOfBirth: string;
+  notes?: string;
+};
+
+export type UpdateChildPayload = Partial<CreateChildPayload>;
+
 export interface Group {
   id: number;
   name?: string | null;

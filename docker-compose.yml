@@ -26,6 +26,7 @@ services:
       # hostname must be `db`, not localhost (otherwise migrations get ECONNREFUSED).
       - DATABASE_URL=postgresql://oppi:oppi@db:5432/oppi
       - JWT_SECRET=${JWT_SECRET}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3001/v1/auth/google/callback}

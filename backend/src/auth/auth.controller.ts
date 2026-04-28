@@ -1,4 +1,12 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import {
@@ -24,6 +32,29 @@ function resolveCookieDomain(): string | undefined {
 
   const hostname = new URL(appConfig.app.frontendUrl).hostname;
   return `.${hostname}`;
+}
+
+function clearAuthCookie(res: Response, cookieDomain?: string): void {
+  res.clearCookie('jwt', { path: '/' });
+  if (cookieDomain) {
+    res.clearCookie('jwt', { domain: cookieDomain, path: '/' });
+  }
+}
+
+function setAuthCookie(res: Response, token: string): void {
+  const isProduction = appConfig.app.nodeEnv === 'production';
+  const cookieDomain = resolveCookieDomain();
+
+  clearAuthCookie(res, cookieDomain);
+
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    ...(cookieDomain && { domain: cookieDomain }),
+  });
 }
 
 @ApiTags('auth')
@@ -52,39 +83,39 @@ export class AuthController {
   ): Promise<void> {
     const user = req.user as User;
     const token = await this.authService.login(user);
-
-    const isProduction = appConfig.app.nodeEnv === 'production';
-    const cookieDomain = resolveCookieDomain();
-
-    // Clear legacy variants first so duplicate jwt cookies do not conflict.
-    res.clearCookie('jwt', { path: '/' });
-    if (cookieDomain) {
-      res.clearCookie('jwt', { domain: cookieDomain, path: '/' });
-    }
-
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      ...(cookieDomain && { domain: cookieDomain }),
-    });
+    setAuthCookie(res, token);
 
     res.redirect(`${appConfig.app.frontendUrl}/dashboard`);
+  }
+
+  @ApiOperation({ summary: 'Refresh the session cookie token' })
+  @ApiCookieAuth()
+  @Get('refresh')
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ success: true }> {
+    const currentToken = req.cookies?.jwt;
+    if (!currentToken) {
+      throw new UnauthorizedException('Missing auth token');
+    }
+
+    const user = await this.authService.validateRefreshToken(currentToken);
+    const token = await this.authService.login(user);
+    setAuthCookie(res, token);
+    return { success: true };
   }
 
   @ApiOperation({ summary: 'Logs out the user and clears the session cookie' })
   @ApiCookieAuth()
   @Get('logout')
-  async logout(@Res() res: Response): Promise<void> {
+  @HttpCode(200)
+  async logout(@Res({ passthrough: true }) res: Response): Promise<{ success: true; message: string }> {
     const cookieDomain = resolveCookieDomain();
 
-    res.clearCookie('jwt', { path: '/' });
-    if (cookieDomain) {
-      res.clearCookie('jwt', { domain: cookieDomain, path: '/' });
-    }
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
+    clearAuthCookie(res, cookieDomain);
+    return { success: true, message: 'Logged out successfully' };
   }
 
   @ApiOperation({ summary: 'Returns the current authenticated user profile' })
@@ -92,7 +123,12 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User profile returned' })
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Req() req: Request): Promise<AuthProfile> {
+  async getProfile(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthProfile> {
+    const token = await this.authService.login(req.user as User);
+    setAuthCookie(res, token);
     return this.authService.getProfile(req.user as User);
   }
 }
