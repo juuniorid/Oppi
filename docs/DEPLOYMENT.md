@@ -20,6 +20,31 @@
 2. Set secure environment variables
 3. Run: `docker-compose -f docker-compose.prod.yml up -d`
 
+### Using Coolify With Nixpacks
+
+Deploy the frontend and backend as two separate Coolify applications.
+
+For each Coolify app:
+
+1. Set the repository to this monorepo.
+2. Set **Build Pack** to `Nixpacks`.
+3. Set **Base Directory** to the app folder:
+	- Backend: `backend`
+	- Frontend: `frontend`
+4. Leave the Dockerfile fields empty for Nixpacks deployments.
+
+This repository does not have a root-level Node application. If Coolify builds from the repository root, Nixpacks will fail because the root `package.json` does not define `build` or `start` scripts.
+
+The app-local `nixpacks.toml` files define the correct commands for each service:
+
+- `backend/nixpacks.toml` installs dependencies, runs `pnpm run build`, and starts with `pnpm run start:prod`
+- `frontend/nixpacks.toml` installs dependencies, runs `pnpm run build`, and starts with `pnpm run start`
+
+Recommended runtime configuration:
+
+- Backend: provide `DATABASE_URL`, `JWT_SECRET`, OAuth variables, `FRONTEND_URL`, and `PORT`
+- Frontend: provide `NEXT_PUBLIC_API_URL` pointing to the deployed backend URL
+
 ### Environment Variables for Production
 
 ```env
