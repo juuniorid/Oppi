@@ -8,8 +8,8 @@ import {
 } from '@/services/http.service';
 
 class ChildService {
-  async getMyChildrenList(): Promise<Child[]> {
-    const response = await fetchWithAuth(apiUrl(apiPaths.children.listMy));
+  async getParentsChildrenList(): Promise<Child[]> {
+    const response = await fetchWithAuth(apiUrl(apiPaths.children.listForParent));
     const data = await parseJson(response);
 
     if (!response.ok) {
@@ -19,7 +19,7 @@ class ChildService {
     return unwrapData<Child[]>(data, []);
   }
 
-    async getAllChildrenList(): Promise<Child[]> {
+  async getAllChildrenList(): Promise<Child[]> {
     const response = await fetchWithAuth(apiUrl(apiPaths.children.list));
     const data = await parseJson(response);
 

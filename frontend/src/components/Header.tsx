@@ -86,9 +86,6 @@ export function Header() {
           {children.length === 0 ? (
             <MenuItem value="">Ei leitud lapsi</MenuItem>
           ) : <MenuItem value="">Vali laps</MenuItem>}
-            <MenuItem key={"1"} value={"Robert"}>
-              {"Robert"}
-            </MenuItem>
           {children.map((child) => (       
             <MenuItem key={child.id} value={String(child.id)}>
               {child.firstName?.trim()}

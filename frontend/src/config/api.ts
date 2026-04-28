@@ -28,7 +28,7 @@ export const apiPaths = {
     logout: '/auth/logout',
   },
   children: {
-    listMy: '/children/my',
+    listForParent: '/children/my',
     list: '/children',
     group: (groupId: number) => `/children/group/${groupId}`,
     create: '/children',

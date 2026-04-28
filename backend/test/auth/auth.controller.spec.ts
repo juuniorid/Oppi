@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../src/auth/auth.controller';
 import { AuthService } from '../../src/auth/auth.service';
 import { ROLE, User } from 'database/schema';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -57,7 +57,7 @@ describe('AuthController', () => {
       const mockResponse = {
         clearCookie: jest.fn(),
         cookie: jest.fn(),
-      } as any;
+      } as unknown as Response;
 
       const result = await controller.getProfile(mockRequest, mockResponse);
 
@@ -73,7 +73,7 @@ describe('AuthController', () => {
       const mockResponse = {
         clearCookie: jest.fn(),
         cookie: jest.fn(),
-      } as any;
+      } as unknown as Response;
 
       const result = await controller.refresh(mockRequest, mockResponse);
 

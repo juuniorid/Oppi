@@ -92,7 +92,7 @@ export function ChildSelectionProvider({ children }: { children: ReactNode }) {
     const loadChildren = async () => {
       setLoading(true);
       try {
-        const list = await childService.getChildrenList();
+        const list = await childService.getParentsChildrenList();
         if (!isActive) {
           return;
         }
