@@ -80,8 +80,8 @@ export default function DashboardPage() {
       return;
     }
 
-    const from = dayjs().startOf('month').format('YYYY-MM-DD');
-    const to = dayjs().endOf('month').format('YYYY-MM-DD');
+    const to = dayjs().format('YYYY-MM-DD');
+    const from = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
 
     setIsLoading(true);
 
@@ -95,10 +95,14 @@ export default function DashboardPage() {
             })
           : [];
 
+        const groups = selectedGroupId ? await groupService.getGroups() : [];
+        const selectedGroupName =
+          groups.find((group) => group.id === selectedGroupId)?.name ?? null;
+
         setDashboardFeedItems(
           mapAbsencesToDashboardItems(
             Array.isArray(absenceEntries) ? absenceEntries : [],
-            null
+            selectedGroupName
           )
         );
         return;
@@ -133,7 +137,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [role, selectedChildId]);
+  }, [role, selectedChildId, selectedGroupId]);
 
   useEffect(() => {
     if (roleLoading) {

@@ -26,27 +26,20 @@ function formatDashboardCardDate(value: string): string {
   }
 }
 
-function splitDashboardCardTitle(title: string): {
-  heading: string;
-} {
-  if (!title.includes(' - ')) {
-    return {
-      heading: title,
-    };
+function getDashboardCardHeading(item: DashboardFeedItem): string {
+  if (item.status != null) {
+    return item.groupName
+      ? `Päevakokkuvõte - ${item.groupName}`
+      : 'Päevakokkuvõte';
   }
 
-  const [, ...rest] = title.split(' - ');
-  const groupName = rest.join(' - ').trim();
-
-  return {
-    heading: groupName ? `Päevakokkuvõte - ${groupName}` : 'Päevakokkuvõte',
-  };
+  return item.title;
 }
 
 export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
   const hasStatus = item.status != null;
   const isPresent = item.status === 'PRESENT';
-  const { heading } = splitDashboardCardTitle(item.title);
+  const heading = getDashboardCardHeading(item);
 
   return (
     <Card variant="outlined" elevation={0} sx={{ bgcolor: 'background.paper' }}>
@@ -101,7 +94,7 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
             >
               {heading}
             </Typography>
-            {item.groupName ? (
+            {item.groupName && !hasStatus ? (
               <Typography
                 variant="body2"
                 color="text.secondary"
