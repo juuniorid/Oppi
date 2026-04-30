@@ -16,6 +16,8 @@ import dayjs from 'dayjs';
 
 import type { DashboardFeedItem } from './dashboard.types';
 
+const DASHBOARD_ITEMS_DISPLAYED = 10;
+
 function mapAbsencesToDashboardItems(
   absences: AbsenceEntry[],
   groupName?: string | null
@@ -24,7 +26,7 @@ function mapAbsencesToDashboardItems(
     .sort(
       (left, right) => dayjs(right.date).valueOf() - dayjs(left.date).valueOf()
     )
-    .slice(0, 5)
+    .slice(0, DASHBOARD_ITEMS_DISPLAYED)
     .map((entry) => {
       const name = [entry.firstName, entry.lastName]
         .filter(Boolean)
@@ -41,6 +43,7 @@ function mapAbsencesToDashboardItems(
             ? 'Puudumise märge puudub.'
             : 'Kohaloleku märge puudub.'),
         groupName: groupName ?? 'Bumblebees',
+        childName: name,
         childId: entry.childId,
         status: entry.status,
       };
@@ -56,7 +59,7 @@ function mapPostsToDashboardItems(
       (left, right) =>
         dayjs(right.createdAt).valueOf() - dayjs(left.createdAt).valueOf()
     )
-    .slice(0, 5)
+    .slice(0, DASHBOARD_ITEMS_DISPLAYED)
     .map((post) => ({
       id: post.id,
       date: post.createdAt,
@@ -68,7 +71,11 @@ function mapPostsToDashboardItems(
 
 export default function DashboardPage() {
   const { role, loading: roleLoading } = useUserRole();
-  const { selectedChildId, selectedGroupId, loading: childLoading } = useChildSelection();
+  const {
+    children,
+    selectedChildId,
+    loading: childLoading,
+  } = useChildSelection();
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
@@ -81,7 +88,9 @@ export default function DashboardPage() {
     }
 
     const to = dayjs().format('YYYY-MM-DD');
-    const from = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
+    const from = dayjs()
+      .subtract(DASHBOARD_ITEMS_DISPLAYED, 'day')
+      .format('YYYY-MM-DD');
 
     setIsLoading(true);
 
@@ -95,9 +104,9 @@ export default function DashboardPage() {
             })
           : [];
 
-        const groups = selectedGroupId ? await groupService.getGroups() : [];
         const selectedGroupName =
-          groups.find((group) => group.id === selectedGroupId)?.name ?? null;
+          children.find((child) => child.id === selectedChildId)?.groupName ??
+          null;
 
         setDashboardFeedItems(
           mapAbsencesToDashboardItems(
@@ -137,7 +146,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [role, selectedChildId, selectedGroupId]);
+  }, [children, role, selectedChildId]);
 
   useEffect(() => {
     if (roleLoading) {

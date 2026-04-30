@@ -6,6 +6,7 @@ export type DashboardFeedItem = {
   title: string;
   description: string;
   groupName?: string;
+  childName?: string;
   childId?: number;
   status?: AttendanceStatus;
 };

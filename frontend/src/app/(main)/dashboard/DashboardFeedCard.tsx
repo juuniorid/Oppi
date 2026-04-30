@@ -27,10 +27,8 @@ function formatDashboardCardDate(value: string): string {
 }
 
 function getDashboardCardHeading(item: DashboardFeedItem): string {
-  if (item.status != null) {
-    return item.groupName
-      ? `Päevakokkuvõte - ${item.groupName}`
-      : 'Päevakokkuvõte';
+  if (item.groupName) {
+    return `Päevakokkuvõte - ${item.groupName}`;
   }
 
   return item.title;
@@ -94,13 +92,22 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
             >
               {heading}
             </Typography>
+            {item.childName && hasStatus ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 1.5, fontWeight: 500 }}
+              >
+                {item.childName}
+              </Typography>
+            ) : null}
             {item.groupName && !hasStatus ? (
               <Typography
                 variant="body2"
                 color="text.secondary"
                 sx={{ mb: 1.5, fontWeight: 500 }}
               >
-                {item.groupName}
+                {item.title}
               </Typography>
             ) : null}
             <Typography
