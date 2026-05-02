@@ -35,8 +35,8 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @Roles(ROLE.Teacher)
-  @ApiOperation({ summary: 'Create a new announcement (TEACHER only)' })
+  @Roles(ROLE.Teacher, ROLE.Admin)
+  @ApiOperation({ summary: 'Create a new announcement (TEACHER/ADMIN only)' })
   @ApiBody({ type: CreatePostDto })
   @ApiResponse({ status: 201, description: 'Post created successfully.' })
   @ApiResponse({
@@ -45,7 +45,7 @@ export class PostsController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden — only TEACHER role can create posts.',
+    description: 'Forbidden — only TEACHER or ADMIN role can create posts.',
   })
   @ApiResponse({ status: 404, description: 'Group not found.' })
   async create(
@@ -79,12 +79,12 @@ export class PostsController {
 
   @Delete(':id')
   @Roles(ROLE.Teacher, ROLE.Admin)
-  @ApiOperation({ summary: 'Delete an existing post (TEACHER only)' })
+  @ApiOperation({ summary: 'Delete an existing post (TEACHER/ADMIN only)' })
   @ApiParam({ name: 'id', type: Number, description: 'Post ID' })
   @ApiResponse({ status: 200, description: 'Post deleted successfully.' })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden — only TEACHER role can delete posts.',
+    description: 'Forbidden — only TEACHER or ADMIN role can delete posts.',
   })
   @ApiResponse({ status: 404, description: 'Post not found.' })
   async delete(

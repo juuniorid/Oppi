@@ -1,6 +1,10 @@
 'use client';
 
 import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import { useCallback, useEffect, useState } from 'react';
 import { CreatePostDialog } from '@/components/dashboard/CreatePostDialog';
 import { DashboardFeedCard } from '@/app/(main)/dashboard/DashboardFeedCard';
@@ -64,11 +68,15 @@ export default function DashboardPage() {
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
+  const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
   const [dashboardGroupId, setDashboardGroupId] = useState<number | null>(null);
   const [dashboardGroupName, setDashboardGroupName] = useState<string | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedManagedGroupId, setSelectedManagedGroupId] = useState<number | null>(
+    null
+  );
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [postDialogMode, setPostDialogMode] = useState<'create' | 'edit'>(
     'create'
@@ -81,6 +89,7 @@ export default function DashboardPage() {
   const loadDashboardData = useCallback(async () => {
     if (!role) {
       setDashboardFeedItems([]);
+      setAvailableGroups([]);
       setDashboardGroupId(null);
       setDashboardGroupName(null);
       return;
@@ -90,6 +99,7 @@ export default function DashboardPage() {
 
     try {
       if (role === USER_ROLE.PARENT) {
+        setAvailableGroups([]);
         const selectedChild = children.find(
           (child) => child.id === selectedChildId
         );
@@ -136,24 +146,56 @@ export default function DashboardPage() {
         return;
       }
 
-      if (role === USER_ROLE.TEACHER) {
+      if (role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN) {
         const groups = await groupService.getGroups();
         const groupById = Object.fromEntries(
           groups.map((group) => [group.id, group])
         ) as Record<number, Group>;
-        const profile = await authService.getProfile();
-        const teacherGroupId = profile.groupIds?.[0] ?? null;
 
-        if (!teacherGroupId) {
+        let resolvedGroupId: number | null = null;
+        let manageableGroups = groups;
+
+        if (role === USER_ROLE.TEACHER) {
+          const profile = await authService.getProfile();
+          const teacherGroupIds = profile.groupIds ?? [];
+          manageableGroups = groups.filter((group) =>
+            teacherGroupIds.includes(group.id)
+          );
+          const nextTeacherGroupId =
+            selectedManagedGroupId &&
+            manageableGroups.some((group) => group.id === selectedManagedGroupId)
+              ? selectedManagedGroupId
+              : manageableGroups[0]?.id ?? null;
+
+          resolvedGroupId = nextTeacherGroupId;
+          if (nextTeacherGroupId !== selectedManagedGroupId) {
+            setSelectedManagedGroupId(nextTeacherGroupId);
+          }
+        } else {
+          const nextAdminGroupId =
+            selectedManagedGroupId &&
+            manageableGroups.some((group) => group.id === selectedManagedGroupId)
+              ? selectedManagedGroupId
+              : manageableGroups[0]?.id ?? null;
+
+          resolvedGroupId = nextAdminGroupId;
+          if (nextAdminGroupId !== selectedManagedGroupId) {
+            setSelectedManagedGroupId(nextAdminGroupId);
+          }
+        }
+
+        setAvailableGroups(manageableGroups);
+
+        if (!resolvedGroupId) {
           setDashboardFeedItems([]);
           setDashboardGroupId(null);
           setDashboardGroupName(null);
           return;
         }
 
-        const posts = await postService.getPostsByGroup(teacherGroupId);
-        setDashboardGroupId(teacherGroupId);
-        setDashboardGroupName(groupById[teacherGroupId]?.name ?? null);
+        const posts = await postService.getPostsByGroup(resolvedGroupId);
+        setDashboardGroupId(resolvedGroupId);
+        setDashboardGroupName(groupById[resolvedGroupId]?.name ?? null);
         setDashboardFeedItems(
           mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], {})
         );
@@ -171,7 +213,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [children, role, selectedChildId]);
+  }, [children, role, selectedChildId, selectedManagedGroupId]);
 
   useEffect(() => {
     if (roleLoading) {
@@ -190,6 +232,11 @@ export default function DashboardPage() {
       window.clearTimeout(timerId);
     };
   }, [childLoading, loadDashboardData, role, roleLoading]);
+
+  const handleManagedGroupChange = (event: SelectChangeEvent<string>) => {
+    const nextGroupId = Number(event.target.value);
+    setSelectedManagedGroupId(Number.isNaN(nextGroupId) ? null : nextGroupId);
+  };
 
   const openPostDialog = () => {
     setPostDialogMode('create');
@@ -238,27 +285,58 @@ export default function DashboardPage() {
                 : 'Päevakokkuvõtted'}
             </h2>
             <p className="text-sm text-mediumInk">
-              Rühma viimased postitused kuvatakse siin.
+              {role === USER_ROLE.ADMIN || role === USER_ROLE.TEACHER
+                ? 'Vali rühm ja halda selle postitusi.'
+                : 'Rühma viimased postitused kuvatakse siin.'}
             </p>
           </div>
 
-          {role === USER_ROLE.TEACHER ? (
-            <Button variant="neutral" onClick={openPostDialog}>
-              Lisa uus
-            </Button>
-          ) : null}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {role === USER_ROLE.ADMIN ||
+            (role === USER_ROLE.TEACHER && availableGroups.length > 1) ? (
+              <FormControl size="small" sx={{ minWidth: 220 }}>
+                <InputLabel id="dashboard-group-select-label">Rühm</InputLabel>
+                <Select
+                  labelId="dashboard-group-select-label"
+                  value={selectedManagedGroupId != null ? String(selectedManagedGroupId) : ''}
+                  label="Rühm"
+                  onChange={handleManagedGroupChange}
+                  disabled={availableGroups.length === 0}
+                >
+                  {availableGroups.map((group) => (
+                    <MenuItem key={group.id} value={String(group.id)}>
+                      {group.name || `Rühm ${group.id}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : null}
+
+            {role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN ? (
+              <Button variant="neutral" onClick={openPostDialog}>
+                Lisa uus
+              </Button>
+            ) : null}
+          </div>
         </div>
         {isLoading ? (
           <p className="text-sm text-mediumInk">Laadin avalehe andmeid...</p>
         ) : dashboardFeedItems.length === 0 ? (
-          <p className="text-sm text-mediumInk">Päevakokkuvõtteid ei leitud.</p>
+          <p className="text-sm text-mediumInk">
+            {(role === USER_ROLE.ADMIN || role === USER_ROLE.TEACHER) &&
+            availableGroups.length === 0
+              ? 'Rühmi ei leitud.'
+              : 'Päevakokkuvõtteid ei leitud.'}
+          </p>
         ) : (
           <div className="space-y-6">
             {dashboardFeedItems.map((item) => (
               <DashboardFeedCard
                 key={item.id}
                 item={item}
-                canManage={role === USER_ROLE.TEACHER}
+                canManage={
+                  role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN
+                }
                 isDeleting={deletingPostId === item.id}
                 onEdit={openEditPostDialog}
                 onDelete={handleDeletePost}
