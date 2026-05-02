@@ -1,6 +1,8 @@
 'use client';
 
+import Button from '@mui/material/Button';
 import { useCallback, useEffect, useState } from 'react';
+import { CreatePostDialog } from '@/components/dashboard/CreatePostDialog';
 import { DashboardFeedCard } from '@/app/(main)/dashboard/DashboardFeedCard';
 import { PageTitle } from '@/components/PageTitle';
 import { showErrorToast } from '@/components/ErrorToast';
@@ -62,14 +64,17 @@ export default function DashboardPage() {
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
+  const [dashboardGroupId, setDashboardGroupId] = useState<number | null>(null);
   const [dashboardGroupName, setDashboardGroupName] = useState<string | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     if (!role) {
       setDashboardFeedItems([]);
+      setDashboardGroupId(null);
       setDashboardGroupName(null);
       return;
     }
@@ -86,6 +91,7 @@ export default function DashboardPage() {
 
         if (!selectedChild || !selectedGroupId) {
           setDashboardFeedItems([]);
+          setDashboardGroupId(null);
           setDashboardGroupName(selectedGroupName);
           return;
         }
@@ -111,6 +117,7 @@ export default function DashboardPage() {
         });
 
         setDashboardGroupName(selectedGroupName);
+        setDashboardGroupId(null);
         setDashboardFeedItems(
           mapPostsToDashboardItems(recentPosts, {
             childId: selectedChild.id,
@@ -132,11 +139,13 @@ export default function DashboardPage() {
 
         if (!teacherGroupId) {
           setDashboardFeedItems([]);
+          setDashboardGroupId(null);
           setDashboardGroupName(null);
           return;
         }
 
         const posts = await postService.getPostsByGroup(teacherGroupId);
+        setDashboardGroupId(teacherGroupId);
         setDashboardGroupName(groupById[teacherGroupId]?.name ?? null);
         setDashboardFeedItems(
           mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], {})
@@ -145,9 +154,11 @@ export default function DashboardPage() {
       }
 
       setDashboardFeedItems([]);
+      setDashboardGroupId(null);
       setDashboardGroupName(null);
     } catch {
       setDashboardFeedItems([]);
+      setDashboardGroupId(null);
       setDashboardGroupName(null);
       showErrorToast('Avalehe andmete laadimine ebaõnnestus.');
     } finally {
@@ -173,20 +184,34 @@ export default function DashboardPage() {
     };
   }, [childLoading, loadDashboardData, role, roleLoading]);
 
+  const openPostDialog = () => {
+    setIsPostDialogOpen(true);
+  };
+
+  const closePostDialog = () => {
+    setIsPostDialogOpen(false);
+  };
+
   return (
     <div className="space-y-8">
-      <PageTitle>Avaleht</PageTitle>
-
       <section className="space-y-3">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-ink">
-            {dashboardGroupName
-              ? `Päevakokkuvõtted - ${dashboardGroupName}`
-              : 'Päevakokkuvõtted'}
-          </h2>
-          <p className="text-sm text-mediumInk">
-            Rühma viimased teated kuvatakse siin.
-          </p>
+        <div className="flex flex-col gap-3 pb-5 mt-2 ml-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-ink">
+              {dashboardGroupName
+                ? `Päevakokkuvõtted - ${dashboardGroupName}`
+                : 'Päevakokkuvõtted'}
+            </h2>
+            <p className="text-sm text-mediumInk">
+              Rühma viimased postitused kuvatakse siin.
+            </p>
+          </div>
+
+          {role === USER_ROLE.TEACHER ? (
+            <Button variant="neutral" onClick={openPostDialog}>
+              Lisa uus
+            </Button>
+          ) : null}
         </div>
         {isLoading ? (
           <p className="text-sm text-mediumInk">Laadin avalehe andmeid...</p>
@@ -199,6 +224,13 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+
+        <CreatePostDialog
+          open={isPostDialogOpen}
+          groupId={dashboardGroupId}
+          onClose={closePostDialog}
+          onCreated={loadDashboardData}
+        />
       </section>
     </div>
   );
