@@ -8,7 +8,7 @@ import {
   unwrapData,
 } from '@/services/http.service';
 
-const USE_DUMMY_POST_DATA = true; // Only for demo
+const USE_DUMMY_POST_DATA = false; // Only for demo
 
 class PostService {
   async getPostsByGroup(groupId: number): Promise<Post[]> {

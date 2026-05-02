@@ -11,62 +11,45 @@ import calendarService from '@/services/calendar.service';
 import groupService from '@/services/group.service';
 import postService from '@/services/post.service';
 import type { AbsenceEntry, Group, Post } from '@/types';
-import { ATTENDANCE_STATUS, USER_ROLE } from '@/types/enums';
+import { USER_ROLE } from '@/types/enums';
 import dayjs from 'dayjs';
 
 import type { DashboardFeedItem } from './dashboard.types';
 
 const DASHBOARD_ITEMS_DISPLAYED = 10;
 
-function mapAbsencesToDashboardItems(
-  absences: AbsenceEntry[],
-  groupName?: string | null
-): DashboardFeedItem[] {
-  return [...absences]
-    .sort(
-      (left, right) => dayjs(right.date).valueOf() - dayjs(left.date).valueOf()
-    )
-    .slice(0, DASHBOARD_ITEMS_DISPLAYED)
-    .map((entry) => {
-      const name = [entry.firstName, entry.lastName]
-        .filter(Boolean)
-        .join(' ')
-        .trim();
+function toDateKey(value: string): string {
+  const match = value.match(/^\d{4}-\d{2}-\d{2}/);
+  return match ? match[0] : dayjs(value).format('YYYY-MM-DD');
+}
 
-      return {
-        id: entry.id,
-        date: entry.date,
-        title: `Summary - ${name || 'Attendance'}`,
-        description:
-          entry.note?.trim() ||
-          (entry.status === ATTENDANCE_STATUS.ABSENT
-            ? 'Puudumise märge puudub.'
-            : 'Kohaloleku märge puudub.'),
-        groupName: groupName ?? 'Bumblebees',
-        childName: name,
-        childId: entry.childId,
-        status: entry.status,
-      };
-    });
+function getRecentPosts(posts: Post[]): Post[] {
+  return posts.slice(0, DASHBOARD_ITEMS_DISPLAYED);
 }
 
 function mapPostsToDashboardItems(
   posts: Post[],
-  groupById: Record<number, Group>
+  options?: {
+    childId?: number;
+    statusByDate?: Record<string, DashboardFeedItem['status']>;
+  }
 ): DashboardFeedItem[] {
-  return [...posts]
-    .sort(
-      (left, right) =>
-        dayjs(right.createdAt).valueOf() - dayjs(left.createdAt).valueOf()
-    )
-    .slice(0, DASHBOARD_ITEMS_DISPLAYED)
-    .map((post) => ({
-      id: post.id,
-      date: post.createdAt,
-      title: post.title,
-      description: post.message,
-      groupName: groupById[post.groupId]?.name ?? 'Bumblebees',
-    }));
+  return getRecentPosts(posts).map((post) => ({
+    id: post.id,
+    date: post.createdAt,
+    title: post.title,
+    description: post.message,
+    childId: options?.childId,
+    status: options?.statusByDate?.[toDateKey(post.createdAt)],
+  }));
+}
+
+function mapAbsenceStatusByDate(
+  absences: AbsenceEntry[]
+): Record<string, DashboardFeedItem['status']> {
+  return Object.fromEntries(
+    absences.map((entry) => [toDateKey(entry.date), entry.status])
+  );
 }
 
 export default function DashboardPage() {
@@ -79,69 +62,93 @@ export default function DashboardPage() {
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
+  const [dashboardGroupName, setDashboardGroupName] = useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     if (!role) {
       setDashboardFeedItems([]);
+      setDashboardGroupName(null);
       return;
     }
-
-    const to = dayjs().format('YYYY-MM-DD');
-    const from = dayjs()
-      .subtract(DASHBOARD_ITEMS_DISPLAYED, 'day')
-      .format('YYYY-MM-DD');
 
     setIsLoading(true);
 
     try {
       if (role === USER_ROLE.PARENT) {
-        const absenceEntries = selectedChildId
-          ? await calendarService.getAbsencesByChild({
-              childId: selectedChildId,
-              from,
-              to,
-            })
-          : [];
+        const selectedChild = children.find(
+          (child) => child.id === selectedChildId
+        );
+        const selectedGroupId = selectedChild?.groupId ?? null;
+        const selectedGroupName = selectedChild?.groupName ?? null;
 
-        const selectedGroupName =
-          children.find((child) => child.id === selectedChildId)?.groupName ??
-          null;
+        if (!selectedChild || !selectedGroupId) {
+          setDashboardFeedItems([]);
+          setDashboardGroupName(selectedGroupName);
+          return;
+        }
 
+        const posts = await postService.getPostsByGroup(selectedGroupId);
+        const recentPosts = getRecentPosts(Array.isArray(posts) ? posts : []);
+        const absenceFrom =
+          recentPosts.length > 0
+            ? dayjs(recentPosts[recentPosts.length - 1].createdAt).format(
+                'YYYY-MM-DD'
+              )
+            : dayjs()
+                .subtract(DASHBOARD_ITEMS_DISPLAYED, 'day')
+                .format('YYYY-MM-DD');
+        const absenceTo =
+          recentPosts.length > 0
+            ? dayjs(recentPosts[0].createdAt).format('YYYY-MM-DD')
+            : dayjs().format('YYYY-MM-DD');
+        const absences = await calendarService.getAbsencesByChild({
+          childId: selectedChild.id,
+          from: absenceFrom,
+          to: absenceTo,
+        });
+
+        setDashboardGroupName(selectedGroupName);
         setDashboardFeedItems(
-          mapAbsencesToDashboardItems(
-            Array.isArray(absenceEntries) ? absenceEntries : [],
-            selectedGroupName
-          )
+          mapPostsToDashboardItems(recentPosts, {
+            childId: selectedChild.id,
+            statusByDate: mapAbsenceStatusByDate(
+              Array.isArray(absences) ? absences : []
+            ),
+          })
         );
         return;
       }
 
-      const groups = await groupService.getGroups();
-      const groupById = Object.fromEntries(
-        groups.map((group) => [group.id, group])
-      ) as Record<number, Group>;
-
       if (role === USER_ROLE.TEACHER) {
+        const groups = await groupService.getGroups();
+        const groupById = Object.fromEntries(
+          groups.map((group) => [group.id, group])
+        ) as Record<number, Group>;
         const profile = await authService.getProfile();
-        // const teacherGroupId = profile.groupIds?.[0] ?? null;
-        const teacherGroupId = 1;
+        const teacherGroupId = profile.groupIds?.[0] ?? null;
 
         if (!teacherGroupId) {
           setDashboardFeedItems([]);
+          setDashboardGroupName(null);
           return;
         }
 
         const posts = await postService.getPostsByGroup(teacherGroupId);
+        setDashboardGroupName(groupById[teacherGroupId]?.name ?? null);
         setDashboardFeedItems(
-          mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], groupById)
+          mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], {})
         );
         return;
       }
 
       setDashboardFeedItems([]);
+      setDashboardGroupName(null);
     } catch {
       setDashboardFeedItems([]);
+      setDashboardGroupName(null);
       showErrorToast('Avalehe andmete laadimine ebaõnnestus.');
     } finally {
       setIsLoading(false);
@@ -172,9 +179,13 @@ export default function DashboardPage() {
 
       <section className="space-y-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-ink">Päevakokkuvõtted</h2>
+          <h2 className="text-lg font-semibold text-ink">
+            {dashboardGroupName
+              ? `Päevakokkuvõtted - ${dashboardGroupName}`
+              : 'Päevakokkuvõtted'}
+          </h2>
           <p className="text-sm text-mediumInk">
-            Kohaloleku ja puudumiste viimased sissekanded kuvatakse siin.
+            Rühma viimased teated kuvatakse siin.
           </p>
         </div>
         {isLoading ? (

@@ -26,18 +26,9 @@ function formatDashboardCardDate(value: string): string {
   }
 }
 
-function getDashboardCardHeading(item: DashboardFeedItem): string {
-  if (item.groupName) {
-    return `Päevakokkuvõte - ${item.groupName}`;
-  }
-
-  return item.title;
-}
-
 export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
   const hasStatus = item.status != null;
   const isPresent = item.status === 'PRESENT';
-  const heading = getDashboardCardHeading(item);
 
   return (
     <Card variant="outlined" elevation={0} sx={{ bgcolor: 'background.paper' }}>
@@ -52,6 +43,27 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
           >
             {formatDashboardCardDate(item.date)}
           </Typography>
+
+          <Typography
+            component="h2"
+            variant="subtitle1"
+            fontWeight={600}
+            sx={{ color: 'text.primary', mb: 1.5 }}
+          >
+            {item.title}
+          </Typography>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1.5, lineHeight: 1.6 }}
+            >
+              {item.description}
+            </Typography>
+          </Box>
+
+          {hasStatus ? <Divider sx={{ my: 1.5 }} /> : null}
 
           {hasStatus ? (
             <Box
@@ -75,55 +87,11 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
                   )}
                   sx={{ fontWeight: 600 }}
                 >
-                  {isPresent ? 'Present' : 'Absent'}
+                  {isPresent ? 'Kohal' : 'Puudus'}
                 </Typography>
               </Box>
             </Box>
           ) : null}
-
-          {hasStatus ? <Divider sx={{ my: 1.5 }} /> : null}
-
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              component="h2"
-              variant="subtitle1"
-              fontWeight={600}
-              sx={{ color: 'text.primary', mb: 1.5 }}
-            >
-              {heading}
-            </Typography>
-            {item.childName && hasStatus ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: 1.5, fontWeight: 500 }}
-              >
-                {item.childName}
-              </Typography>
-            ) : null}
-            {item.groupName && !hasStatus ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: 1.5, fontWeight: 500 }}
-              >
-                {item.title}
-              </Typography>
-            ) : null}
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 1.5,
-                pl: 1.5,
-                borderLeft: 2,
-                borderColor: 'divider',
-                lineHeight: 1.6,
-              }}
-            >
-              {item.description}
-            </Typography>
-          </Box>
         </Box>
       </CardContent>
     </Card>

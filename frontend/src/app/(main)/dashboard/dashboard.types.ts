@@ -5,8 +5,6 @@ export type DashboardFeedItem = {
   date: string;
   title: string;
   description: string;
-  groupName?: string;
-  childName?: string;
-  childId?: number;
   status?: AttendanceStatus;
+  childId?: number;
 };
