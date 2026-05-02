@@ -70,6 +70,13 @@ export default function DashboardPage() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [postDialogMode, setPostDialogMode] = useState<'create' | 'edit'>(
+    'create'
+  );
+  const [editingPost, setEditingPost] = useState<DashboardFeedItem | null>(
+    null
+  );
+  const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
 
   const loadDashboardData = useCallback(async () => {
     if (!role) {
@@ -185,11 +192,39 @@ export default function DashboardPage() {
   }, [childLoading, loadDashboardData, role, roleLoading]);
 
   const openPostDialog = () => {
+    setPostDialogMode('create');
+    setEditingPost(null);
+    setIsPostDialogOpen(true);
+  };
+
+  const openEditPostDialog = (item: DashboardFeedItem) => {
+    setPostDialogMode('edit');
+    setEditingPost(item);
     setIsPostDialogOpen(true);
   };
 
   const closePostDialog = () => {
     setIsPostDialogOpen(false);
+    setPostDialogMode('create');
+    setEditingPost(null);
+  };
+
+  const handleDeletePost = async (item: DashboardFeedItem) => {
+    const shouldDelete = window.confirm(`Kustuta postitus "${item.title}"?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setDeletingPostId(item.id);
+    try {
+      await postService.deletePost(item.id);
+      await loadDashboardData();
+    } catch (error) {
+      const err = error as Error;
+      showErrorToast(err.message || 'Postituse kustutamine ebaõnnestus.');
+    } finally {
+      setDeletingPostId(null);
+    }
   };
 
   return (
@@ -220,14 +255,25 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-6">
             {dashboardFeedItems.map((item) => (
-              <DashboardFeedCard key={item.id} item={item} />
+              <DashboardFeedCard
+                key={item.id}
+                item={item}
+                canManage={role === USER_ROLE.TEACHER}
+                isDeleting={deletingPostId === item.id}
+                onEdit={openEditPostDialog}
+                onDelete={handleDeletePost}
+              />
             ))}
           </div>
         )}
 
         <CreatePostDialog
           open={isPostDialogOpen}
+          mode={postDialogMode}
           groupId={dashboardGroupId}
+          postId={editingPost?.id ?? null}
+          initialTitle={editingPost?.title ?? ''}
+          initialMessage={editingPost?.description ?? ''}
           onClose={closePostDialog}
           onCreated={loadDashboardData}
         />

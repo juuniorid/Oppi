@@ -1,5 +1,13 @@
 import clsx from 'clsx';
-import { Box, Card, CardContent, Divider, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  Typography,
+} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import dayjs from 'dayjs';
@@ -7,6 +15,10 @@ import type { DashboardFeedItem } from './dashboard.types';
 
 type DashboardFeedCardProps = {
   item: DashboardFeedItem;
+  canManage?: boolean;
+  isDeleting?: boolean;
+  onEdit?: (item: DashboardFeedItem) => void;
+  onDelete?: (item: DashboardFeedItem) => void;
 };
 
 function formatDashboardCardDate(value: string): string {
@@ -26,7 +38,13 @@ function formatDashboardCardDate(value: string): string {
   }
 }
 
-export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
+export function DashboardFeedCard({
+  item,
+  canManage = false,
+  isDeleting = false,
+  onEdit,
+  onDelete,
+}: DashboardFeedCardProps) {
   const hasStatus = item.status != null;
   const isPresent = item.status === 'PRESENT';
 
@@ -91,6 +109,31 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
                 </Typography>
               </Box>
             </Box>
+          ) : null}
+
+          {canManage ? (
+            <Stack
+              direction="row"
+              justifyContent="flex-end"
+              spacing={1}
+              sx={{ mt: 2 }}
+            >
+              <Button
+                size="small"
+                variant="neutral"
+                onClick={() => onEdit?.(item)}
+              >
+                Muuda
+              </Button>
+              <Button
+                size="small"
+                variant="negative"
+                onClick={() => onDelete?.(item)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Kustutan...' : 'Kustuta'}
+              </Button>
+            </Stack>
           ) : null}
         </Box>
       </CardContent>

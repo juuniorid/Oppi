@@ -8,16 +8,26 @@ import TextField from '@mui/material/TextField';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
 import postService from '@/services/post.service';
 
+type PostDialogMode = 'create' | 'edit';
+
 type CreatePostDialogProps = {
   open: boolean;
+  mode: PostDialogMode;
   groupId: number | null;
+  postId?: number | null;
+  initialTitle?: string;
+  initialMessage?: string;
   onClose: () => void;
   onCreated: () => void | Promise<void>;
 };
 
 export function CreatePostDialog({
   open,
+  mode,
   groupId,
+  postId,
+  initialTitle = '',
+  initialMessage = '',
   onClose,
   onCreated,
 }: CreatePostDialogProps) {
@@ -30,9 +40,9 @@ export function CreatePostDialog({
       return;
     }
 
-    setTitle('');
-    setMessage('');
-  }, [open]);
+    setTitle(initialTitle);
+    setMessage(initialMessage);
+  }, [initialMessage, initialTitle, open]);
 
   const canSubmit = useMemo(() => {
     if (isSubmitting || !groupId) {
@@ -58,15 +68,32 @@ export function CreatePostDialog({
       return;
     }
 
+    if (mode === 'edit' && !postId) {
+      showErrorToast('Postitust ei leitud.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await postService.createPost(title.trim(), message.trim(), groupId);
+      if (mode === 'edit' && postId) {
+        await postService.updatePost(postId, title.trim(), message.trim());
+      } else {
+        await postService.createPost(title.trim(), message.trim(), groupId);
+      }
+
       await onCreated();
-      showSuccessToast('Postitus loodud');
+      showSuccessToast(
+        mode === 'edit' ? 'Postitus uuendatud' : 'Postitus loodud'
+      );
       onClose();
     } catch (error) {
       const err = error as Error;
-      showErrorToast(err.message || 'Postituse loomine ebaõnnestus.');
+      showErrorToast(
+        err.message ||
+          (mode === 'edit'
+            ? 'Postituse uuendamine ebaõnnestus.'
+            : 'Postituse loomine ebaõnnestus.')
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -74,7 +101,9 @@ export function CreatePostDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Lisa uus postitus</DialogTitle>
+      <DialogTitle>
+        {mode === 'edit' ? 'Muuda postitust' : 'Lisa uus postitus'}
+      </DialogTitle>
       <DialogContent sx={{ display: 'grid', gap: 2, pt: '26px !important' }}>
         <TextField
           label="Pealkiri"
@@ -99,7 +128,11 @@ export function CreatePostDialog({
           Tühista
         </Button>
         <Button variant="info" onClick={handleSubmit} disabled={!canSubmit}>
-          {isSubmitting ? 'Salvestamine...' : 'Salvesta'}
+          {isSubmitting
+            ? 'Salvestamine...'
+            : mode === 'edit'
+              ? 'Uuenda'
+              : 'Salvesta'}
         </Button>
       </DialogActions>
     </Dialog>
