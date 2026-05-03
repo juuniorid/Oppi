@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
+  Patch,
   Req,
   Res,
   UnauthorizedException,
@@ -19,6 +21,7 @@ import { AuthProfile, AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 function resolveCookieDomain(): string | undefined {
   if (appConfig.app.nodeEnv === 'production' && appConfig.app.cookieDomain) {

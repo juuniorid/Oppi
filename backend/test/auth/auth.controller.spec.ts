@@ -68,6 +68,18 @@ describe('AuthController', () => {
     });
   });
 
+  describe('updateProfile', () => {
+    it('should return updated auth profile from auth service', async () => {
+      const mockRequest = { user: mockUser } as unknown as Request;
+      const payload = { firstName: 'Updated', phone: '+123' };
+
+      const result = await controller.updateProfile(mockRequest, payload);
+
+      expect(authServiceMock.updateProfile).toHaveBeenCalledWith(mockUser, payload);
+      expect(result).toEqual(mockAuthProfile);
+    });
+  });
+
   describe('refresh', () => {
     it('should rotate jwt cookie using existing token', async () => {
       const mockRequest = { cookies: { jwt: 'current_token' } } as unknown as Request;
