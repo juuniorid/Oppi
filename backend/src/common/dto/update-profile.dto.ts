@@ -1,34 +1,30 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
+
+function trimString({ value }: { value: unknown }): unknown {
+  return typeof value === 'string' ? value.trim() : value;
+}
 
 export class UpdateProfileDto {
-  @ApiPropertyOptional({
-    example: 'Mari',
-    description: 'User first name',
-  })
+  @ApiPropertyOptional({ example: 'Jane', description: 'First name' })
   @IsOptional()
+  @Transform(trimString)
   @IsString()
   @MaxLength(120)
   firstName?: string;
 
-  @ApiPropertyOptional({
-    example: 'Tamm',
-    description: 'User last name',
-  })
+  @ApiPropertyOptional({ example: 'Doe', description: 'Last name' })
   @IsOptional()
+  @Transform(trimString)
   @IsString()
   @MaxLength(120)
   lastName?: string;
 
-  @ApiPropertyOptional({
-    example: '+37251234567',
-    description: 'Phone number in international format',
-  })
+  @ApiPropertyOptional({ example: '+3725551234', description: 'Phone number' })
   @IsOptional()
+  @Transform(trimString)
   @IsString()
   @MaxLength(40)
-  @Matches(/^[+0-9()\-\s]*$/, {
-    message: 'Phone can only include digits, spaces, +, parentheses and dashes',
-  })
   phone?: string;
 }

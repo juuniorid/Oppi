@@ -5,7 +5,7 @@ import { db } from 'database/db';
 import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
 import { appConfig } from 'src/config';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
 
 export type AuthProfile = User & {
   groupIds: number[];
