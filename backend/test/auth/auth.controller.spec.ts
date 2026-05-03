@@ -30,6 +30,7 @@ describe('AuthController', () => {
     validateOAuthLogin: jest.fn(),
     validateRefreshToken: jest.fn().mockResolvedValue(mockUser),
     getProfile: jest.fn().mockResolvedValue(mockAuthProfile),
+    updateProfile: jest.fn().mockResolvedValue(mockAuthProfile),
   };
 
   beforeEach(async () => {
@@ -63,6 +64,18 @@ describe('AuthController', () => {
 
       expect(authServiceMock.login).toHaveBeenCalledWith(mockUser);
       expect(authServiceMock.getProfile).toHaveBeenCalledWith(mockUser);
+      expect(result).toEqual(mockAuthProfile);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should return updated auth profile from auth service', async () => {
+      const mockRequest = { user: mockUser } as unknown as Request;
+      const payload = { firstName: 'Updated', phone: '+123' };
+
+      const result = await controller.updateProfile(mockRequest, payload);
+
+      expect(authServiceMock.updateProfile).toHaveBeenCalledWith(mockUser, payload);
       expect(result).toEqual(mockAuthProfile);
     });
   });

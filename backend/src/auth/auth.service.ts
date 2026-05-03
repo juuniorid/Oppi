@@ -5,6 +5,7 @@ import { db } from 'database/db';
 import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
 import { appConfig } from 'src/config';
+import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
 
 export type AuthProfile = User & {
   groupIds: number[];
@@ -72,7 +73,7 @@ export class AuthService {
       );
     }
 
-    // Optional sync
+    // Keep name fields in sync with Google profile on subsequent logins.
     if (
       existingUser.firstName !== user.firstName ||
       existingUser.lastName !== user.lastName
@@ -157,5 +158,49 @@ export class AuthService {
         groupIds: [],
       };
     }
+  }
+
+  async updateProfile(user: User, payload: UpdateProfileDto): Promise<AuthProfile> {
+    const patch: Partial<{
+      firstName: string | null;
+      lastName: string | null;
+      phone: string | null;
+    }> = {};
+
+    if (payload.firstName !== undefined) {
+      const trimmed = payload.firstName.trim();
+      patch.firstName = trimmed === '' ? null : trimmed;
+    }
+    if (payload.lastName !== undefined) {
+      const trimmed = payload.lastName.trim();
+      patch.lastName = trimmed === '' ? null : trimmed;
+    }
+    if (payload.phone !== undefined) {
+      patch.phone = payload.phone.trim() === '' ? null : payload.phone;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      this.logger.log(`Profile update noop (empty payload after normalize) user id=${user.id}`);
+      return this.getProfile(user);
+    }
+
+    const [updated] = await db
+      .update(users)
+      .set({
+        ...patch,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    if (!updated) {
+      this.logger.warn(`Profile update failed: user id=${user.id} not found`);
+      throw new UnauthorizedException('User not found');
+    }
+
+    this.logger.log(
+      `Profile updated user id=${user.id} fields=${Object.keys(patch).join(',')}`
+    );
+    return this.getProfile(updated);
   }
 }

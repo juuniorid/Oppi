@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../../src/auth/auth.service';
+import { ROLE } from '../../src/database/schema';
+import { createTestGroup } from '../helpers/create-groups';
+import { createTestGroupUser } from '../helpers/create-group-users';
 import { createTestUser } from '../helpers/create-users';
 
 describe('AuthService (e2e)', () => {
@@ -108,6 +111,87 @@ describe('AuthService (e2e)', () => {
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({ role: 'TEACHER' }),
       );
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should persist firstName, lastName, and phone and return auth profile with groupIds', async () => {
+      const user = await createTestUser(
+        'profile-update-full@test.com',
+        ROLE.Teacher,
+        {
+          firstName: 'Old',
+          lastName: 'Name',
+          phone: null,
+        },
+      );
+      const group = await createTestGroup('Profile Update Group');
+      await createTestGroupUser(group.id, user.id);
+
+      const profile = await service.updateProfile(user, {
+        firstName: 'New',
+        lastName: 'Person',
+        phone: '+3725551111',
+      });
+
+      expect(profile.firstName).toBe('New');
+      expect(profile.lastName).toBe('Person');
+      expect(profile.phone).toBe('+3725551111');
+      expect(profile.groupIds).toContain(group.id);
+      expect(profile.email).toBe(user.email);
+    });
+
+    it('should return current profile without updating the row when payload is empty', async () => {
+      const user = await createTestUser('profile-update-noop@test.com', ROLE.Parent);
+      const beforeUpdatedAt = user.updatedAt.getTime();
+
+      const profile = await service.updateProfile(user, {});
+
+      expect(profile.firstName).toBe(user.firstName);
+      expect(profile.lastName).toBe(user.lastName);
+      expect(profile.updatedAt.getTime()).toBe(beforeUpdatedAt);
+    });
+
+    it('should trim strings and store null for blank firstName, lastName, and phone', async () => {
+      const user = await createTestUser(
+        'profile-update-trim@test.com',
+        ROLE.Parent,
+        {
+          firstName: 'Keep',
+          lastName: 'Me',
+          phone: '+111',
+        },
+      );
+
+      const profile = await service.updateProfile(user, {
+        firstName: '   ',
+        lastName: '  Trimmed  ',
+        phone: ' ',
+      });
+
+      expect(profile.firstName).toBeNull();
+      expect(profile.lastName).toBe('Trimmed');
+      expect(profile.phone).toBeNull();
+    });
+
+    it('should update only fields present in the payload', async () => {
+      const user = await createTestUser(
+        'profile-update-partial@test.com',
+        ROLE.Parent,
+        {
+          firstName: 'A',
+          lastName: 'B',
+          phone: '+222',
+        },
+      );
+
+      const profile = await service.updateProfile(user, {
+        firstName: 'OnlyFirst',
+      });
+
+      expect(profile.firstName).toBe('OnlyFirst');
+      expect(profile.lastName).toBe('B');
+      expect(profile.phone).toBe('+222');
     });
   });
 });

@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
+  Patch,
   Req,
   Res,
   UnauthorizedException,
@@ -14,11 +16,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiCookieAuth,
-} from '@nestjs/swagger'; // New imports
+} from '@nestjs/swagger';
 import { AuthProfile, AuthService } from './auth.service';
 import { User } from 'database/schema';
 import { appConfig } from 'src/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
 
 function resolveCookieDomain(): string | undefined {
   if (appConfig.app.nodeEnv === 'production' && appConfig.app.cookieDomain) {
@@ -130,5 +133,17 @@ export class AuthController {
     const token = await this.authService.login(req.user as User);
     setAuthCookie(res, token);
     return this.authService.getProfile(req.user as User);
+  }
+
+  @ApiOperation({ summary: 'Updates current authenticated user profile' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: 'User profile updated' })
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Req() req: Request,
+    @Body() payload: UpdateProfileDto
+  ): Promise<AuthProfile> {
+    return this.authService.updateProfile(req.user as User, payload);
   }
 }
