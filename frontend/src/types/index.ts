@@ -24,6 +24,7 @@ export interface Post {
 export interface Child {
   id: number;
   groupId?: number | null;
+  groupName?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   dateOfBirth?: string | null;

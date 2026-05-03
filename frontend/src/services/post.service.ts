@@ -8,7 +8,7 @@ import {
   unwrapData,
 } from '@/services/http.service';
 
-const USE_DUMMY_POST_DATA = true; // Only for demo
+const USE_DUMMY_POST_DATA = false; // Only for demo
 
 class PostService {
   async getPostsByGroup(groupId: number): Promise<Post[]> {
@@ -47,6 +47,46 @@ class PostService {
     }
 
     return unwrapData<Post>(data);
+  }
+
+  async updatePost(
+    postId: number,
+    title: string,
+    message: string
+  ): Promise<Post> {
+    const response = await fetchWithAuth(
+      apiUrl(apiPaths.posts.update(postId)),
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content: message }),
+      }
+    );
+    const data = await parseJson(response);
+
+    if (!response.ok) {
+      throw new Error(
+        extractErrorMessage(data, `Failed to update post (${response.status})`)
+      );
+    }
+
+    return unwrapData<Post>(data);
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    const response = await fetchWithAuth(
+      apiUrl(apiPaths.posts.remove(postId)),
+      {
+        method: 'DELETE',
+      }
+    );
+    const data = await parseJson(response);
+
+    if (!response.ok) {
+      throw new Error(
+        extractErrorMessage(data, `Failed to delete post (${response.status})`)
+      );
+    }
   }
 
   async getPostsByGroupForView(groupId: number): Promise<Post[]> {

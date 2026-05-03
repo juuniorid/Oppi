@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { PostsService } from './posts.service';
 import {
@@ -24,14 +35,23 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @Roles(ROLE.Teacher)
-  @ApiOperation({ summary: 'Create a new announcement (TEACHER only)' })
+  @Roles(ROLE.Teacher, ROLE.Admin)
+  @ApiOperation({ summary: 'Create a new announcement (TEACHER/ADMIN only)' })
   @ApiBody({ type: CreatePostDto })
   @ApiResponse({ status: 201, description: 'Post created successfully.' })
-  @ApiResponse({ status: 400, description: 'Validation error — invalid request body.' })
-  @ApiResponse({ status: 403, description: 'Forbidden — only TEACHER role can create posts.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error — invalid request body.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden — only TEACHER or ADMIN role can create posts.',
+  })
   @ApiResponse({ status: 404, description: 'Group not found.' })
-  async create(@Body() createPostDto: CreatePostDto, @Req() req: Request & { user?: User }): Promise<PostEntity[]> {
+  async create(
+    @Body() createPostDto: CreatePostDto,
+    @Req() req: Request & { user?: User }
+  ): Promise<PostEntity[]> {
     return this.postsService.create(createPostDto, req.user!.id);
   }
 
@@ -41,25 +61,53 @@ export class PostsController {
   @ApiParam({ name: 'id', type: Number, description: 'Post ID' })
   @ApiBody({ type: UpdatePostDto })
   @ApiResponse({ status: 200, description: 'Post updated successfully.' })
-  @ApiResponse({ status: 400, description: 'Validation error — invalid request body.' })
-  @ApiResponse({ status: 403, description: 'Forbidden — only TEACHER or ADMIN role can update posts.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error — invalid request body.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden — only TEACHER or ADMIN role can update posts.',
+  })
   @ApiResponse({ status: 404, description: 'Post not found.' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updatePostDto: UpdatePostDto,
+    @Body() updatePostDto: UpdatePostDto
   ): Promise<PostEntity> {
     return this.postsService.update(id, updatePostDto);
   }
 
+  @Delete(':id')
+  @Roles(ROLE.Teacher, ROLE.Admin)
+  @ApiOperation({ summary: 'Delete an existing post (TEACHER/ADMIN only)' })
+  @ApiParam({ name: 'id', type: Number, description: 'Post ID' })
+  @ApiResponse({ status: 200, description: 'Post deleted successfully.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden — only TEACHER or ADMIN role can delete posts.',
+  })
+  @ApiResponse({ status: 404, description: 'Post not found.' })
+  async delete(
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<{ success: true }> {
+    await this.postsService.delete(id);
+    return { success: true };
+  }
+
   @Get('group/:id')
-  @ApiOperation({ summary: 'Get all posts for a group ordered by newest first' })
+  @ApiOperation({
+    summary: 'Get all posts for a group ordered by newest first',
+  })
   @ApiParam({ name: 'id', type: Number, description: 'Group ID' })
   @ApiResponse({ status: 200, description: 'Posts returned successfully.' })
-  @ApiResponse({ status: 403, description: 'Forbidden — PARENT does not have a child in this group.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden — PARENT does not have a child in this group.',
+  })
   @ApiResponse({ status: 404, description: 'Group not found.' })
   async findByGroup(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request & { user?: User },
+    @Req() req: Request & { user?: User }
   ): Promise<PostEntity[]> {
     return this.postsService.findByGroup(id, req.user!);
   }

@@ -1,7 +1,30 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { db } from 'database/db';
-import { Group, groups, enrollments, groupUsers, users, ROLE, TEACHER_ROLE, TeacherRoleType } from 'database/schema';
-import { and, asc, count, eq, getTableColumns, inArray, isNull, sql } from 'drizzle-orm';
+import {
+  Group,
+  groups,
+  enrollments,
+  groupUsers,
+  users,
+  ROLE,
+  TEACHER_ROLE,
+  TeacherRoleType,
+  User,
+} from 'database/schema';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  getTableColumns,
+  inArray,
+  isNull,
+  sql,
+} from 'drizzle-orm';
 import { CreateGroupDto } from '../common/dto/create-group.dto';
 import { UpdateGroupDto } from '../common/dto/update-group.dto';
 
@@ -26,12 +49,26 @@ export type GroupWithDetails = Group & {
 
 @Injectable()
 export class GroupsService {
-  async findAll(): Promise<GroupWithDetails[]> {
-    const allGroups = await db
-      .select(getTableColumns(groups))
-      .from(groups)
-      .where(isNull(groups.deletedAt))
-      .orderBy(asc(groups.name));
+  async findAll(user: User): Promise<GroupWithDetails[]> {
+    const allGroups =
+      user.role === ROLE.Teacher
+        ? await db
+            .selectDistinct(getTableColumns(groups))
+            .from(groups)
+            .innerJoin(
+              groupUsers,
+              and(
+                eq(groupUsers.groupId, groups.id),
+                eq(groupUsers.userId, user.id)
+              )
+            )
+            .where(isNull(groups.deletedAt))
+            .orderBy(asc(groups.name))
+        : await db
+            .select(getTableColumns(groups))
+            .from(groups)
+            .where(isNull(groups.deletedAt))
+            .orderBy(asc(groups.name));
 
     if (allGroups.length === 0) {
       return [];
@@ -62,12 +99,22 @@ export class GroupsService {
       })
       .from(groupUsers)
       .innerJoin(users, eq(groupUsers.userId, users.id))
-      .where(sql`${groupUsers.groupId} = ANY(ARRAY[${sql.join(groupIds.map((id) => sql`${id}`), sql`, `)}]::int[])`);
+      .where(
+        sql`${groupUsers.groupId} = ANY(ARRAY[${sql.join(
+          groupIds.map((id) => sql`${id}`),
+          sql`, `
+        )}]::int[])`
+      );
 
     const teacherMap = new Map<number, GroupTeacher[]>();
     for (const row of teacherRows) {
       const list = teacherMap.get(row.groupId) ?? [];
-      list.push({ id: row.id, firstName: row.firstName, lastName: row.lastName, role: row.role });
+      list.push({
+        id: row.id,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        role: row.role,
+      });
       teacherMap.set(row.groupId, list);
     }
 
@@ -134,10 +181,12 @@ export class GroupsService {
     const updateData: Partial<Group> = {};
 
     if (dto.name !== undefined) updateData.name = dto.name.trim();
-    if (dto.description !== undefined) updateData.description = dto.description.trim() || null;
+    if (dto.description !== undefined)
+      updateData.description = dto.description.trim() || null;
     if (dto.ageMin !== undefined) updateData.ageMin = dto.ageMin;
     if (dto.ageMax !== undefined) updateData.ageMax = dto.ageMax;
-    if (dto.kindergartenName !== undefined) updateData.kindergartenName = dto.kindergartenName.trim() || null;
+    if (dto.kindergartenName !== undefined)
+      updateData.kindergartenName = dto.kindergartenName.trim() || null;
 
     if (Object.keys(updateData).length > 0) {
       updateData.updatedAt = new Date();
@@ -201,12 +250,20 @@ export class GroupsService {
     const found = await db
       .select({ id: users.id })
       .from(users)
-      .where(and(inArray(users.id, userIds), eq(users.role, ROLE.Teacher), isNull(users.deletedAt)));
+      .where(
+        and(
+          inArray(users.id, userIds),
+          eq(users.role, ROLE.Teacher),
+          isNull(users.deletedAt)
+        )
+      );
 
     if (found.length !== userIds.length) {
       const foundIds = new Set(found.map((u) => u.id));
       const invalid = userIds.filter((id) => !foundIds.has(id));
-      throw new BadRequestException(`User IDs are not valid teachers: ${invalid.join(', ')}`);
+      throw new BadRequestException(
+        `User IDs are not valid teachers: ${invalid.join(', ')}`
+      );
     }
   }
 

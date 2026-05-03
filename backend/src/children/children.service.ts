@@ -12,7 +12,10 @@ import { userChildren } from 'database/schema';
 import { CreateChildDto } from '../common/dto/create-child.dto';
 import { UpdateChildDto } from '../common/dto/update-child.dto';
 
-export type ChildWithGroup = Child & { groupId: number | null };
+export type ChildWithGroup = Child & {
+  groupId: number | null;
+  groupName: string | null;
+};
 
 function toDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
@@ -25,6 +28,7 @@ export class ChildrenService {
       .select({
         ...getTableColumns(children),
         groupId: enrollments.groupId,
+        groupName: groups.name,
       })
       .from(userChildren)
       .innerJoin(
@@ -35,6 +39,7 @@ export class ChildrenService {
         enrollments,
         and(eq(enrollments.childId, children.id), isNull(enrollments.deletedAt))
       )
+      .leftJoin(groups, eq(groups.id, enrollments.groupId))
       .where(eq(userChildren.userId, userId))
       .orderBy(desc(enrollments.updatedAt), desc(enrollments.id));
 
@@ -46,12 +51,14 @@ export class ChildrenService {
       .select({
         ...getTableColumns(children),
         groupId: enrollments.groupId,
+        groupName: groups.name,
       })
       .from(children)
       .leftJoin(
         enrollments,
         and(eq(enrollments.childId, children.id), isNull(enrollments.deletedAt))
       )
+      .leftJoin(groups, eq(groups.id, enrollments.groupId))
       .where(isNull(children.deletedAt))
       .orderBy(desc(enrollments.updatedAt), desc(enrollments.id));
 
@@ -65,15 +72,14 @@ export class ChildrenService {
       .select({
         ...getTableColumns(children),
         groupId: enrollments.groupId,
+        groupName: groups.name,
       })
       .from(children)
       .innerJoin(
         enrollments,
-        and(
-          eq(enrollments.childId, children.id),
-          isNull(enrollments.deletedAt),
-        )
+        and(eq(enrollments.childId, children.id), isNull(enrollments.deletedAt))
       )
+      .leftJoin(groups, eq(groups.id, enrollments.groupId))
       .where(and(eq(enrollments.groupId, groupId), isNull(children.deletedAt)))
       .orderBy(desc(enrollments.updatedAt), desc(enrollments.id));
 
@@ -110,7 +116,10 @@ export class ChildrenService {
     return this.getChildWithGroupOrThrow(createdChildId);
   }
 
-  async update(id: number, updateChildDto: UpdateChildDto): Promise<ChildWithGroup> {
+  async update(
+    id: number,
+    updateChildDto: UpdateChildDto
+  ): Promise<ChildWithGroup> {
     await this.assertChildExists(id);
 
     if (updateChildDto.groupId !== undefined) {
@@ -142,7 +151,9 @@ export class ChildrenService {
         const [latestEnrollment] = await tx
           .select({ id: enrollments.id })
           .from(enrollments)
-          .where(and(eq(enrollments.childId, id), isNull(enrollments.deletedAt)))
+          .where(
+            and(eq(enrollments.childId, id), isNull(enrollments.deletedAt))
+          )
           .orderBy(desc(enrollments.updatedAt), desc(enrollments.id))
           .limit(1);
 
@@ -179,17 +190,21 @@ export class ChildrenService {
       .where(eq(children.id, id));
   }
 
-  private async getChildWithGroupOrThrow(childId: number): Promise<ChildWithGroup> {
+  private async getChildWithGroupOrThrow(
+    childId: number
+  ): Promise<ChildWithGroup> {
     const rows = await db
       .select({
         ...getTableColumns(children),
         groupId: enrollments.groupId,
+        groupName: groups.name,
       })
       .from(children)
       .leftJoin(
         enrollments,
         and(eq(enrollments.childId, children.id), isNull(enrollments.deletedAt))
       )
+      .leftJoin(groups, eq(groups.id, enrollments.groupId))
       .where(and(eq(children.id, childId), isNull(children.deletedAt)))
       .orderBy(desc(enrollments.updatedAt), desc(enrollments.id));
 

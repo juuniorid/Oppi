@@ -21,6 +21,7 @@ describe('ChildrenController', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       groupId: 5,
+      groupName: 'Mesimummud',
     },
   ];
 
@@ -35,6 +36,7 @@ describe('ChildrenController', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       groupId: 1,
+      groupName: 'Lepatriinud',
     },
     {
       id: 2,
@@ -46,6 +48,7 @@ describe('ChildrenController', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       groupId: 1,
+      groupName: 'Lepatriinud',
     },
   ];
 
@@ -59,6 +62,7 @@ describe('ChildrenController', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     groupId: 7,
+    groupName: 'Sipsikud',
   };
 
   const mockUngroupedChild: ChildWithGroup = {
@@ -71,6 +75,7 @@ describe('ChildrenController', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     groupId: null,
+    groupName: null,
   };
 
   beforeEach(async () => {
@@ -163,7 +168,9 @@ describe('ChildrenController', () => {
         lastName: 'Group',
         dateOfBirth: '2021-03-05',
       };
-      jest.spyOn(childrenService, 'create').mockResolvedValueOnce(mockUngroupedChild);
+      jest
+        .spyOn(childrenService, 'create')
+        .mockResolvedValueOnce(mockUngroupedChild);
 
       const result = await controller.create(payload);
 

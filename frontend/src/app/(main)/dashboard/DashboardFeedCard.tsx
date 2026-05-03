@@ -1,5 +1,13 @@
 import clsx from 'clsx';
-import { Box, Card, CardContent, Divider, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  Typography,
+} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import dayjs from 'dayjs';
@@ -7,6 +15,10 @@ import type { DashboardFeedItem } from './dashboard.types';
 
 type DashboardFeedCardProps = {
   item: DashboardFeedItem;
+  canManage?: boolean;
+  isDeleting?: boolean;
+  onEdit?: (item: DashboardFeedItem) => void;
+  onDelete?: (item: DashboardFeedItem) => void;
 };
 
 function formatDashboardCardDate(value: string): string {
@@ -26,27 +38,15 @@ function formatDashboardCardDate(value: string): string {
   }
 }
 
-function splitDashboardCardTitle(title: string): {
-  heading: string;
-} {
-  if (!title.includes(' - ')) {
-    return {
-      heading: title,
-    };
-  }
-
-  const [, ...rest] = title.split(' - ');
-  const groupName = rest.join(' - ').trim();
-
-  return {
-    heading: groupName ? `Päevakokkuvõte - ${groupName}` : 'Päevakokkuvõte',
-  };
-}
-
-export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
+export function DashboardFeedCard({
+  item,
+  canManage = false,
+  isDeleting = false,
+  onEdit,
+  onDelete,
+}: DashboardFeedCardProps) {
   const hasStatus = item.status != null;
   const isPresent = item.status === 'PRESENT';
-  const { heading } = splitDashboardCardTitle(item.title);
 
   return (
     <Card variant="outlined" elevation={0} sx={{ bgcolor: 'background.paper' }}>
@@ -61,6 +61,27 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
           >
             {formatDashboardCardDate(item.date)}
           </Typography>
+
+          <Typography
+            component="h2"
+            variant="subtitle1"
+            fontWeight={600}
+            sx={{ color: 'text.primary', mb: 1.5 }}
+          >
+            {item.title}
+          </Typography>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1.5, lineHeight: 1.6 }}
+            >
+              {item.description}
+            </Typography>
+          </Box>
+
+          {hasStatus ? <Divider sx={{ my: 1.5 }} /> : null}
 
           {hasStatus ? (
             <Box
@@ -84,46 +105,36 @@ export function DashboardFeedCard({ item }: DashboardFeedCardProps) {
                   )}
                   sx={{ fontWeight: 600 }}
                 >
-                  {isPresent ? 'Present' : 'Absent'}
+                  {isPresent ? 'Kohal' : 'Puudus'}
                 </Typography>
               </Box>
             </Box>
           ) : null}
 
-          {hasStatus ? <Divider sx={{ my: 1.5 }} /> : null}
-
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              component="h2"
-              variant="subtitle1"
-              fontWeight={600}
-              sx={{ color: 'text.primary', mb: 1.5 }}
+          {canManage ? (
+            <Stack
+              direction="row"
+              justifyContent="flex-end"
+              spacing={1}
+              sx={{ mt: 2 }}
             >
-              {heading}
-            </Typography>
-            {item.groupName ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: 1.5, fontWeight: 500 }}
+              <Button
+                size="small"
+                variant="neutral"
+                onClick={() => onEdit?.(item)}
               >
-                {item.groupName}
-              </Typography>
-            ) : null}
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 1.5,
-                pl: 1.5,
-                borderLeft: 2,
-                borderColor: 'divider',
-                lineHeight: 1.6,
-              }}
-            >
-              {item.description}
-            </Typography>
-          </Box>
+                Muuda
+              </Button>
+              <Button
+                size="small"
+                variant="negative"
+                onClick={() => onDelete?.(item)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Kustutan...' : 'Kustuta'}
+              </Button>
+            </Stack>
+          ) : null}
         </Box>
       </CardContent>
     </Card>

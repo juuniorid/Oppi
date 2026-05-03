@@ -14,7 +14,7 @@ import {
   userChildren,
   enrollments,
 } from 'database/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, isNull } from 'drizzle-orm';
 import { UpdatePostDto } from '../common/dto/update-post.dto';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class PostsService {
 
   async update(postId: number, updatePostDto: UpdatePostDto): Promise<Post> {
     const existing = await db.query.posts.findFirst({
-      where: eq(posts.id, postId),
+      where: and(eq(posts.id, postId), isNull(posts.deletedAt)),
     });
     if (!existing) {
       throw new NotFoundException(`Post ${postId} not found`);
@@ -66,6 +66,24 @@ export class PostsService {
     return updated;
   }
 
+  async delete(postId: number): Promise<void> {
+    const existing = await db.query.posts.findFirst({
+      where: and(eq(posts.id, postId), isNull(posts.deletedAt)),
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Post ${postId} not found`);
+    }
+
+    await db
+      .update(posts)
+      .set({
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(posts.id, postId));
+  }
+
   async findByGroup(groupId: number, user: User): Promise<Post[]> {
     await this.assertGroupExists(groupId);
     await this.assertUserCanAccessGroup(groupId, user);
@@ -73,7 +91,7 @@ export class PostsService {
     return db
       .select()
       .from(posts)
-      .where(eq(posts.groupId, groupId))
+      .where(and(eq(posts.groupId, groupId), isNull(posts.deletedAt)))
       .orderBy(desc(posts.createdAt));
   }
 

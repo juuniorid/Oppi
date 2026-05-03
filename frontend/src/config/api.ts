@@ -44,6 +44,8 @@ export const apiPaths = {
   posts: {
     create: '/posts',
     group: (groupId: number) => `/posts/group/${groupId}`,
+    update: (postId: number) => `/posts/${postId}`,
+    remove: (postId: number) => `/posts/${postId}`,
   },
   absences: {
     childByRange: ({
