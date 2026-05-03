@@ -180,6 +180,7 @@ export class AuthService {
     }
 
     if (Object.keys(patch).length === 0) {
+      this.logger.log(`Profile update noop (empty payload after normalize) user id=${user.id}`);
       return this.getProfile(user);
     }
 
@@ -193,9 +194,13 @@ export class AuthService {
       .returning();
 
     if (!updated) {
+      this.logger.warn(`Profile update failed: user id=${user.id} not found`);
       throw new UnauthorizedException('User not found');
     }
 
+    this.logger.log(
+      `Profile updated user id=${user.id} fields=${Object.keys(patch).join(',')}`
+    );
     return this.getProfile(updated);
   }
 }
