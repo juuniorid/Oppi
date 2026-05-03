@@ -51,7 +51,7 @@ class AuthService {
     lastName?: string;
     phone?: string;
   }): Promise<User> {
-    const response = await fetchWithAuth(apiUrl(apiPaths.auth.updateMe), {
+    const response = await fetchWithAuth(apiUrl(apiPaths.auth.me), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
