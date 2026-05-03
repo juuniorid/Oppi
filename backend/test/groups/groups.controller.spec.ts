@@ -1,7 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Request } from 'express';
+import { ROLE, User } from '../../src/database/schema';
 import { GroupsController } from '../../src/groups/groups.controller';
-import { GroupsService, GroupWithDetails, TeacherUser } from '../../src/groups/groups.service';
+import {
+  GroupsService,
+  GroupWithDetails,
+  TeacherUser,
+} from '../../src/groups/groups.service';
+
+function createRequestWithUser(user: Partial<User>): Request & { user: User } {
+  return {
+    user: {
+      id: 1,
+      role: ROLE.Admin,
+      email: 'admin@test.com',
+      firstName: null,
+      lastName: null,
+      phone: null,
+      googleId: null,
+      deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...user,
+    },
+  } as Request & { user: User };
+}
 
 describe('GroupsController', () => {
   let controller: GroupsController;
@@ -26,7 +50,9 @@ describe('GroupsController', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       childrenCount: 3,
-      teachers: [{ id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' }],
+      teachers: [
+        { id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' },
+      ],
     },
     {
       id: 2,
@@ -54,7 +80,9 @@ describe('GroupsController', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     childrenCount: 0,
-    teachers: [{ id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' }],
+    teachers: [
+      { id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' },
+    ],
   };
 
   beforeEach(async () => {
@@ -67,7 +95,9 @@ describe('GroupsController', () => {
             findAll: jest.fn().mockResolvedValue(mockGroups),
             findTeachers: jest.fn().mockResolvedValue([mockTeacher]),
             create: jest.fn().mockResolvedValue(mockCreatedGroup),
-            update: jest.fn().mockResolvedValue({ ...mockGroups[0], name: 'Updated Ants' }),
+            update: jest
+              .fn()
+              .mockResolvedValue({ ...mockGroups[0], name: 'Updated Ants' }),
           },
         },
       ],
@@ -83,7 +113,7 @@ describe('GroupsController', () => {
 
   describe('findAll', () => {
     it('should return all groups with details', async () => {
-      const req = { user: { id: 1, role: 'ADMIN' } } as any;
+      const req = createRequestWithUser({});
       const result = await controller.findAll(req);
 
       expect(groupsService.findAll).toHaveBeenCalledWith(req.user);
@@ -102,7 +132,13 @@ describe('GroupsController', () => {
 
   describe('create', () => {
     it('should create and return a group without teachers', async () => {
-      const dto = { name: 'Foxes', description: 'Fast and clever', ageMin: '4', ageMax: '6', kindergartenName: 'Forest Kindergarten' };
+      const dto = {
+        name: 'Foxes',
+        description: 'Fast and clever',
+        ageMin: '4',
+        ageMax: '6',
+        kindergartenName: 'Forest Kindergarten',
+      };
 
       const result = await controller.create(dto);
 
@@ -119,9 +155,13 @@ describe('GroupsController', () => {
     });
 
     it('should propagate BadRequestException for invalid teacher IDs', async () => {
-      (groupsService.create as jest.Mock).mockRejectedValue(new BadRequestException('User IDs are not valid teachers: 99'));
+      (groupsService.create as jest.Mock).mockRejectedValue(
+        new BadRequestException('User IDs are not valid teachers: 99')
+      );
 
-      await expect(controller.create({ name: 'Foxes', teacherIds: [99] })).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.create({ name: 'Foxes', teacherIds: [99] })
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -152,15 +192,23 @@ describe('GroupsController', () => {
     });
 
     it('should propagate NotFoundException from service', async () => {
-      (groupsService.update as jest.Mock).mockRejectedValue(new NotFoundException('Group with id 99999 not found'));
+      (groupsService.update as jest.Mock).mockRejectedValue(
+        new NotFoundException('Group with id 99999 not found')
+      );
 
-      await expect(controller.update(99999, { name: 'Ghost' })).rejects.toThrow(NotFoundException);
+      await expect(controller.update(99999, { name: 'Ghost' })).rejects.toThrow(
+        NotFoundException
+      );
     });
 
     it('should propagate BadRequestException for invalid teacher IDs', async () => {
-      (groupsService.update as jest.Mock).mockRejectedValue(new BadRequestException('User IDs are not valid teachers: 99'));
+      (groupsService.update as jest.Mock).mockRejectedValue(
+        new BadRequestException('User IDs are not valid teachers: 99')
+      );
 
-      await expect(controller.update(1, { teacherIds: [99] })).rejects.toThrow(BadRequestException);
+      await expect(controller.update(1, { teacherIds: [99] })).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 });
@@ -181,7 +229,9 @@ describe('GroupsController', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       childrenCount: 3,
-      teachers: [{ id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' }],
+      teachers: [
+        { id: 10, firstName: 'Mari', lastName: 'Mets', role: 'GENERAL' },
+      ],
     },
     {
       id: 2,
@@ -221,7 +271,9 @@ describe('GroupsController', () => {
           useValue: {
             findAll: jest.fn().mockResolvedValue(mockGroups),
             create: jest.fn().mockResolvedValue(mockCreatedGroup),
-            update: jest.fn().mockResolvedValue({ ...mockGroups[0], name: 'Updated Ants' }),
+            update: jest
+              .fn()
+              .mockResolvedValue({ ...mockGroups[0], name: 'Updated Ants' }),
           },
         },
       ],
@@ -237,7 +289,7 @@ describe('GroupsController', () => {
 
   describe('findAll', () => {
     it('should return all groups with details', async () => {
-      const req = { user: { id: 1, role: 'ADMIN' } } as any;
+      const req = createRequestWithUser({});
       const result = await controller.findAll(req);
 
       expect(groupsService.findAll).toHaveBeenCalledWith(req.user);
@@ -247,7 +299,13 @@ describe('GroupsController', () => {
 
   describe('create', () => {
     it('should create and return a group', async () => {
-      const dto = { name: 'Foxes', description: 'Fast and clever', ageMin: '4', ageMax: '6', kindergartenName: 'Forest Kindergarten' };
+      const dto = {
+        name: 'Foxes',
+        description: 'Fast and clever',
+        ageMin: '4',
+        ageMax: '6',
+        kindergartenName: 'Forest Kindergarten',
+      };
 
       const result = await controller.create(dto);
 
@@ -267,9 +325,13 @@ describe('GroupsController', () => {
     });
 
     it('should propagate NotFoundException from service', async () => {
-      (groupsService.update as jest.Mock).mockRejectedValue(new NotFoundException('Group with id 99999 not found'));
+      (groupsService.update as jest.Mock).mockRejectedValue(
+        new NotFoundException('Group with id 99999 not found')
+      );
 
-      await expect(controller.update(99999, { name: 'Ghost' })).rejects.toThrow(NotFoundException);
+      await expect(controller.update(99999, { name: 'Ghost' })).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 });
