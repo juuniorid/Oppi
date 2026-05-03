@@ -7,6 +7,8 @@ import {
   MessageCircle,
   Settings,
   UserPlus,
+  Users,
+  Baby,
 } from 'lucide-react';
 
 /** Mobiil: alumisel ribal täpselt 3 kirjet + 4. koht on „Rohkem“ (ülejäänud lingid). */
@@ -29,13 +31,15 @@ export type MainNavItem = {
 };
 
 export const mainNav: MainNavItem[] = [
-  { href: '/dashboard', label: 'Avaleht', Icon: Home, mobile: 'dock' },
+  { href: '/users', label: 'Kasutajad', Icon: UserPlus, mobile: 'overflow', roles: ['ADMIN'] },
+  { href: '/groups', label: 'Grupid', Icon: Users, mobile: 'overflow', roles: ['ADMIN'] },
+  { href: '/children', label: 'Lapsed', Icon: Baby, mobile: 'overflow', roles: ['ADMIN'] },
+  { href: '/dashboard', label: 'Avaleht', Icon: Home, mobile: 'dock'},
   { href: '/announcements', label: 'Teated', Icon: Bell, mobile: 'dock' },
   { href: '/calendar', label: 'Kalender', Icon: Calendar, mobile: 'dock' },
   { href: '/messages', label: 'Vestlus', Icon: MessageCircle, mobile: 'overflow' },
   { href: '/gallery', label: 'Galerii', Icon: ImageIcon, mobile: 'overflow' },
   { href: '/settings', label: 'Seaded', Icon: Settings, mobile: 'overflow' },
-  { href: '/admin', label: 'Kutsu kasutaja', Icon: UserPlus, mobile: 'overflow', roles: ['ADMIN'] },
 ];
 
 if (process.env.NODE_ENV === 'development') {

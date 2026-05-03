@@ -30,13 +30,44 @@ export interface Child {
   notes?: string | null;
 }
 
+export type CreateChildPayload = {
+  firstName: string;
+  lastName: string;
+  groupId?: number;
+  dateOfBirth: string;
+  notes?: string;
+};
+
+export type UpdateChildPayload = Partial<CreateChildPayload>;
+
+export interface GroupTeacher {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  role?: string | null;
+}
+
 export interface Group {
   id: number;
   name?: string | null;
   description?: string | null;
-  ageMin?: number | null;
-  ageMax?: number | null;
+  ageMin?: string | null;
+  ageMax?: string | null;
+  kindergartenName?: string | null;
+  childrenCount?: number;
+  teachers?: GroupTeacher[];
 }
+
+export type CreateGroupPayload = {
+  name: string;
+  description?: string;
+  ageMin?: string;
+  ageMax?: string;
+  kindergartenName?: string;
+  teacherIds?: number[];
+};
+
+export type UpdateGroupPayload = Partial<CreateGroupPayload>;
 
 export interface Message {
   id: number;
@@ -79,7 +110,7 @@ export type EventEntry = {
 };
 
 export type CreateEventPayload = {
-  groupId: number;
+  groupId?: number;
   from: string;
   to: string;
   timeFrom: string;

@@ -24,15 +24,22 @@ export const apiPaths = {
   auth: {
     google: '/auth/google',
     me: '/auth/me',
-    updateMe: '/auth/me',
+    refresh: '/auth/refresh',
     logout: '/auth/logout',
   },
   children: {
+    listForParent: '/children/my',
     list: '/children',
     group: (groupId: number) => `/children/group/${groupId}`,
+    create: '/children',
+    update: (childId: number) => `/children/${childId}`,
+    delete: (childId: number) => `/children/${childId}`,
   },
   groups: {
     list: '/groups',
+    teachers: '/groups/teachers',
+    create: '/groups',
+    update: (groupId: number) => `/groups/${groupId}`,
   },
   posts: {
     create: '/posts',

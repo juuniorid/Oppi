@@ -5,7 +5,7 @@ import type { GroupUser, TeacherRoleType } from '../../src/database/schema';
 export async function createTestGroupUser(
   groupId: number,
   userId: number,
-  role: TeacherRoleType = TEACHER_ROLE.Main,
+  role: TeacherRoleType = TEACHER_ROLE.General,
 ): Promise<GroupUser> {
   const [groupUser] = await testDb
     .insert(groupUsers)

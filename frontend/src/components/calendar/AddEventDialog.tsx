@@ -12,16 +12,17 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import calendarService from '@/services/calendar.service';
+import groupService from '@/services/group.service';
+import { useUserRole } from '@/context/UserRoleContext';
 import type { CreateEventPayload, EventEntry, UpdateEventPayload } from '@/types';
 import { showErrorToast, showSuccessToast } from '@/components/ErrorToast';
-import { EVENT_TYPE, type EventType } from '@/types/enums';
+import { EVENT_TYPE, USER_ROLE, type EventType } from '@/types/enums';
 
 type EventDialogMode = 'create' | 'edit';
 
 type AddEventDialogProps = {
   open: boolean;
   mode: EventDialogMode;
-  groupId: number;
   initialDate: string;
   event: EventEntry | null;
   onClose: () => void;
@@ -55,12 +56,13 @@ function resolveInitialValues(mode: EventDialogMode, event: EventEntry | null, i
 export function AddEventDialog({
   open,
   mode,
-  groupId,
   initialDate,
   event,
   onClose,
   onSaved,
 }: AddEventDialogProps) {
+  const { role } = useUserRole();
+  const isAdmin = role === USER_ROLE.ADMIN;
   const [from, setFrom] = useState(initialDate);
   const [to, setTo] = useState(initialDate);
   const [timeFrom, setTimeFrom] = useState('09:00');
@@ -68,6 +70,9 @@ export function AddEventDialog({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState<EventType>(EVENT_TYPE.GROUP);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [availableGroups, setAvailableGroups] = useState<Array<{ id: number; name?: string | null }>>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -83,15 +88,76 @@ export function AddEventDialog({
     setName(values.name);
     setDescription(values.description);
     setType(values.type);
+    setSelectedGroupId(null);
   }, [open, mode, event, initialDate]);
+
+  useEffect(() => {
+    if (!open || !isAdmin) {
+      return;
+    }
+
+    let isActive = true;
+    setLoadingGroups(true);
+    groupService
+      .getGroups()
+      .then((groups) => {
+        if (!isActive) {
+          return;
+        }
+        setAvailableGroups(groups);
+        if (groups.length === 0) {
+          setSelectedGroupId(null);
+          return;
+        }
+
+        setSelectedGroupId((currentSelectedGroupId) => {
+          if (
+            currentSelectedGroupId &&
+            groups.some((group) => group.id === currentSelectedGroupId)
+          ) {
+            return currentSelectedGroupId;
+          }
+
+          return groups[0].id;
+        });
+      })
+      .catch((error: Error) => {
+        if (isActive) {
+          showErrorToast(error.message || 'Failed to load groups');
+          setAvailableGroups([]);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setLoadingGroups(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAdmin, open]);
+
+  const hasValidAdminGroupSelection = useMemo(() => {
+    const requiresGroupSelection = isAdmin && type === EVENT_TYPE.GROUP;
+    if (!requiresGroupSelection) {
+      return true;
+    }
+
+    if (!selectedGroupId) {
+      return false;
+    }
+
+    return availableGroups.some((group) => group.id === selectedGroupId);
+  }, [isAdmin, type, selectedGroupId, availableGroups]);
 
   const canSubmit = useMemo(() => {
     if (isSubmitting) {
       return false;
     }
 
-    return Boolean(from && to && timeFrom && timeTo && name.trim());
-  }, [from, to, timeFrom, timeTo, name, isSubmitting]);
+    return Boolean(from && to && timeFrom && timeTo && name.trim() && hasValidAdminGroupSelection);
+  }, [from, to, timeFrom, timeTo, name, isSubmitting, hasValidAdminGroupSelection]);
 
   const handleSubmit = async () => {
     if (dayjs(from).isAfter(dayjs(to), 'day')) {
@@ -104,8 +170,14 @@ export function AddEventDialog({
       return;
     }
 
+    const requiresGroupSelection = isAdmin && type === EVENT_TYPE.GROUP;
+    const resolvedGroupId = requiresGroupSelection ? selectedGroupId : null;
+    if (requiresGroupSelection && (!resolvedGroupId || !hasValidAdminGroupSelection)) {
+      showErrorToast('Palun vali rühm.');
+      return;
+    }
+
     const payload: CreateEventPayload | UpdateEventPayload = {
-      groupId,
       from,
       to,
       timeFrom,
@@ -113,6 +185,7 @@ export function AddEventDialog({
       name: name.trim(),
       description: description.trim() || undefined,
       type,
+      ...(requiresGroupSelection && resolvedGroupId ? { groupId: resolvedGroupId } : {}),
     };
 
     setIsSubmitting(true);
@@ -139,6 +212,29 @@ export function AddEventDialog({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{mode === 'edit' ? 'Muuda sündmust' : 'Lisa sündmus'}</DialogTitle>
       <DialogContent sx={{ display: 'grid', gap: 2, pt: '26px !important' }}>
+        {isAdmin && type === EVENT_TYPE.GROUP ? (
+          <FormControl fullWidth>
+            <InputLabel id="event-group-select-label">Rühm</InputLabel>
+            <Select
+              id="event-group-select"
+              labelId="event-group-select-label"
+              value={selectedGroupId != null ? String(selectedGroupId) : ''}
+              label="Rühm"
+              disabled={loadingGroups || availableGroups.length === 0}
+              onChange={(event: SelectChangeEvent) => {
+                const nextId = Number(event.target.value);
+                setSelectedGroupId(Number.isNaN(nextId) ? null : nextId);
+              }}
+            >
+              {availableGroups.map((group) => (
+                <MenuItem key={group.id} value={String(group.id)}>
+                  {group.name || `Rühm ${group.id}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ) : null}
+
         <TextField
           label="Sündmuse nimi"
           value={name}

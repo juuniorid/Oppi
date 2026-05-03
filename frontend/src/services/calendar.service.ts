@@ -8,8 +8,6 @@ import {
 } from '@/services/http.service';
 import { AbsenceEntry, CreateAbsencePayload, CreateEventPayload, EventEntry, UpdateEventPayload } from '@/types';
 
-const USE_DUMMY_CALENDAR_DATA = true;
-
 type QueryValue = string | number | boolean | null | undefined;
 
 function withQuery(path: string, query?: Record<string, QueryValue>): string {
@@ -31,10 +29,6 @@ function withQuery(path: string, query?: Record<string, QueryValue>): string {
 
 class CalendarService {
   async getAbsencesByChild({childId, from, to}: {childId: number; from: string; to: string}): Promise<AbsenceEntry[]> {
-    if (USE_DUMMY_CALENDAR_DATA) {
-      return buildDummyAbsences({ childId, from });
-    }
-
     const response = await fetchWithAuth(
       apiUrl(withQuery(`/absences/child/${childId}`, { from, to })),
     );
@@ -44,14 +38,11 @@ class CalendarService {
       throw new Error(extractErrorMessage(payload, `Failed to load absences (${response.status})`));
     }
 
-    return unwrapData<AbsenceEntry[]>(payload, []);
+    const absences = unwrapData<AbsenceEntry[]>(payload, []);
+    return absences.length > 0 ? absences : buildDummyAbsences({ childId, from });
   }
 
   async getAbsencesByGroup({groupId, from, to}: {groupId: number; from: string; to: string}): Promise<AbsenceEntry[]> {
-    if (USE_DUMMY_CALENDAR_DATA) {
-      return buildDummyGroupAbsences({ from });
-    }
-
     const response = await fetchWithAuth(
       apiUrl(withQuery(`/absences/group/${groupId}`, { from, to })),
     );
@@ -61,7 +52,8 @@ class CalendarService {
       throw new Error(extractErrorMessage(payload, `Failed to load absences (${response.status})`));
     }
 
-    return unwrapData<AbsenceEntry[]>(payload, []);
+    const absences = unwrapData<AbsenceEntry[]>(payload, []);
+    return absences.length > 0 ? absences : buildDummyGroupAbsences({ from });
   }
 
   async createAbsence(body: CreateAbsencePayload): Promise<AbsenceEntry[] | null> {
@@ -80,10 +72,6 @@ class CalendarService {
   }
 
   async getEventsByGroup({ from, to}: { from: string; to: string}): Promise<EventEntry[]> {
-    if (USE_DUMMY_CALENDAR_DATA) {
-      return buildDummyEvents({ from });
-    }
-
     const response = await fetchWithAuth(
       apiUrl(apiPaths.events.listByRange({ from, to })),
     );
@@ -93,14 +81,11 @@ class CalendarService {
       return [];
     }
 
-    return unwrapData<EventEntry[]>(payload, []);
+    const events = unwrapData<EventEntry[]>(payload, []);
+    return events.length > 0 ? events : buildDummyEvents({ from });
   }
 
   async getEventsByChild({childId, from, to}: {childId: number; from: string; to: string}): Promise<EventEntry[]> {
-    if (USE_DUMMY_CALENDAR_DATA) {
-      return buildDummyEvents({ from });
-    }
-
     const response = await fetchWithAuth(
       apiUrl(apiPaths.events.childByRange({ childId, from, to })),
     );
@@ -110,7 +95,8 @@ class CalendarService {
       return [];
     }
 
-    return unwrapData<EventEntry[]>(payload, []);
+    const events = unwrapData<EventEntry[]>(payload, []);
+    return events.length > 0 ? events : buildDummyEvents({ from });
   }
 
   async createEvent(body: CreateEventPayload): Promise<EventEntry | null> {

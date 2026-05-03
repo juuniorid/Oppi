@@ -67,13 +67,8 @@ function mapPostsToDashboardItems(
 }
 
 export default function DashboardPage() {
-  // const { role, loading: roleLoading } = useUserRole();
-  // const { selectedChildId, selectedGroupId, loading: childLoading } = useChildSelection();
-  const { loading: roleLoading } = useUserRole(); // Used only for demo
-  const { loading: childLoading } = useChildSelection(); // Used only for demo
-  const role = USER_ROLE.PARENT; // Used only for demo
-  const selectedChildId = 1; // Used only for demo
-  const selectedGroupId = 1; // Used only for demo
+  const { role, loading: roleLoading } = useUserRole();
+  const { selectedChildId, selectedGroupId, loading: childLoading } = useChildSelection();
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
@@ -91,11 +86,6 @@ export default function DashboardPage() {
     setIsLoading(true);
 
     try {
-      const groups = await groupService.getGroups();
-      const groupById = Object.fromEntries(
-        groups.map((group) => [group.id, group])
-      ) as Record<number, Group>;
-
       if (role === USER_ROLE.PARENT) {
         const absenceEntries = selectedChildId
           ? await calendarService.getAbsencesByChild({
@@ -108,11 +98,16 @@ export default function DashboardPage() {
         setDashboardFeedItems(
           mapAbsencesToDashboardItems(
             Array.isArray(absenceEntries) ? absenceEntries : [],
-            groupById[selectedGroupId]?.name
+            null
           )
         );
         return;
       }
+
+      const groups = await groupService.getGroups();
+      const groupById = Object.fromEntries(
+        groups.map((group) => [group.id, group])
+      ) as Record<number, Group>;
 
       if (role === USER_ROLE.TEACHER) {
         const profile = await authService.getProfile();
@@ -138,7 +133,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [role, selectedChildId, selectedGroupId]);
+  }, [role, selectedChildId]);
 
   useEffect(() => {
     if (roleLoading) {

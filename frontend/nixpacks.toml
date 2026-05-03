@@ -1,0 +1,15 @@
+[variables]
+NODE_ENV = "production"
+
+[phases.install]
+cmds = [
+	"corepack enable",
+	"corepack prepare pnpm@9.15.2 --activate",
+	"pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = ["pnpm run build"]
+
+[start]
+cmd = "node .next/standalone/server.js"

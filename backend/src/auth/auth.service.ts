@@ -1,10 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from 'database/db';
 import { groupUsers, users, User } from 'database/schema';
 import { JwtPayload } from 'src/common/dto/jwt.payload';
-import { UpdateProfileDto } from 'src/common/dto/update-profile.dto';
+import { appConfig } from 'src/config';
 
 export type AuthProfile = User & {
   groupIds: number[];
@@ -104,35 +104,58 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async getProfile(user: User): Promise<AuthProfile> {
-    const groupLinks = await db
-      .select({ groupId: groupUsers.groupId })
-      .from(groupUsers)
-      .where(eq(groupUsers.userId, user.id));
+  async validateRefreshToken(token: string): Promise<User> {
+    try {
+      const payload = this.jwtService.verify<JwtPayload & { exp?: number }>(token, {
+        secret: appConfig.jwt.secret,
+        ignoreExpiration: true,
+      });
 
-    return {
-      ...user,
-      groupIds: groupLinks.map((link) => link.groupId),
-    };
+      if (payload.exp) {
+        const maxStalenessSeconds = 7 * 24 * 60 * 60;
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        if (nowSeconds - payload.exp > maxStalenessSeconds) {
+          throw new UnauthorizedException('Refresh token expired');
+        }
+      }
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, payload.sub), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return user;
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
-  async updateProfile(
-    user: User,
-    payload: UpdateProfileDto
-  ): Promise<AuthProfile> {
-    // Empty string values are normalized to null so DB values stay consistent.
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        firstName: payload.firstName?.trim() ?? null,
-        lastName: payload.lastName?.trim() ?? null,
-        phone: payload.phone?.trim() ?? null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, user.id))
-      .returning();
+  async getProfile(user: User): Promise<AuthProfile> {
+    try {
+      const groupLinks = await db
+        .select({ groupId: groupUsers.groupId })
+        .from(groupUsers)
+        .where(eq(groupUsers.userId, user.id));
 
-    this.logger.log(`Profile updated for user id=${user.id}`);
-    return this.getProfile(updatedUser);
+      return {
+        ...user,
+        groupIds: groupLinks.map((link) => link.groupId),
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to load group links for user id=${user.id}. Returning empty groupIds.`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      return {
+        ...user,
+        groupIds: [],
+      };
+    }
   }
 }

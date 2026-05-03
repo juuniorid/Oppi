@@ -2,8 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../../src/auth/auth.controller';
 import { AuthService } from '../../src/auth/auth.service';
 import { ROLE, User } from 'database/schema';
-import { Request } from 'express';
-import { UpdateProfileDto } from '../../src/common/dto/update-profile.dto';
+import { Request, Response } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -29,6 +28,7 @@ describe('AuthController', () => {
   const authServiceMock = {
     login: jest.fn().mockResolvedValue('mocked_jwt_token'),
     validateOAuthLogin: jest.fn(),
+    validateRefreshToken: jest.fn().mockResolvedValue(mockUser),
     getProfile: jest.fn().mockResolvedValue(mockAuthProfile),
     updateProfile: jest.fn().mockResolvedValue(mockAuthProfile),
   };
@@ -55,30 +55,33 @@ describe('AuthController', () => {
   describe('getProfile', () => {
     it('should return auth profile from auth service', async () => {
       const mockRequest = { user: mockUser } as unknown as Request;
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        cookie: jest.fn(),
+      } as unknown as Response;
 
-      const result = await controller.getProfile(mockRequest);
+      const result = await controller.getProfile(mockRequest, mockResponse);
 
+      expect(authServiceMock.login).toHaveBeenCalledWith(mockUser);
       expect(authServiceMock.getProfile).toHaveBeenCalledWith(mockUser);
       expect(result).toEqual(mockAuthProfile);
     });
   });
 
-  describe('updateProfile', () => {
-    it('should update and return auth profile from auth service', async () => {
-      const mockRequest = { user: mockUser } as unknown as Request;
-      const payload: UpdateProfileDto = {
-        firstName: 'Updated',
-        lastName: 'Name',
-        phone: '+3725555555',
-      };
+  describe('refresh', () => {
+    it('should rotate jwt cookie using existing token', async () => {
+      const mockRequest = { cookies: { jwt: 'current_token' } } as unknown as Request;
+      const mockResponse = {
+        clearCookie: jest.fn(),
+        cookie: jest.fn(),
+      } as unknown as Response;
 
-      const result = await controller.updateProfile(mockRequest, payload);
+      const result = await controller.refresh(mockRequest, mockResponse);
 
-      expect(authServiceMock.updateProfile).toHaveBeenCalledWith(
-        mockUser,
-        payload
-      );
-      expect(result).toEqual(mockAuthProfile);
+      expect(authServiceMock.validateRefreshToken).toHaveBeenCalledWith('current_token');
+      expect(authServiceMock.login).toHaveBeenCalledWith(mockUser);
+      expect(mockResponse.cookie).toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
   });
 });
