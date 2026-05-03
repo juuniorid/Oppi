@@ -21,17 +21,25 @@ describe('GroupsService (e2e)', () => {
 
   describe('findAll', () => {
     it('should return an empty array when there are no groups', async () => {
-      const result = await service.findAll();
+      const admin = await createTestUser(
+        'findall-empty-admin@test.com',
+        ROLE.Admin
+      );
+      const result = await service.findAll(admin);
 
       expect(result).toEqual([]);
     });
 
     it('should return groups ordered by name ascending', async () => {
+      const admin = await createTestUser(
+        'findall-order-admin@test.com',
+        ROLE.Admin
+      );
       await createTestGroup('Zebras');
       await createTestGroup('Ants');
       await createTestGroup('Bumblebees');
 
-      const result = await service.findAll();
+      const result = await service.findAll(admin);
 
       expect(result.map((group) => group.name)).toEqual([
         'Ants',
@@ -41,13 +49,17 @@ describe('GroupsService (e2e)', () => {
     });
 
     it('should include childrenCount for enrolled children', async () => {
+      const admin = await createTestUser(
+        'findall-children-admin@test.com',
+        ROLE.Admin
+      );
       const group = await createTestGroup('Otters');
       const child1 = await createTestChild('Alice', 'Smith');
       const child2 = await createTestChild('Bob', 'Jones');
       await createTestEnrollment(child1.id, group.id);
       await createTestEnrollment(child2.id, group.id);
 
-      const result = await service.findAll();
+      const result = await service.findAll(admin);
       const found = result.find((g) => g.id === group.id);
 
       expect(found).toBeDefined();
@@ -55,6 +67,10 @@ describe('GroupsService (e2e)', () => {
     });
 
     it('should include teachers list for assigned teachers', async () => {
+      const admin = await createTestUser(
+        'findall-teachers-admin@test.com',
+        ROLE.Admin
+      );
       const group = await createTestGroup('Wolves');
       const teacher = await createTestUser('teacher@wolves.com', ROLE.Teacher, {
         firstName: 'Kati',
@@ -62,7 +78,7 @@ describe('GroupsService (e2e)', () => {
       });
       await createTestGroupUser(group.id, teacher.id, TEACHER_ROLE.Head);
 
-      const result = await service.findAll();
+      const result = await service.findAll(admin);
       const found = result.find((g) => g.id === group.id);
 
       expect(found).toBeDefined();
@@ -76,14 +92,37 @@ describe('GroupsService (e2e)', () => {
     });
 
     it('should return childrenCount 0 and empty teachers for group with no members', async () => {
+      const admin = await createTestUser(
+        'findall-members-admin@test.com',
+        ROLE.Admin
+      );
       const group = await createTestGroup('Empty Group');
 
-      const result = await service.findAll();
+      const result = await service.findAll(admin);
       const found = result.find((g) => g.id === group.id);
 
       expect(found).toBeDefined();
       expect(found!.childrenCount).toBe(0);
       expect(found!.teachers).toEqual([]);
+    });
+
+    it('should return only assigned groups for a teacher', async () => {
+      const teacher = await createTestUser(
+        'assigned-teacher@test.com',
+        ROLE.Teacher
+      );
+      const assignedGroup = await createTestGroup('Assigned Group');
+      await createTestGroup('Other Group');
+      await createTestGroupUser(
+        assignedGroup.id,
+        teacher.id,
+        TEACHER_ROLE.General
+      );
+
+      const result = await service.findAll(teacher);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(assignedGroup.id);
     });
   });
 
@@ -131,14 +170,19 @@ describe('GroupsService (e2e)', () => {
     it('should update ageMin and ageMax', async () => {
       const group = await createTestGroup('Age Group');
 
-      const result = await service.update(group.id, { ageMin: '2', ageMax: '4' });
+      const result = await service.update(group.id, {
+        ageMin: '2',
+        ageMax: '4',
+      });
 
       expect(result.ageMin).toBe('2');
       expect(result.ageMax).toBe('4');
     });
 
     it('should throw NotFoundException when group does not exist', async () => {
-      await expect(service.update(99999, { name: 'Ghost' })).rejects.toThrow(NotFoundException);
+      await expect(service.update(99999, { name: 'Ghost' })).rejects.toThrow(
+        NotFoundException
+      );
     });
 
     it('should include childrenCount and teachers in update result', async () => {
@@ -146,7 +190,9 @@ describe('GroupsService (e2e)', () => {
       const child = await createTestChild('Tina', 'Doe');
       await createTestEnrollment(child.id, group.id);
 
-      const result = await service.update(group.id, { description: 'Updated desc' });
+      const result = await service.update(group.id, {
+        description: 'Updated desc',
+      });
 
       expect(result.childrenCount).toBe(1);
       expect(result.teachers).toEqual([]);
@@ -159,10 +205,16 @@ describe('GroupsService (e2e)', () => {
         lastName: 'Teacher',
       });
 
-      const result = await service.update(group.id, { teacherIds: [teacher.id] });
+      const result = await service.update(group.id, {
+        teacherIds: [teacher.id],
+      });
 
       expect(result.teachers).toHaveLength(1);
-      expect(result.teachers[0]).toMatchObject({ id: teacher.id, firstName: 'Assign', lastName: 'Teacher' });
+      expect(result.teachers[0]).toMatchObject({
+        id: teacher.id,
+        firstName: 'Assign',
+        lastName: 'Teacher',
+      });
     });
 
     it('should replace existing teachers when teacherIds is provided', async () => {
@@ -174,7 +226,9 @@ describe('GroupsService (e2e)', () => {
       });
       await createTestGroupUser(group.id, oldTeacher.id, TEACHER_ROLE.General);
 
-      const result = await service.update(group.id, { teacherIds: [newTeacher.id] });
+      const result = await service.update(group.id, {
+        teacherIds: [newTeacher.id],
+      });
 
       expect(result.teachers).toHaveLength(1);
       expect(result.teachers[0].id).toBe(newTeacher.id);
@@ -198,7 +252,9 @@ describe('GroupsService (e2e)', () => {
       });
       await createTestGroupUser(group.id, teacher.id, TEACHER_ROLE.General);
 
-      const result = await service.update(group.id, { name: 'Keep Teachers Renamed' });
+      const result = await service.update(group.id, {
+        name: 'Keep Teachers Renamed',
+      });
 
       expect(result.teachers).toHaveLength(1);
       expect(result.teachers[0].id).toBe(teacher.id);
@@ -208,34 +264,55 @@ describe('GroupsService (e2e)', () => {
       const group = await createTestGroup('Bad Teacher');
       const adminUser = await createTestUser('admin@test.com', ROLE.Admin);
 
-      await expect(service.update(group.id, { teacherIds: [adminUser.id] })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.update(group.id, { teacherIds: [adminUser.id] })
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('create with teachers', () => {
     it('should create a group and assign teachers', async () => {
-      const teacher = await createTestUser('create-assign@teacher.com', ROLE.Teacher, {
+      const teacher = await createTestUser(
+        'create-assign@teacher.com',
+        ROLE.Teacher,
+        {
+          firstName: 'Kati',
+          lastName: 'Lepp',
+        }
+      );
+
+      const result = await service.create({
+        name: 'With Teachers',
+        teacherIds: [teacher.id],
+      });
+
+      expect(result.teachers).toHaveLength(1);
+      expect(result.teachers[0]).toMatchObject({
+        id: teacher.id,
         firstName: 'Kati',
         lastName: 'Lepp',
       });
-
-      const result = await service.create({ name: 'With Teachers', teacherIds: [teacher.id] });
-
-      expect(result.teachers).toHaveLength(1);
-      expect(result.teachers[0]).toMatchObject({ id: teacher.id, firstName: 'Kati', lastName: 'Lepp' });
     });
 
     it('should throw BadRequestException when a teacherId in create is not a teacher', async () => {
       const parent = await createTestUser('parent@test.com', ROLE.Parent);
 
-      await expect(service.create({ name: 'Bad Create', teacherIds: [parent.id] })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.create({ name: 'Bad Create', teacherIds: [parent.id] })
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('findTeachers', () => {
     it('should return all users with TEACHER role', async () => {
-      const teacher1 = await createTestUser('t1@test.com', ROLE.Teacher, { firstName: 'Alpha', lastName: 'T' });
-      const teacher2 = await createTestUser('t2@test.com', ROLE.Teacher, { firstName: 'Beta', lastName: 'T' });
+      const teacher1 = await createTestUser('t1@test.com', ROLE.Teacher, {
+        firstName: 'Alpha',
+        lastName: 'T',
+      });
+      const teacher2 = await createTestUser('t2@test.com', ROLE.Teacher, {
+        firstName: 'Beta',
+        lastName: 'T',
+      });
       await createTestUser('admin@findtest.com', ROLE.Admin);
 
       const result = await service.findTeachers();

@@ -10,7 +10,6 @@ import { CreatePostDialog } from '@/components/dashboard/CreatePostDialog';
 import { DashboardFeedCard } from '@/app/(main)/dashboard/DashboardFeedCard';
 import { PageTitle } from '@/components/PageTitle';
 import { showErrorToast } from '@/components/ErrorToast';
-import authService from '@/services/auth.service';
 import { useChildSelection } from '@/context/ChildSelectionContext';
 import { useUserRole } from '@/context/UserRoleContext';
 import calendarService from '@/services/calendar.service';
@@ -65,6 +64,7 @@ export default function DashboardPage() {
     selectedChildId,
     loading: childLoading,
   } = useChildSelection();
+  const canManage = role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN;
   const [dashboardFeedItems, setDashboardFeedItems] = useState<
     DashboardFeedItem[]
   >([]);
@@ -74,9 +74,9 @@ export default function DashboardPage() {
     null
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedManagedGroupId, setSelectedManagedGroupId] = useState<number | null>(
-    null
-  );
+  const [selectedManagedGroupId, setSelectedManagedGroupId] = useState<
+    number | null
+  >(null);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [postDialogMode, setPostDialogMode] = useState<'create' | 'edit'>(
     'create'
@@ -146,56 +146,33 @@ export default function DashboardPage() {
         return;
       }
 
-      if (role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN) {
+      if (canManage) {
         const groups = await groupService.getGroups();
-        const groupById = Object.fromEntries(
-          groups.map((group) => [group.id, group])
-        ) as Record<number, Group>;
+        // Keep the current group if it is still available; otherwise fall back to the first available group.
+        const activeGroupId =
+          selectedManagedGroupId &&
+          groups.some((group) => group.id === selectedManagedGroupId)
+            ? selectedManagedGroupId
+            : (groups[0]?.id ?? null);
+        const activeGroup =
+          groups.find((group) => group.id === activeGroupId) ?? null;
 
-        let resolvedGroupId: number | null = null;
-        let manageableGroups = groups;
+        setAvailableGroups(groups);
 
-        if (role === USER_ROLE.TEACHER) {
-          const profile = await authService.getProfile();
-          const teacherGroupIds = profile.groupIds ?? [];
-          manageableGroups = groups.filter((group) =>
-            teacherGroupIds.includes(group.id)
-          );
-          const nextTeacherGroupId =
-            selectedManagedGroupId &&
-            manageableGroups.some((group) => group.id === selectedManagedGroupId)
-              ? selectedManagedGroupId
-              : manageableGroups[0]?.id ?? null;
-
-          resolvedGroupId = nextTeacherGroupId;
-          if (nextTeacherGroupId !== selectedManagedGroupId) {
-            setSelectedManagedGroupId(nextTeacherGroupId);
-          }
-        } else {
-          const nextAdminGroupId =
-            selectedManagedGroupId &&
-            manageableGroups.some((group) => group.id === selectedManagedGroupId)
-              ? selectedManagedGroupId
-              : manageableGroups[0]?.id ?? null;
-
-          resolvedGroupId = nextAdminGroupId;
-          if (nextAdminGroupId !== selectedManagedGroupId) {
-            setSelectedManagedGroupId(nextAdminGroupId);
-          }
+        if (activeGroupId !== selectedManagedGroupId) {
+          setSelectedManagedGroupId(activeGroupId);
         }
 
-        setAvailableGroups(manageableGroups);
-
-        if (!resolvedGroupId) {
+        if (!activeGroupId) {
           setDashboardFeedItems([]);
           setDashboardGroupId(null);
           setDashboardGroupName(null);
           return;
         }
 
-        const posts = await postService.getPostsByGroup(resolvedGroupId);
-        setDashboardGroupId(resolvedGroupId);
-        setDashboardGroupName(groupById[resolvedGroupId]?.name ?? null);
+        const posts = await postService.getPostsByGroup(activeGroupId);
+        setDashboardGroupId(activeGroupId);
+        setDashboardGroupName(activeGroup?.name ?? null);
         setDashboardFeedItems(
           mapPostsToDashboardItems(Array.isArray(posts) ? posts : [], {})
         );
@@ -213,7 +190,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [children, role, selectedChildId, selectedManagedGroupId]);
+  }, [canManage, children, role, selectedChildId, selectedManagedGroupId]);
 
   useEffect(() => {
     if (roleLoading) {
@@ -285,7 +262,7 @@ export default function DashboardPage() {
                 : 'Päevakokkuvõtted'}
             </h2>
             <p className="text-sm text-mediumInk">
-              {role === USER_ROLE.ADMIN || role === USER_ROLE.TEACHER
+              {canManage
                 ? 'Vali rühm ja halda selle postitusi.'
                 : 'Rühma viimased postitused kuvatakse siin.'}
             </p>
@@ -298,7 +275,11 @@ export default function DashboardPage() {
                 <InputLabel id="dashboard-group-select-label">Rühm</InputLabel>
                 <Select
                   labelId="dashboard-group-select-label"
-                  value={selectedManagedGroupId != null ? String(selectedManagedGroupId) : ''}
+                  value={
+                    selectedManagedGroupId != null
+                      ? String(selectedManagedGroupId)
+                      : ''
+                  }
                   label="Rühm"
                   onChange={handleManagedGroupChange}
                   disabled={availableGroups.length === 0}
@@ -312,7 +293,7 @@ export default function DashboardPage() {
               </FormControl>
             ) : null}
 
-            {role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN ? (
+            {canManage ? (
               <Button variant="neutral" onClick={openPostDialog}>
                 Lisa uus
               </Button>
@@ -323,8 +304,7 @@ export default function DashboardPage() {
           <p className="text-sm text-mediumInk">Laadin avalehe andmeid...</p>
         ) : dashboardFeedItems.length === 0 ? (
           <p className="text-sm text-mediumInk">
-            {(role === USER_ROLE.ADMIN || role === USER_ROLE.TEACHER) &&
-            availableGroups.length === 0
+            {canManage && availableGroups.length === 0
               ? 'Rühmi ei leitud.'
               : 'Päevakokkuvõtteid ei leitud.'}
           </p>
@@ -334,9 +314,7 @@ export default function DashboardPage() {
               <DashboardFeedCard
                 key={item.id}
                 item={item}
-                canManage={
-                  role === USER_ROLE.TEACHER || role === USER_ROLE.ADMIN
-                }
+                canManage={canManage}
                 isDeleting={deletingPostId === item.id}
                 onEdit={openEditPostDialog}
                 onDelete={handleDeletePost}

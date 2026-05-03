@@ -83,9 +83,10 @@ describe('GroupsController', () => {
 
   describe('findAll', () => {
     it('should return all groups with details', async () => {
-      const result = await controller.findAll();
+      const req = { user: { id: 1, role: 'ADMIN' } } as any;
+      const result = await controller.findAll(req);
 
-      expect(groupsService.findAll).toHaveBeenCalled();
+      expect(groupsService.findAll).toHaveBeenCalledWith(req.user);
       expect(result).toEqual(mockGroups);
     });
   });
@@ -236,9 +237,10 @@ describe('GroupsController', () => {
 
   describe('findAll', () => {
     it('should return all groups with details', async () => {
-      const result = await controller.findAll();
+      const req = { user: { id: 1, role: 'ADMIN' } } as any;
+      const result = await controller.findAll(req);
 
-      expect(groupsService.findAll).toHaveBeenCalled();
+      expect(groupsService.findAll).toHaveBeenCalledWith(req.user);
       expect(result).toEqual(mockGroups);
     });
   });
