@@ -46,6 +46,29 @@ class AuthService {
     return unwrapData<User>(data);
   }
 
+  async updateProfile(payload: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }): Promise<User> {
+    const response = await fetchWithAuth(apiUrl(apiPaths.auth.me), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await parseJson(response);
+
+    if (!response.ok) {
+      throw new Error(
+        extractErrorMessage(data, `Failed to update profile (${response.status})`)
+      );
+    }
+
+    return unwrapData<User>(data);
+  }
+
   async logout(): Promise<void> {
     try {
       await fetchWithAuth(apiUrl(apiPaths.auth.logout), {

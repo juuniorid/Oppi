@@ -7,6 +7,7 @@ export interface User {
   lastName?: string | null;
   role: UserRole;
   phone?: string;
+  avatarUrl?: string | null;
   groupIds?: number[];
 }
 

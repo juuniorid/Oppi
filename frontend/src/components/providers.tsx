@@ -1,10 +1,12 @@
 'use client';
 
 /**
- * Juurproviderid: MUI teema (`theme/theme.ts`) kehtib MUI komponentidele; lehe koor on
- * peamiselt Tailwind + `palette.json`. CssBaseline ühtlustab brauseri vaikimisi marginaale.
+ * App-level providers:
+ * - MUI ThemeProvider/CssBaseline for component theming and baseline styles
+ * - Auth/UserRole/ChildSelection contexts for authenticated app state
  */
 import { appTheme } from '@/theme/theme';
+import { AuthProvider } from '@/context/AuthContext';
 import { ChildSelectionProvider } from '@/context/ChildSelectionContext';
 import { UserRoleProvider } from '@/context/UserRoleContext';
 import { ErrorToaster } from '@/components/ErrorToast';
@@ -14,9 +16,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <UserRoleProvider>
-        <ChildSelectionProvider>{children}</ChildSelectionProvider>
-      </UserRoleProvider>
+      <AuthProvider>
+        <UserRoleProvider>
+          <ChildSelectionProvider>{children}</ChildSelectionProvider>
+        </UserRoleProvider>
+      </AuthProvider>
       <ErrorToaster />
     </ThemeProvider>
   );
