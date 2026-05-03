@@ -37,15 +37,18 @@ function mapPostsToDashboardItems(
   options?: {
     childId?: number;
     statusByDate?: Record<string, DashboardFeedItem['status']>;
+    defaultStatus?: DashboardFeedItem['status'];
   }
 ): DashboardFeedItem[] {
+  const defaultStatus = options?.defaultStatus ?? 'PRESENT';
+
   return getRecentPosts(posts).map((post) => ({
     id: post.id,
     date: post.createdAt,
     title: post.title,
     description: post.message,
     childId: options?.childId,
-    status: options?.statusByDate?.[toDateKey(post.createdAt)],
+    status: options?.statusByDate?.[toDateKey(post.createdAt)] ?? defaultStatus,
   }));
 }
 
@@ -138,6 +141,7 @@ export default function DashboardPage() {
         setDashboardFeedItems(
           mapPostsToDashboardItems(recentPosts, {
             childId: selectedChild.id,
+            defaultStatus: 'PRESENT',
             statusByDate: mapAbsenceStatusByDate(
               Array.isArray(absences) ? absences : []
             ),
