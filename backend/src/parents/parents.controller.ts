@@ -16,9 +16,15 @@ export class ParentsController {
     @Get()
     @Roles(ROLE.Admin, ROLE.Teacher)
     @ApiOperation({ summary: 'Get all parent users (ADMIN/TEACHER only)' })
-    @ApiResponse({ status: 200, description: 'List of parents returned successfully.' })
-    @ApiResponse({ status: 403, description: 'Forbidden — only ADMIN or TEACHER can access this.' })
-    async getParents() {
+    @ApiResponse({
+        status: 200,
+        description: 'List of parents returned successfully.'
+    })
+    @ApiResponse({
+        status: 403,
+        description: 'Forbidden — only ADMIN or TEACHER can access this.'
+    })
+    async getAllParents(): Promise<any[]> {
         return this.parentsService.findAllParents();
     }
 }

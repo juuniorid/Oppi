@@ -5,7 +5,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 
 @Injectable()
 export class ParentsService {
-    async findAllParents() {
+    async findAllParents(): Promise<any[]> {
         const parentsList = await db
             .select({
                 id: users.id,
