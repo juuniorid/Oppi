@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { db } from 'database/db';
 import { users, ROLE } from 'database/schema';
 import { and, eq, isNull } from 'drizzle-orm';
+import { ParentDto } from '../common/dto/parents.dto';
 
 @Injectable()
 export class ParentsService {
-    async findAllParents(): Promise<any[]> {
+    async findAllParents(): Promise<ParentDto[]> {
         const parentsList = await db
             .select({
                 id: users.id,

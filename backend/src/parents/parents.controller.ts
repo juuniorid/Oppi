@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ParentsService } from './parents.service';
+import { ParentDto } from '../common/dto/parents.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -18,13 +19,14 @@ export class ParentsController {
     @ApiOperation({ summary: 'Get all parent users (ADMIN/TEACHER only)' })
     @ApiResponse({
         status: 200,
-        description: 'List of parents returned successfully.'
+        description: 'List of parents returned successfully.',
+        type: [ParentDto],
     })
     @ApiResponse({
         status: 403,
-        description: 'Forbidden — only ADMIN or TEACHER can access this.'
+        description: 'Forbidden — only ADMIN or TEACHER can access this.',
     })
-    async getAllParents(): Promise<any[]> {
+    async getAllParents(): Promise<ParentDto[]> {
         return this.parentsService.findAllParents();
     }
 }
