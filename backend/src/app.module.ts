@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as path from 'path';
-
 import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { ChildrenModule } from './children/children.module';
@@ -15,6 +14,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { appConfig } from './config';
 import { AbsencesModule } from './absences/absences.module';
 import { EventsModule } from './events/events.module';
+import { ParentsModule } from './parents/parents.module';
 
 @Module({
   imports: [
@@ -46,6 +46,7 @@ import { EventsModule } from './events/events.module';
     EventsModule,
     MailerModule,
     InvitesModule,
+    ParentsModule,
   ],
 })
 export class AppModule {}

@@ -92,6 +92,9 @@ export const apiPaths = {
   invites: {
     create: '/invites',
   },
+  parents: {
+    list: '/parents',
+  },
 };
 
 export function apiUrl(path: string): string {
