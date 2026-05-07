@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ParentsService } from './parents.service';
 import { ParentDto } from '../common/dto/parents.dto';
@@ -26,7 +26,8 @@ export class ParentsController {
         status: 403,
         description: 'Forbidden — only ADMIN or TEACHER can access this.',
     })
-    async getAllParents(): Promise<ParentDto[]> {
-        return this.parentsService.findAllParents();
+    async getAllParents(@Req() req: any): Promise<ParentDto[]> {
+        const user = req.user;
+        return this.parentsService.findAllParents(user.id, user.role);
     }
 }
