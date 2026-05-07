@@ -26,7 +26,7 @@ export class ParentsController {
         status: 403,
         description: 'Forbidden — only ADMIN or TEACHER can access this.',
     })
-    async getAllParents(@Req() req: any): Promise<ParentDto[]> {
+    async getAllParents(@Req() req: { user: { id: number; role: string } }): Promise<ParentDto[]> {
         const user = req.user;
         return this.parentsService.findAllParents(user.id, user.role);
     }

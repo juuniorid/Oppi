@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'database/db';
-import { users, ROLE, groupUsers, enrollments, userChildren } from 'database/schema';
+import { users, groupUsers, enrollments, userChildren } from 'database/schema';
 import { and, eq, isNull, inArray } from 'drizzle-orm';
 import { ParentDto } from '../common/dto/parents.dto';
 

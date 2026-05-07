@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ParentsService } from '../../src/parents/parents.service';
-import { ROLE } from '../../src/database/schema';
 
 describe('ParentsService (e2e)', () => {
     let service: ParentsService;
