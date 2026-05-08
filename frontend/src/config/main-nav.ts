@@ -33,7 +33,8 @@ export type MainNavItem = {
 export const mainNav: MainNavItem[] = [
   { href: '/users', label: 'Kasutajad', Icon: UserPlus, mobile: 'overflow', roles: ['ADMIN'] },
   { href: '/groups', label: 'Grupid', Icon: Users, mobile: 'overflow', roles: ['ADMIN'] },
-  { href: '/children', label: 'Lapsed', Icon: Baby, mobile: 'overflow', roles: ['ADMIN'] },
+  { href: '/children', label: 'Lapsed', Icon: Baby, mobile: 'overflow', roles: ['ADMIN', 'TEACHER'] },
+  { href: '/parents', label: 'Lapsevanemad', Icon: Users, mobile: 'overflow', roles: ['ADMIN', 'TEACHER'] },
   { href: '/dashboard', label: 'Avaleht', Icon: Home, mobile: 'dock'},
   { href: '/announcements', label: 'Teated', Icon: Bell, mobile: 'dock' },
   { href: '/calendar', label: 'Kalender', Icon: Calendar, mobile: 'dock' },
